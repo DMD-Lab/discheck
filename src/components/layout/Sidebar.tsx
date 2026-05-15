@@ -25,33 +25,41 @@ export default function Sidebar({ pseudo }: SidebarProps) {
   const pathname = usePathname()
   const router = useTransitionRouter()
   const { favorites } = useFavorites()
-  const [leavingIds, setLeavingIds] = useState<Set<number>>(new Set())
-  const leavingArtists = useRef<Map<number, DeezerArtistResult>>(new Map())
+  const [leavingItems, setLeavingItems] = useState<Map<number, DeezerArtistResult>>(new Map())
   const prevFavorites = useRef<DeezerArtistResult[]>([])
 
   useEffect(() => {
-    prevFavorites.current.forEach(artist => {
-      if (!favorites.find(a => a.id === artist.id) && !leavingIds.has(artist.id)) {
-        leavingArtists.current.set(artist.id, artist)
-        setLeavingIds(prev => new Set(prev).add(artist.id))
-        setTimeout(() => {
-          leavingArtists.current.delete(artist.id)
-          setLeavingIds(prev => { const next = new Set(prev); next.delete(artist.id); return next })
-        }, 180)
-      }
-    })
+    const removed = prevFavorites.current.filter(a => !favorites.find(f => f.id === a.id))
     prevFavorites.current = favorites
+    if (removed.length === 0) return
+
+    setLeavingItems(prev => {
+      const next = new Map(prev)
+      removed.forEach(a => { if (!next.has(a.id)) next.set(a.id, a) })
+      return next
+    })
+    removed.forEach(a => {
+      setTimeout(() => {
+        setLeavingItems(prev => {
+          const next = new Map(prev)
+          next.delete(a.id)
+          return next
+        })
+      }, 180)
+    })
   }, [favorites])
 
   const displayItems = [
     ...favorites.map(a => ({ artist: a, leaving: false })),
-    ...[...leavingArtists.current.values()].map(a => ({ artist: a, leaving: true })),
+    ...[...leavingItems.values()]
+      .filter(a => !favorites.find(f => f.id === a.id))
+      .map(a => ({ artist: a, leaving: true })),
   ]
 
   async function handleLogout() {
     const supabase = createClient()
     await supabase.auth.signOut()
-    router.push('/login')
+    router.push('/')
   }
 
   return (
@@ -94,7 +102,7 @@ export default function Sidebar({ pseudo }: SidebarProps) {
                 }`}
               >
                 <Image
-                  src={artist.picture_small ?? artist.picture_medium}
+                  src={artist.picture_medium}
                   alt={artist.name}
                   width={16}
                   height={16}

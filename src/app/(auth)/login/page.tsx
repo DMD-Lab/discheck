@@ -3,6 +3,7 @@ import { Link } from 'next-view-transitions'
 import { ArrowLeft } from 'lucide-react'
 import AuthForm, { type View } from './AuthForm'
 import { buttonVariants } from '@/components/ui/button-variants'
+import ThemeToggle from '@/components/ui/ThemeToggle'
 
 export default async function LoginPage({
   searchParams,
@@ -45,6 +46,11 @@ export default async function LoginPage({
         <ArrowLeft size={14} />
         Retour
       </Link>
+
+      {/* Bouton thème */}
+      <div className="absolute top-5 right-6 z-10">
+        <ThemeToggle />
+      </div>
 
       {/* Formulaire centré */}
       <div className="relative z-10 w-full max-w-sm px-6">

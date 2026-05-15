@@ -10,6 +10,11 @@ interface FavoritesContextValue {
   toggleFavorite: (artist: DeezerArtistResult) => Promise<void>
 }
 
+interface FavoriteRow {
+  artist_deezer_id: number
+  cached_artists: { artist_data: DeezerArtistResult } | null
+}
+
 const FavoritesContext = createContext<FavoritesContextValue | null>(null)
 
 export function FavoritesProvider({ userId, children }: { userId: string; children: ReactNode }) {
@@ -26,9 +31,9 @@ export function FavoritesProvider({ userId, children }: { userId: string; childr
       .limit(5)
       .then(({ data }) => {
         if (!data) return
-        const artists = data
-          .map((r: { cached_artists: { artist_data: DeezerArtistResult }[] }) => r.cached_artists?.[0]?.artist_data)
-          .filter(Boolean) as DeezerArtistResult[]
+        const artists = (data as unknown as FavoriteRow[])
+          .map(r => r.cached_artists?.artist_data)
+          .filter((a): a is DeezerArtistResult => !!a)
         setFavorites(artists)
         setFavoriteIds(new Set(artists.map(a => a.id)))
       })

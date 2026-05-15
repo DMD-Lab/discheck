@@ -4,6 +4,7 @@ import { Disc3, TrendingUp, History, ArrowRight } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { textStyles } from '@/components/ui/text-styles'
 import LogoImage from '@/components/ui/LogoImage'
+import ThemeToggle from '@/components/ui/ThemeToggle'
 
 const features = [
   {
@@ -44,7 +45,8 @@ export default function LandingPage() {
         }}
       />
 
-      <header className="relative flex items-center justify-end px-10 py-5" style={{ zIndex: 2 }}>
+      <header className="relative flex items-center justify-end gap-4 px-10 py-5" style={{ zIndex: 2 }}>
+        <ThemeToggle />
         <Link href="/login" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
           Se connecter
           <ArrowRight size={14} />
