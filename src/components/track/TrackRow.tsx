@@ -40,6 +40,7 @@ export default function TrackRow({ position, title, duration, listened, rating, 
   }
 
   function handleRate(n: number) {
+    if (!listened) onToggle()
     onRate(n)
     setShowRating(false)
   }

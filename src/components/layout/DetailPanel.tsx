@@ -48,7 +48,7 @@ export default function DetailPanel({ album, artistName, listenedIds, ratingMap,
     setTimeout(onClose, 250)
   }
 
-  const year = album.release_date?.slice(0, 4) ?? '—'
+  const year = album.original_release_year ?? album.release_date?.slice(0, 4) ?? '—'
   const listenedCount = tracks.filter(t => listenedIds.has(t.id)).length
   const remaining = tracks.length - listenedCount
   const allListened = tracks.length > 0 && listenedCount === tracks.length

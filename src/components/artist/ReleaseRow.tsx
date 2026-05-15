@@ -20,7 +20,7 @@ const typeLabel: Record<string, string> = {
 }
 
 export default function ReleaseRow({ album, listenedCount, total, rating, onClick, showDivider }: ReleaseRowProps) {
-  const year = album.release_date?.slice(0, 4) ?? '—'
+  const year = album.original_release_year ?? album.release_date?.slice(0, 4) ?? '—'
   const label = typeLabel[album.record_type] ?? album.record_type
   const allListened = !!total && listenedCount !== undefined && listenedCount >= total
   const someListened = !!total && listenedCount !== undefined && listenedCount > 0 && !allListened
@@ -61,7 +61,7 @@ export default function ReleaseRow({ album, listenedCount, total, rating, onClic
           )}
         </div>
 
-        <span className={`${textStyles.caption} text-text-disabled border border-border rounded-full px-2 py-0.5`}>
+        <span className={`${textStyles.caption} text-text-disabled border border-border rounded-full px-2 py-0.5 w-20 text-center`}>
           {label}
         </span>
         <span className={`${textStyles.caption} text-text-disabled w-10 text-right`}>{year}</span>

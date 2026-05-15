@@ -28,6 +28,7 @@ export interface DeezerAlbumResult {
   record_type: string
   nb_tracks: number
   type: 'album'
+  original_release_year?: number | null
 }
 
 export interface DeezerTracksResponse {

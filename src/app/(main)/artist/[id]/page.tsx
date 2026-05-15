@@ -29,9 +29,10 @@ export default function ArtistPage() {
       fetch(`/api/deezer/artist/${id}`).then(r => r.json()),
       fetch(`/api/deezer/artist/${id}/albums`).then(r => r.json()),
     ]).then(([artistData, albumsData]) => {
+      const getYear = (a: DeezerAlbumResult) =>
+        a.original_release_year ?? new Date(a.release_date).getFullYear()
       const sorted = (albumsData.data ?? []).sort(
-        (a: DeezerAlbumResult, b: DeezerAlbumResult) =>
-          new Date(b.release_date).getTime() - new Date(a.release_date).getTime()
+        (a: DeezerAlbumResult, b: DeezerAlbumResult) => getYear(b) - getYear(a)
       )
       setArtist(artistData)
       setAlbums(sorted)
@@ -161,7 +162,7 @@ export default function ArtistPage() {
   const groupedByYear = useMemo(() => {
     const map = new Map<string, DeezerAlbumResult[]>()
     filteredAlbums.forEach(album => {
-      const year = album.release_date?.slice(0, 4) ?? '—'
+      const year = String(album.original_release_year ?? album.release_date?.slice(0, 4) ?? '—')
       const list = map.get(year) ?? []
       list.push(album)
       map.set(year, list)

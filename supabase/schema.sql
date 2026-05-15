@@ -14,10 +14,11 @@ CREATE TABLE cached_artists (
 
 -- Cache albums / singles / EPs (JSONB — données brutes Deezer)
 CREATE TABLE cached_albums (
-  album_deezer_id  bigint PRIMARY KEY,
-  artist_deezer_id bigint NOT NULL,
-  album_data       jsonb NOT NULL,
-  cached_at        timestamptz NOT NULL DEFAULT now()
+  album_deezer_id       bigint PRIMARY KEY,
+  artist_deezer_id      bigint NOT NULL,
+  album_data            jsonb NOT NULL,
+  cached_at             timestamptz NOT NULL DEFAULT now(),
+  original_release_year smallint
 );
 
 -- Cache titres (JSONB — données brutes Deezer)
