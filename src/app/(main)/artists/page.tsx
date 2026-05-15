@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Link, useTransitionRouter } from 'next-view-transitions'
-import { ChevronRight, Search } from 'lucide-react'
+import { ChevronRight, Search, Star } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { textStyles } from '@/components/ui/text-styles'
 import { createClient } from '@/lib/supabase/client'
 import type { DeezerArtistResult } from '@/lib/deezer/types'
+import { useFavorites } from '@/context/FavoritesContext'
 
 interface ArtistProgress {
   listened: number
@@ -19,6 +20,7 @@ export default function ArtistsPage() {
   const [artists, setArtists] = useState<DeezerArtistResult[]>([])
   const [progressMap, setProgressMap] = useState<Map<number, ArtistProgress>>(new Map())
   const [loading, setLoading] = useState(true)
+  const { favoriteIds, toggleFavorite } = useFavorites()
 
   useEffect(() => {
     const supabase = createClient()
@@ -81,6 +83,7 @@ export default function ArtistsPage() {
       setProgressMap(map)
     })
   }, [])
+
 
   return (
     <>
@@ -155,11 +158,23 @@ export default function ArtistsPage() {
                 : null
 
               return (
-                <button
+                <div
                   key={artist.id}
+                  className="flex items-center px-4 py-3 rounded-lg hover:bg-bg-secondary/60 backdrop-blur-sm transition-colors w-full group cursor-pointer"
                   onClick={() => router.push(`/artist/${artist.id}`)}
-                  className="flex items-center px-4 py-3 rounded-lg hover:bg-bg-secondary/60 backdrop-blur-sm transition-colors text-left w-full group"
                 >
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleFavorite(artist) }}
+                    className={`w-7 h-7 flex items-center justify-center rounded-md flex-shrink-0 transition-colors mr-1 ${
+                      favoriteIds.has(artist.id)
+                        ? 'text-primary'
+                        : 'text-text-disabled hover:text-text-secondary'
+                    } ${!favoriteIds.has(artist.id) && favoriteIds.size >= 5 ? 'opacity-30 cursor-not-allowed' : ''}`}
+                    title={favoriteIds.has(artist.id) ? 'Retirer des favoris' : favoriteIds.size >= 5 ? '5 favoris maximum' : 'Ajouter aux favoris'}
+                  >
+                    <Star size={14} fill={favoriteIds.has(artist.id) ? 'currentColor' : 'none'} />
+                  </button>
+
                   <div className="flex-1 flex items-center gap-3 min-w-0">
                     <Image
                       src={artist.picture_medium}
@@ -202,10 +217,10 @@ export default function ArtistsPage() {
                     }
                   </div>
 
-                  <div className="w-8 flex justify-end flex-shrink-0">
+                  <div className="w-6 flex justify-end flex-shrink-0">
                     <ChevronRight size={14} className="text-text-disabled group-hover:text-text-secondary transition-colors" />
                   </div>
-                </button>
+                </div>
               )
             })}
           </div>

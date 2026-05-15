@@ -101,6 +101,17 @@ AS $$
   WHERE lt.user_id = p_user_id
 $$;
 
+-- Artistes favoris (max 5 par utilisateur, accès rapide sidebar)
+CREATE TABLE favorite_artists (
+  user_id          uuid REFERENCES profiles ON DELETE CASCADE,
+  artist_deezer_id bigint NOT NULL REFERENCES cached_artists(artist_deezer_id),
+  created_at       timestamptz DEFAULT now(),
+  PRIMARY KEY (user_id, artist_deezer_id)
+);
+
+ALTER TABLE favorite_artists ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can manage own favorites" ON favorite_artists FOR ALL USING (auth.uid() = user_id);
+
 -- Trigger : crée automatiquement un profil à l'inscription
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS trigger AS $$
