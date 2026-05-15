@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useTransitionRouter } from 'next-view-transitions'
 import { Mail, Lock, User, Eye, EyeOff, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import AppButton from '@/components/ui/AppButton'
 import { textStyles } from '@/components/ui/text-styles'
 import LogoImage from '@/components/ui/LogoImage'
+import VinylSpinner from '@/components/ui/VinylSpinner'
 
 export type View = 'login' | 'register' | 'forgot'
 
@@ -23,7 +24,7 @@ const subtitles: Record<View, string> = {
 }
 
 export default function AuthForm({ initialView }: { initialView: View }) {
-  const router = useRouter()
+  const router = useTransitionRouter()
   const [view, setView] = useState<View>(initialView)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -77,6 +78,12 @@ export default function AuthForm({ initialView }: { initialView: View }) {
 
   return (
     <div className="flex flex-col items-center">
+
+      {loading && (
+        <div className="auth-overlay fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.75)' }}>
+          <VinylSpinner size={64} />
+        </div>
+      )}
 
       {/* Animated form wrapper — key triggers re-mount → animation CSS se rejoue */}
       <div key={view} className="form-enter w-full">

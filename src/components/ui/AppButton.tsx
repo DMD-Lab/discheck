@@ -2,6 +2,7 @@
 
 import { type ReactNode, type ButtonHTMLAttributes } from 'react'
 import { buttonVariants, type ButtonVariant, type ButtonSize } from './button-variants'
+import VinylSpinner from './VinylSpinner'
 
 export { buttonVariants, type ButtonVariant, type ButtonSize } from './button-variants'
 
@@ -38,9 +39,15 @@ export default function AppButton({
         className: `${disabled || loading ? 'opacity-50 cursor-not-allowed' : ''} ${className ?? ''}`,
       })}
     >
-      {leftIcon && <span className="flex-shrink-0">{leftIcon}</span>}
-      {children}
-      {rightIcon && <span className="flex-shrink-0">{rightIcon}</span>}
+      {loading ? (
+        <VinylSpinner size={18} />
+      ) : (
+        <>
+          {leftIcon && <span className="flex-shrink-0">{leftIcon}</span>}
+          {children}
+          {rightIcon && <span className="flex-shrink-0">{rightIcon}</span>}
+        </>
+      )}
     </button>
   )
 }
