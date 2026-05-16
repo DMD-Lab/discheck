@@ -160,7 +160,7 @@ export default function ArtistsPage() {
               return (
                 <div
                   key={artist.id}
-                  className="flex items-center px-4 py-3 rounded-lg hover:bg-bg-secondary/60 backdrop-blur-sm transition-colors w-full group cursor-pointer"
+                  className="flex items-center px-4 py-3 rounded-lg hover:bg-bg-secondary/60 backdrop-blur-sm transition-colors w-full group cursor-pointer border-b border-border"
                   onClick={() => router.push(`/artist/${artist.id}`)}
                 >
                   <button

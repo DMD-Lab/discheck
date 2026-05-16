@@ -3,7 +3,7 @@ import { Link } from 'next-view-transitions'
 import { Disc3, TrendingUp, History, ArrowRight } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { textStyles } from '@/components/ui/text-styles'
-import LogoImage from '@/components/ui/LogoImage'
+import DischecLogo from '@/components/ui/DischecLogo'
 import ThemeToggle from '@/components/ui/ThemeToggle'
 
 const features = [
@@ -56,7 +56,7 @@ export default function LandingPage() {
       <main className="relative flex-1 flex flex-col justify-center px-14 pb-6" style={{ zIndex: 2 }}>
 
         <div className="mb-10 max-w-2xl gap-6 flex flex-col">
-          <LogoImage height={150} className="self-start" />
+          <DischecLogo height={60} variant="auto" className="self-start" />
           <h1 className={`${textStyles.display} text-text-primary`}>
             Suivez votre discographie<br />simplement.
           </h1>

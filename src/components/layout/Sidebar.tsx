@@ -6,7 +6,7 @@ import { Search, Music2, Settings, LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useTransitionRouter } from 'next-view-transitions'
 import { textStyles } from '@/components/ui/text-styles'
-import LogoImage from '@/components/ui/LogoImage'
+import DischecLogo from '@/components/ui/DischecLogo'
 import Image from 'next/image'
 import { useFavorites } from '@/context/FavoritesContext'
 import { useState, useEffect, useRef } from 'react'
@@ -65,7 +65,7 @@ export default function Sidebar({ pseudo }: SidebarProps) {
   return (
     <aside className="w-56 h-screen bg-bg-secondary border-r border-border flex flex-col fixed left-0 top-0">
       <div className="px-4 py-8 border-b border-border">
-        <LogoImage height={48} />
+        <DischecLogo height={32} />
       </div>
 
       <nav className="flex-1 px-3 pt-3 flex flex-col gap-1">

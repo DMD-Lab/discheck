@@ -54,12 +54,19 @@
 /* Light mode */
 [data-theme="light"] {
   --bg-primary: #FFFFFF;
-  --bg-secondary: #F5F5F5;
-  --bg-tertiary: #EBEBEB;
-  --border-color: #E0E0E0;
+  --bg-secondary: #F0F0F0;
+  --bg-tertiary: #E4E4E4;
+  --border-color: #AAAAAA;
   --text-primary: #0F0F0F;
-  --text-secondary: #666666;
-  --text-disabled: #BBBBBB;
+  --text-secondary: #555555;
+  --text-disabled: #666666;
+  --text-green: #15803d;
+  --text-green-light: #16a34a;
+  --text-green-dark: #0f6b35;
+
+  --primary: #16a34a;
+  --primary-light: #22c55e;
+  --primary-dark: #15803d;
 }
 
 /* View Transitions — crossfade 220ms entre les pages */
@@ -85,10 +92,25 @@ button {
   cursor: pointer;
 }
 
+/* DischecLogo variant auto — CSS-driven */
+.discheck-logo { color: #FFFFFF; }
+[data-theme="light"] .discheck-logo { color: #0F0F0F; }
+
 /* Logo dark/light — CSS-driven, pas de hydration mismatch */
 .logo-light { display: none; }
 [data-theme="light"] .logo-dark { display: none; }
 [data-theme="light"] .logo-light { display: block; }
+
+/* Theme-conditional visibility */
+.theme-light-only { display: none; }
+[data-theme="light"] .theme-dark-only { display: none; }
+[data-theme="light"] .theme-light-only { display: block; }
+
+/* Toggle track & knob — CSS-driven */
+.toggle-track { background-color: var(--primary); }
+[data-theme="light"] .toggle-track { background-color: var(--border-color); }
+.toggle-knob { transform: translateX(16px); }
+[data-theme="light"] .toggle-knob { transform: translateX(0); }
 
 @keyframes formEnter {
   from { opacity: 0; transform: translateY(10px); }

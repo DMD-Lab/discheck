@@ -6,7 +6,7 @@ import { Mail, Lock, User, Eye, EyeOff, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import AppButton from '@/components/ui/AppButton'
 import { textStyles } from '@/components/ui/text-styles'
-import LogoImage from '@/components/ui/LogoImage'
+import DischecLogo from '@/components/ui/DischecLogo'
 import VinylSpinner from '@/components/ui/VinylSpinner'
 
 export type View = 'login' | 'register' | 'forgot'
@@ -90,7 +90,7 @@ export default function AuthForm({ initialView }: { initialView: View }) {
 
       {/* Logo */}
       <div className="mb-8 flex justify-center">
-        <LogoImage height={100} />
+        <DischecLogo height={40} variant="auto" />
       </div>
         <div className="text-center mb-7">
           <h1 className={`${textStyles.sectionTitle} text-text-primary mb-2`}>{titles[view]}</h1>

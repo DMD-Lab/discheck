@@ -23,9 +23,7 @@ export const metadata: Metadata = {
   },
   description: 'Suivez vos discographies musicales. Explorez des artistes, cochez vos écoutes et suivez votre progression album par album.',
   icons: {
-    icon: '/icon.png',
-    shortcut: '/favicon.ico',
-    apple: '/apple-icon.png',
+    icon: '/favicon.svg',
   },
   openGraph: {
     title: 'Discheck',
