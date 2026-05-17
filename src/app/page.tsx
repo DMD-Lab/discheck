@@ -57,7 +57,7 @@ export default function LandingPage() {
 
         <div className="mb-10 max-w-2xl gap-6 flex flex-col">
           <DischecLogo height={40} variant="auto" className="self-start sm:hidden" />
-          <DischecLogo height={60} variant="auto" className="self-start hidden sm:block" />
+          <DischecLogo height={60} variant="auto" className="self-start hidden sm:flex" />
           <h1 className={`${textStyles.display} text-text-primary`}>
             Suivez votre discographie<br />simplement.
           </h1>
