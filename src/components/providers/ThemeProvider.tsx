@@ -7,6 +7,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     <NextThemesProvider
       attribute="data-theme"
       defaultTheme="dark"
+      forcedTheme="dark" // WIP WHITE THEME
     >
       {children}
     </NextThemesProvider>

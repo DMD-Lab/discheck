@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import AppButton from '@/components/ui/AppButton'
 import { textStyles } from '@/components/ui/text-styles'
 import DischecLogo from '@/components/ui/DischecLogo'
-import VinylSpinner from '@/components/ui/VinylSpinner'
+import DischecLoader from '@/components/ui/DischecLoader'
 
 export type View = 'login' | 'register' | 'forgot'
 
@@ -81,7 +81,7 @@ export default function AuthForm({ initialView }: { initialView: View }) {
 
       {loading && (
         <div className="auth-overlay fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.75)' }}>
-          <VinylSpinner size={64} />
+          <DischecLoader size={64} />
         </div>
       )}
 
@@ -92,7 +92,8 @@ export default function AuthForm({ initialView }: { initialView: View }) {
       <div className="mb-8 flex justify-center">
         <DischecLogo height={40} variant="auto" />
       </div>
-        <div className="text-center mb-7">
+
+  <div className="text-center mb-7">
           <h1 className={`${textStyles.sectionTitle} text-text-primary mb-2`}>{titles[view]}</h1>
           <p className={`${textStyles.body} text-text-secondary leading-relaxed max-w-xs mx-auto`}>{subtitles[view]}</p>
         </div>
