@@ -172,19 +172,26 @@ export default function ArtistPage() {
 
   if (loading) {
     return (
-      <div className="px-16 py-12">
+      <div className="px-4 py-6 md:px-8 lg:px-16 lg:py-12">
         {/* Header skeleton */}
-        <div className="flex items-start gap-6 mb-8">
-          <div className="w-28 h-28 rounded-lg bg-bg-tertiary animate-pulse flex-shrink-0" />
+        <div className="flex items-start gap-4 md:gap-6 mb-4 md:mb-8">
+          <div className="w-20 h-20 md:w-28 md:h-28 rounded-lg bg-bg-tertiary animate-pulse flex-shrink-0" />
           <div className="flex-1 pt-1 space-y-3">
-            <div className="h-10 w-56 bg-bg-tertiary rounded-lg animate-pulse" />
+            <div className="h-8 md:h-10 w-48 md:w-56 bg-bg-tertiary rounded-lg animate-pulse" />
             <div className="h-3.5 w-36 bg-bg-tertiary rounded animate-pulse" />
           </div>
-          <div className="flex gap-3 mt-1">
+          <div className="hidden lg:flex gap-3 mt-1">
             {[0, 1, 2].map(i => (
               <div key={i} className="w-24 h-14 rounded-xl bg-bg-tertiary animate-pulse" />
             ))}
           </div>
+        </div>
+
+        {/* Stats skeleton mobile */}
+        <div className="grid grid-cols-3 gap-2 mb-6 lg:hidden">
+          {[0, 1, 2].map(i => (
+            <div key={i} className="h-10 rounded-xl bg-bg-tertiary animate-pulse" />
+          ))}
         </div>
 
         {/* Filter tabs skeleton */}
@@ -196,14 +203,14 @@ export default function ArtistPage() {
 
         {/* Timeline skeleton */}
         <div className="relative">
-          <div className="absolute top-0 bottom-0 w-px bg-bg-tertiary" style={{ left: '82px' }} />
+          <div className="absolute top-0 bottom-0 w-px bg-bg-tertiary left-[44px] lg:left-[82px]" />
           <div className="flex flex-col gap-4">
             {[3, 2, 4, 2].map((count, gi) => (
               <div key={gi} className="flex items-start">
-                <div className="flex-shrink-0 flex justify-end pt-4" style={{ width: '64px' }}>
+                <div className="flex-shrink-0 flex justify-end pt-4 w-8 lg:w-16">
                   <div className="h-3.5 w-10 bg-bg-tertiary rounded animate-pulse" />
                 </div>
-                <div className="flex-shrink-0 flex justify-center pt-4" style={{ width: '36px' }}>
+                <div className="flex-shrink-0 flex justify-center pt-4 w-6 lg:w-9">
                   <div className="w-2.5 h-2.5 rounded-full bg-bg-tertiary" />
                 </div>
                 <div className="flex-1 flex flex-col">
@@ -228,19 +235,19 @@ export default function ArtistPage() {
   }
 
   if (!artist) {
-    return <div className="px-16 py-12"><p className="text-text-secondary text-sm">Artiste introuvable.</p></div>
+    return <div className="px-4 py-6 md:px-8 lg:px-16 lg:py-12"><p className="text-text-secondary text-sm">Artiste introuvable.</p></div>
   }
 
   return (
-    <div className="px-16 py-12">
+    <div className="px-4 py-6 md:px-8 lg:px-16 lg:py-12">
       {/* Header */}
-      <div className="flex items-start gap-6 mb-8">
+      <div className="flex items-start gap-4 md:gap-6 mb-4 md:mb-8">
         <Image
           src={artist.picture_xl}
           alt={artist.name}
           width={112}
           height={112}
-          className="rounded-lg object-cover flex-shrink-0"
+          className="rounded-lg object-cover flex-shrink-0 w-20 h-20 md:w-28 md:h-28"
           loading="eager"
         />
         <div className="flex-1 min-w-0 pt-1">
@@ -249,11 +256,18 @@ export default function ArtistPage() {
             {albums.length} sortie{albums.length > 1 ? 's' : ''} · {stats.pct}% écouté
           </p>
         </div>
-        <div className="flex gap-3 flex-shrink-0 mt-1">
+        <div className="hidden lg:grid grid-cols-3 gap-3 shrink-0 mt-1">
           <StatCard icon={<Music2 size={16} className="text-text-secondary" />} value={albums.length} label="sorties" />
           <StatCard icon={<CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />} value={stats.terminées} label="terminées" />
           <StatCard icon={<Activity size={16} style={{ color: 'var(--primary)' }} />} value={stats.enCours} label="en cours" />
         </div>
+      </div>
+
+      {/* Stats mobiles — pleine largeur sous le header */}
+      <div className="grid grid-cols-3 gap-2 mb-6 lg:hidden">
+        <StatCard compact icon={<Music2 size={14} className="text-text-secondary" />} value={albums.length} label="sorties" />
+        <StatCard compact icon={<CheckCircle2 size={14} style={{ color: 'var(--primary)' }} />} value={stats.terminées} label="terminées" />
+        <StatCard compact icon={<Activity size={14} style={{ color: 'var(--primary)' }} />} value={stats.enCours} label="en cours" />
       </div>
 
       {/* Filter tabs */}
@@ -276,21 +290,20 @@ export default function ArtistPage() {
       {/* Timeline */}
       <div className="relative">
         <div
-          className="absolute top-0 bottom-0 w-px"
-          style={{ left: '82px', backgroundColor: 'var(--border-color)' }}
+          className="absolute top-0 bottom-0 w-px left-[44px] lg:left-[82px]"
+          style={{ backgroundColor: 'var(--border-color)' }}
         />
 
         <div className="flex flex-col gap-4">
           {groupedByYear.map(({ year, releases }) => (
             <div key={year} className="flex items-start">
               <span
-                className={`flex-shrink-0 ${textStyles.body} font-semibold text-text-disabled pt-3.5`}
-                style={{ width: '64px', textAlign: 'right' }}
+                className={`flex-shrink-0 w-8 lg:w-16 ${textStyles.body} font-semibold text-text-disabled pt-3.5 text-right`}
               >
                 {year}
               </span>
 
-              <div className="flex-shrink-0 flex justify-center pt-4" style={{ width: '36px' }}>
+              <div className="flex-shrink-0 flex justify-center pt-4 w-6 lg:w-9">
                 <div className="w-2.5 h-2.5 rounded-full border border-border bg-bg-primary relative z-10" />
               </div>
 

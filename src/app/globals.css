@@ -82,10 +82,15 @@
 }
 
 
+html {
+  overflow-x: clip;
+}
+
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   font-family: var(--font-sans);
+  overflow-x: clip;
 }
 
 button {

@@ -87,7 +87,7 @@ export default function ArtistsPage() {
 
   return (
     <>
-      <div className="fixed top-0 right-0 bottom-0 left-56 -z-10 overflow-hidden">
+      <div className="fixed top-0 right-0 bottom-0 left-0 md:left-56 -z-10 overflow-hidden">
         <Image src="/artists-bg.png" alt="" fill sizes="100vw" className="object-cover object-center" loading="eager" />
         <div
           className="absolute inset-0"
@@ -98,19 +98,19 @@ export default function ArtistsPage() {
         />
       </div>
 
-      <div className="flex flex-col min-h-screen px-16 py-12">
-        <div className="flex items-start justify-between mb-10">
-          <div>
-            <h1 className={`${textStyles.pageTitle} text-text-primary mb-1.5`}>Mes artistes</h1>
-            <p className={`${textStyles.body} text-text-secondary`}>
-              Les artistes s&apos;ajoutent automatiquement lorsque vous écoutez un album ou un single.
-            </p>
+      <div className="flex flex-col flex-1 px-4 py-6 md:px-8 lg:px-16 lg:py-12">
+        <div className="mb-10">
+          <div className="flex items-baseline gap-3 mb-1.5">
+            <h1 className={`${textStyles.pageTitle} text-text-primary`}>Mes artistes</h1>
+            {!loading && artists.length > 0 && (
+              <span className={`${textStyles.caption} text-text-disabled`}>
+                {artists.length} artiste{artists.length > 1 ? 's' : ''}
+              </span>
+            )}
           </div>
-          {!loading && artists.length > 0 && (
-            <span className={`${textStyles.caption} text-text-disabled mt-2`}>
-              {artists.length} artiste{artists.length > 1 ? 's' : ''}
-            </span>
-          )}
+          <p className={`${textStyles.body} text-text-secondary`}>
+            Les artistes s&apos;ajoutent automatiquement lorsque vous écoutez un album ou un single.
+          </p>
         </div>
 
         {loading && (
@@ -146,9 +146,9 @@ export default function ArtistsPage() {
           <div className="flex flex-col">
             <div className="flex items-center px-4 pb-2 border-b border-border mb-1">
               <div className={`flex-1 ${textStyles.overline} text-text-disabled`}>Artiste</div>
-              <div className={`w-48 ${textStyles.overline} text-text-disabled`}>Progression</div>
-              <div className={`w-24 ${textStyles.overline} text-text-disabled text-right`}>Sorties</div>
-              <div className="w-8" />
+              <div className={`hidden md:block w-36 ${textStyles.overline} text-text-disabled`}>Progression</div>
+              <div className={`hidden md:block w-24 ${textStyles.overline} text-text-disabled text-right`}>Écoutés</div>
+              <div className="hidden md:block w-8" />
             </div>
 
             {artists.map(artist => {
@@ -185,13 +185,13 @@ export default function ArtistsPage() {
                     />
                     <div className="min-w-0">
                       <p className={`${textStyles.body} font-medium text-text-primary truncate`}>{artist.name}</p>
-                      <p className={`${textStyles.caption} text-text-secondary`}>{artist.nb_album} sorties</p>
+                      <p className={`${textStyles.caption} text-text-secondary whitespace-nowrap`}>{artist.nb_album} sorties</p>
                     </div>
                   </div>
 
-                  <div className="w-48 flex-shrink-0">
+                  <div className="hidden md:flex w-36 flex-shrink-0">
                     {pct !== null ? (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 w-full">
                         <div className="flex-1 h-1.5 bg-bg-tertiary rounded-full overflow-hidden">
                           <div
                             className="h-full rounded-full"
@@ -206,11 +206,11 @@ export default function ArtistsPage() {
                         </span>
                       </div>
                     ) : (
-                      <div className="h-1.5 bg-bg-tertiary/40 rounded-full" />
+                      <div className="h-1.5 bg-bg-tertiary/40 rounded-full w-full" />
                     )}
                   </div>
 
-                  <div className={`w-24 ${textStyles.body} text-text-secondary text-right flex-shrink-0`}>
+                  <div className={`hidden md:block w-24 ${textStyles.body} text-text-secondary text-right flex-shrink-0`}>
                     {progress
                       ? `${progress.listened}/${progress.total}`
                       : `—`

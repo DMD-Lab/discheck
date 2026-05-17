@@ -9,11 +9,11 @@
  */
 export const textStyles = {
   /** 48px bold tight — hero landing, nom d'artiste prominent */
-  display:      'text-5xl font-bold leading-tight',
+  display:      'text-3xl font-bold leading-tight md:text-5xl',
   /** 36px bold tight — titre H1 de chaque page */
-  pageTitle:    'text-4xl font-bold leading-tight',
+  pageTitle:    'text-2xl font-bold leading-tight md:text-4xl',
   /** 24px bold — titre de section, panel header */
-  sectionTitle: 'text-2xl font-bold',
+  sectionTitle: 'text-xl font-bold md:text-2xl',
   /** 18px semibold — empty states, titres de cards */
   cardTitle:    'text-lg font-semibold',
   /** 16px regular relaxed — descriptions, sous-titres longs */

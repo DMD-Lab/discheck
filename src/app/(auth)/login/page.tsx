@@ -16,8 +16,8 @@ export default async function LoginPage({
   return (
     <div className="h-screen overflow-hidden relative flex items-center justify-center bg-bg-primary">
 
-      {/* Image gauche */}
-      <div className="absolute left-0 top-0 h-full w-[38%] overflow-hidden">
+      {/* Image gauche — masquée sur mobile */}
+      <div className="hidden md:block absolute left-0 top-0 h-full w-[38%] overflow-hidden">
         <Image src="/auth-left.png" alt="" fill sizes="38vw" className="object-cover" loading="eager" aria-hidden />
         <div
           className="absolute inset-0"
@@ -25,8 +25,8 @@ export default async function LoginPage({
         />
       </div>
 
-      {/* Image droite */}
-      <div className="absolute right-0 top-0 h-full w-[38%] overflow-hidden">
+      {/* Image droite — masquée sur mobile */}
+      <div className="hidden md:block absolute right-0 top-0 h-full w-[38%] overflow-hidden">
         <Image src="/auth-right.png" alt="" fill sizes="38vw" className="object-cover" loading="eager" aria-hidden />
         <div
           className="absolute inset-0"

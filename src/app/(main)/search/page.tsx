@@ -39,7 +39,7 @@ export default function SearchPage() {
   return (
     <>
       {/* Fond fixe — hors du flux, couvre tout l'espace main */}
-      <div className="fixed top-0 right-0 bottom-0 left-56 -z-10 overflow-hidden">
+      <div className="fixed top-0 right-0 bottom-0 left-0 md:left-56 -z-10 overflow-hidden">
         <Image
           src="/vinyl-bg.png"
           alt=""
@@ -58,7 +58,7 @@ export default function SearchPage() {
       </div>
 
       {/* Contenu — hérite du max-w du layout */}
-      <div className="flex flex-col min-h-screen px-16 py-12">
+      <div className="flex flex-col flex-1 px-4 py-6 md:px-8 lg:px-16 lg:py-12">
 
         {/* Search bar */}
         <div className="relative w-full">

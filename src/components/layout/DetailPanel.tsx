@@ -85,7 +85,7 @@ export default function DetailPanel({ album, artistName, listenedIds, ratingMap,
         {/* Close button */}
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 z-20 w-7 h-7 flex items-center justify-center rounded-full bg-black/30 text-white/80 hover:text-white hover:bg-black/50 transition-colors"
+          className="absolute top-4 right-4 z-20 w-7 h-7 flex items-center justify-center rounded-full bg-bg-secondary border border-border text-text-secondary hover:text-text-primary hover:bg-bg-tertiary transition-colors"
         >
           <X size={14} />
         </button>
@@ -96,29 +96,29 @@ export default function DetailPanel({ album, artistName, listenedIds, ratingMap,
             src={album.cover_xl}
             alt=""
             fill
-            sizes="600px"
+            sizes="(max-width: 768px) 100vw, 600px"
             className="object-cover"
             style={{ filter: 'blur(40px)', transform: 'scale(1.3)' }}
             aria-hidden
           />
           <div className="absolute inset-0 bg-black/50" />
 
-          <div className="relative z-10 p-5 flex gap-4">
+          <div className="relative z-10 p-3 md:p-5 flex gap-3 md:gap-4">
             <Image
               src={album.cover_xl}
               alt={album.title}
               width={200}
               height={200}
-              className="rounded-lg flex-shrink-0 object-cover shadow-xl"
+              className="rounded-lg flex-shrink-0 object-cover shadow-xl w-24 h-24 md:w-[160px] md:h-[160px]"
               loading="eager"
             />
-            <div className="flex flex-col justify-center">
-              <h2 className={`${textStyles.cardTitle} text-white`}>{album.title}</h2>
+            <div className="flex flex-col justify-center min-w-0 pr-10 md:pr-0">
+              <h2 className={`${textStyles.cardTitle} text-white truncate`}>{album.title}</h2>
               <span className={`${textStyles.caption} text-white/50 mt-1`}>
                 {({ album: 'Album', single: 'Single', ep: 'EP', compilation: 'Compilation' } as Record<string, string>)[album.record_type] ?? album.record_type}
               </span>
               {artistName && (
-                <p className={`${textStyles.body} text-white/70 mt-1`}>{artistName}</p>
+                <p className={`${textStyles.body} text-white/70 mt-1 truncate`}>{artistName}</p>
               )}
               <p className={`${textStyles.caption} text-white/40 mt-0.5`}>{year}</p>
             </div>

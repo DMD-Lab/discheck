@@ -63,7 +63,7 @@ export default function Sidebar({ pseudo }: SidebarProps) {
   }
 
   return (
-    <aside className="w-56 h-screen bg-bg-secondary border-r border-border flex flex-col fixed left-0 top-0">
+    <aside className="hidden md:flex w-56 bg-bg-secondary border-r border-border flex-col fixed left-0 top-0 bottom-0">
       <div className="px-4 py-8 border-b border-border">
         <DischecLogo height={32} />
       </div>

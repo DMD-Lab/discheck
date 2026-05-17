@@ -26,7 +26,7 @@ const features = [
 
 export default function LandingPage() {
   return (
-    <div className="h-screen overflow-hidden relative flex flex-col">
+    <div className="min-h-screen md:h-screen md:overflow-hidden relative flex flex-col">
 
       <Image
         src="/landing-bg.png"
@@ -45,7 +45,7 @@ export default function LandingPage() {
         }}
       />
 
-      <header className="relative flex items-center justify-end gap-4 px-10 py-5" style={{ zIndex: 2 }}>
+      <header className="relative flex items-center justify-end gap-4 px-4 py-4 md:px-10 md:py-5" style={{ zIndex: 2 }}>
         <ThemeToggle />
         <Link href="/login" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
           Se connecter
@@ -53,10 +53,11 @@ export default function LandingPage() {
         </Link>
       </header>
 
-      <main className="relative flex-1 flex flex-col justify-center px-14 pb-6" style={{ zIndex: 2 }}>
+      <main className="relative flex-1 flex flex-col justify-center px-4 pb-8 md:px-14 md:pb-6" style={{ zIndex: 2 }}>
 
         <div className="mb-10 max-w-2xl gap-6 flex flex-col">
-          <DischecLogo height={60} variant="auto" className="self-start" />
+          <DischecLogo height={40} variant="auto" className="self-start sm:hidden" />
+          <DischecLogo height={60} variant="auto" className="self-start hidden sm:block" />
           <h1 className={`${textStyles.display} text-text-primary`}>
             Suivez votre discographie<br />simplement.
           </h1>
@@ -72,7 +73,7 @@ export default function LandingPage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 max-w-2xl">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl">
           {features.map(({ icon: Icon, title, description }) => (
             <div
               key={title}

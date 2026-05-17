@@ -71,7 +71,7 @@ export default function TrackRow({ position, title, duration, listened, rating, 
         {!rating && (
           <button
             onClick={openRating}
-            className={`${textStyles.caption} text-text-disabled hover:text-text-secondary transition-colors border border-border rounded px-1.5 py-0.5 opacity-0 group-hover:opacity-100`}
+            className={`${textStyles.caption} text-text-disabled hover:text-text-secondary transition-colors border border-border rounded px-1.5 py-0.5`}
           >
             Noter
           </button>

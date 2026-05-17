@@ -2,17 +2,27 @@
 
 // WIP WHITE THEME — import { useTheme } from 'next-themes'
 // WIP WHITE THEME — import { Moon, Sun } from 'lucide-react'
+import { LogOut } from 'lucide-react'
+import { useTransitionRouter } from 'next-view-transitions'
+import { createClient } from '@/lib/supabase/client'
 import { textStyles } from '@/components/ui/text-styles'
 
 export default function SettingsPage() {
+  const router = useTransitionRouter()
   // WIP WHITE THEME — const { setTheme } = useTheme()
   // WIP WHITE THEME — function toggleTheme() {
   //   const current = document.documentElement.getAttribute('data-theme')
   //   setTheme(current === 'light' ? 'dark' : 'light')
   // }
 
+  async function handleLogout() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/')
+  }
+
   return (
-    <div className="px-16 py-12">
+    <div className="px-4 py-6 md:px-8 lg:px-16 lg:py-12">
       <h1 className={`${textStyles.pageTitle} text-text-primary mb-8`}>Paramètres</h1>
 
       {/* WIP WHITE THEME — section Apparence (toggle thème clair/sombre)
@@ -36,6 +46,16 @@ export default function SettingsPage() {
         </div>
       </div>
       */}
+
+      <div className="md:hidden mb-8">
+        <button
+          onClick={handleLogout}
+          className={`flex items-center gap-2 ${textStyles.body} text-text-secondary hover:text-error transition-colors`}
+        >
+          <LogOut size={15} />
+          Se déconnecter
+        </button>
+      </div>
 
       <div className="mt-12 pt-6 border-t border-border">
         <p className={`${textStyles.caption} text-text-disabled`}>Discheck v0.1.0</p>
