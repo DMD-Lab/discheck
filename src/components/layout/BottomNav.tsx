@@ -2,9 +2,10 @@
 
 import { usePathname } from 'next/navigation'
 import { Link } from 'next-view-transitions'
-import { Search, Music2, Settings } from 'lucide-react'
+import { Search, Music2, Settings, Home } from 'lucide-react'
 
 const navItems = [
+  { href: '/dashboard', label: 'Accueil', icon: Home },
   { href: '/search', label: 'Recherche', icon: Search },
   { href: '/artists', label: 'Mes artistes', icon: Music2 },
   { href: '/settings', label: 'Paramètres', icon: Settings },

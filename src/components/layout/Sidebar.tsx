@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import { Link } from 'next-view-transitions'
-import { Search, Music2, Settings, LogOut } from 'lucide-react'
+import { Search, Music2, Settings, LogOut, Home } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useTransitionRouter } from 'next-view-transitions'
 import { textStyles } from '@/components/ui/text-styles'
@@ -13,6 +13,7 @@ import { useState, useEffect, useRef } from 'react'
 import type { DeezerArtistResult } from '@/lib/deezer/types'
 
 const navItems = [
+  { href: '/dashboard', label: 'Dashboard', icon: Home },
   { href: '/search', label: 'Recherche', icon: Search },
   { href: '/artists', label: 'Mes artistes', icon: Music2 },
 ]

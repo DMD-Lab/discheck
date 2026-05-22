@@ -18,7 +18,13 @@ CREATE TABLE cached_albums (
   artist_deezer_id      bigint NOT NULL,
   album_data            jsonb NOT NULL,
   cached_at             timestamptz NOT NULL DEFAULT now(),
-  original_release_year smallint
+  original_release_year smallint,
+  record_type           text,
+  genre_id              integer,
+  track_count           smallint,
+  title                 text,
+  artist_name           text,
+  cover_xl              text
 );
 
 -- Cache titres (JSONB — données brutes Deezer)
@@ -39,9 +45,12 @@ CREATE TABLE user_artist_follows (
 
 -- Titres écoutés
 CREATE TABLE listened_tracks (
-  user_id         uuid REFERENCES profiles ON DELETE CASCADE,
-  track_deezer_id bigint NOT NULL,
-  listened_at     timestamptz DEFAULT now(),
+  user_id           uuid REFERENCES profiles ON DELETE CASCADE,
+  track_deezer_id   bigint NOT NULL,
+  listened_at       timestamptz DEFAULT now(),
+  album_deezer_id   bigint,
+  artist_deezer_id  bigint,
+  duration_seconds  integer,
   PRIMARY KEY (user_id, track_deezer_id)
 );
 
@@ -140,3 +149,14 @@ ALTER TABLE album_ratings ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can manage own album ratings"
   ON album_ratings FOR ALL USING (auth.uid() = user_id);
 
+-- Cache genres Deezer (refresh toutes les 7 jours)
+CREATE TABLE cached_genres (
+  deezer_id  integer PRIMARY KEY,
+  name       text NOT NULL,
+  cached_at  timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE cached_genres ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Genres readable"  ON cached_genres FOR SELECT USING (auth.role() = 'authenticated');
+CREATE POLICY "Genres writable"  ON cached_genres FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Genres updatable" ON cached_genres FOR UPDATE USING (auth.role() = 'authenticated');

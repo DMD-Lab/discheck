@@ -50,7 +50,7 @@ export default function AuthForm({ initialView }: { initialView: View }) {
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) { setError('Email ou mot de passe incorrect'); setLoading(false); return }
-    router.push('/search')
+    router.push('/dashboard')
   }
 
   async function handleRegister(e: React.FormEvent) {
@@ -60,7 +60,7 @@ export default function AuthForm({ initialView }: { initialView: View }) {
     const supabase = createClient()
     const { error } = await supabase.auth.signUp({ email, password, options: { data: { pseudo } } })
     if (error) { setError(error.message); setLoading(false); return }
-    router.push('/search')
+    router.push('/dashboard')
   }
 
   async function handleForgot(e: React.FormEvent) {

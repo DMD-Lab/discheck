@@ -187,7 +187,7 @@ export default function ArtistPage() {
 
   if (loading) {
     return (
-      <div className="px-4 py-6 md:px-8 lg:px-16 lg:py-12">
+      <div className="max-w-5xl mx-auto w-full px-4 py-6 md:px-8 lg:px-16 lg:py-12">
         <div className="flex items-start gap-4 md:gap-6 mb-4 md:mb-8">
           <div className="w-20 h-20 md:w-28 md:h-28 rounded-lg bg-bg-tertiary animate-pulse flex-shrink-0" />
           <div className="flex-1 pt-1 space-y-3">
@@ -243,11 +243,11 @@ export default function ArtistPage() {
   }
 
   if (!artist) {
-    return <div className="px-4 py-6 md:px-8 lg:px-16 lg:py-12"><p className="text-text-secondary text-sm">Artiste introuvable.</p></div>
+    return <div className="max-w-5xl mx-auto w-full px-4 py-6 md:px-8 lg:px-16 lg:py-12"><p className="text-text-secondary text-sm">Artiste introuvable.</p></div>
   }
 
   return (
-    <div className="px-4 py-6 md:px-8 lg:px-16 lg:py-12">
+    <div className="max-w-5xl mx-auto w-full px-4 py-6 md:px-8 lg:px-16 lg:py-12">
       {/* Header */}
       <div className="flex items-start gap-4 md:gap-6 mb-4 md:mb-8">
         <Image

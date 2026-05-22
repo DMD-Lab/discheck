@@ -58,7 +58,7 @@ export default function SearchPage() {
       </div>
 
       {/* Contenu — hérite du max-w du layout */}
-      <div className="flex flex-col flex-1 px-4 py-6 md:px-8 lg:px-16 lg:py-12">
+      <div className="max-w-5xl mx-auto w-full flex flex-col flex-1 px-4 py-6 md:px-8 lg:px-16 lg:py-12">
 
         {/* Search bar */}
         <div className="relative w-full">

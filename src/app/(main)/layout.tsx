@@ -26,7 +26,7 @@ export default async function MainLayout({
         <div>
           <Sidebar pseudo={profile?.pseudo ?? ''} />
           <main className="ml-0 md:ml-56 min-h-screen pb-16 md:pb-0 flex flex-col">
-            <div className="max-w-5xl mx-auto w-full flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col">
               {children}
             </div>
           </main>
