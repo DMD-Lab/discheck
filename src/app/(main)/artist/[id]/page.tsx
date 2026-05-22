@@ -21,6 +21,7 @@ export default function ArtistPage() {
   const [selectedAlbum, setSelectedAlbum] = useState<DeezerAlbumResult | null>(null)
   const [listenedIds, setListenedIds] = useState<Set<number>>(new Set())
   const [ratingMap, setRatingMap] = useState<Map<number, number>>(new Map())
+  const [albumRatingMap, setAlbumRatingMap] = useState<Map<number, number>>(new Map())
   const [albumTracksMap, setAlbumTracksMap] = useState<Map<number, number[]>>(new Map())
   const [activeFilter, setActiveFilter] = useState<Filter>('all')
 
@@ -49,10 +50,12 @@ export default function ArtistPage() {
       Promise.all([
         supabase.from('listened_tracks').select('track_deezer_id').eq('user_id', user.id),
         supabase.from('track_ratings').select('track_deezer_id, rating').eq('user_id', user.id),
+        supabase.from('album_ratings').select('album_deezer_id, rating').eq('user_id', user.id).in('album_deezer_id', albumIds),
         supabase.from('cached_tracks').select('track_deezer_id, album_deezer_id').in('album_deezer_id', albumIds),
-      ]).then(([listens, ratings, tracks]) => {
+      ]).then(([listens, trackRatings, albumRatings, tracks]) => {
         if (listens.data) setListenedIds(new Set(listens.data.map(r => r.track_deezer_id)))
-        if (ratings.data) setRatingMap(new Map(ratings.data.map(r => [r.track_deezer_id, r.rating])))
+        if (trackRatings.data) setRatingMap(new Map(trackRatings.data.map(r => [r.track_deezer_id, r.rating])))
+        if (albumRatings.data) setAlbumRatingMap(new Map(albumRatings.data.map(r => [r.album_deezer_id, r.rating])))
         if (tracks.data) {
           const map = new Map<number, number[]>()
           tracks.data.forEach(r => {
@@ -91,6 +94,18 @@ export default function ArtistPage() {
       { onConflict: 'user_id,track_deezer_id' }
     )
     setRatingMap(prev => new Map(prev).set(trackId, rating))
+  }
+
+  async function handleRateAlbum(albumId: number, rating: number) {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    await supabase.from('album_ratings').upsert(
+      { user_id: user.id, album_deezer_id: albumId, rating },
+      { onConflict: 'user_id,album_deezer_id' }
+    )
+    setAlbumRatingMap(prev => new Map(prev).set(albumId, rating))
   }
 
   const handleTracksLoaded = useCallback((albumId: number, trackIds: number[]) => {
@@ -141,7 +156,7 @@ export default function ArtistPage() {
     return { terminées, enCours, pct }
   }, [albums, albumTracksMap, listenedIds])
 
-  const albumRatingMap = useMemo(() => {
+  const trackAvgMap = useMemo(() => {
     const map = new Map<number, number>()
     albums.forEach(album => {
       const tracks = albumTracksMap.get(album.id)
@@ -173,7 +188,6 @@ export default function ArtistPage() {
   if (loading) {
     return (
       <div className="px-4 py-6 md:px-8 lg:px-16 lg:py-12">
-        {/* Header skeleton */}
         <div className="flex items-start gap-4 md:gap-6 mb-4 md:mb-8">
           <div className="w-20 h-20 md:w-28 md:h-28 rounded-lg bg-bg-tertiary animate-pulse flex-shrink-0" />
           <div className="flex-1 pt-1 space-y-3">
@@ -186,22 +200,16 @@ export default function ArtistPage() {
             ))}
           </div>
         </div>
-
-        {/* Stats skeleton mobile */}
         <div className="grid grid-cols-3 gap-2 mb-6 lg:hidden">
           {[0, 1, 2].map(i => (
             <div key={i} className="h-10 rounded-xl bg-bg-tertiary animate-pulse" />
           ))}
         </div>
-
-        {/* Filter tabs skeleton */}
         <div className="flex gap-2 mb-6">
           {[0, 1, 2, 3].map(i => (
             <div key={i} className="h-7 w-16 rounded-full bg-bg-tertiary animate-pulse" />
           ))}
         </div>
-
-        {/* Timeline skeleton */}
         <div className="relative">
           <div className="absolute top-0 bottom-0 w-px bg-bg-tertiary left-[44px] lg:left-[82px]" />
           <div className="flex flex-col gap-4">
@@ -263,7 +271,7 @@ export default function ArtistPage() {
         </div>
       </div>
 
-      {/* Stats mobiles — pleine largeur sous le header */}
+      {/* Stats mobiles */}
       <div className="grid grid-cols-3 gap-2 mb-6 lg:hidden">
         <StatCard compact icon={<Music2 size={14} className="text-text-secondary" />} value={albums.length} label="sorties" />
         <StatCard compact icon={<CheckCircle2 size={14} style={{ color: 'var(--primary)' }} />} value={stats.terminées} label="terminées" />
@@ -318,7 +326,7 @@ export default function ArtistPage() {
                         ? (albumTracksMap.get(album.id) ?? []).filter(tid => listenedIds.has(tid)).length
                         : undefined
                     }
-                    rating={albumRatingMap.get(album.id)}
+                    rating={albumRatingMap.get(album.id) ?? trackAvgMap.get(album.id)}
                     onClick={() => setSelectedAlbum(album)}
                     showDivider={i < releases.length - 1}
                   />
@@ -335,8 +343,10 @@ export default function ArtistPage() {
           artistName={artist.name}
           listenedIds={listenedIds}
           ratingMap={ratingMap}
+          albumRating={albumRatingMap.get(selectedAlbum.id)}
           onToggleTrack={handleToggleTrack}
           onRateTrack={handleRateTrack}
+          onRateAlbum={(rating) => handleRateAlbum(selectedAlbum.id, rating)}
           onTracksLoaded={handleTracksLoaded}
           onCheckAll={handleCheckAll}
           onUncheckAll={handleUncheckAll}

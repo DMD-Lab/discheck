@@ -1,30 +1,43 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import Image from 'next/image'
 import { X, Check, CheckCheck, Music2, Headphones, Star } from 'lucide-react'
 import type { DeezerAlbumResult, DeezerTrackResult } from '@/lib/deezer/types'
 import TrackRow from '@/components/track/TrackRow'
 import StatCard from '@/components/ui/StatCard'
+import AlbumRatingModal from '@/components/ui/AlbumRatingModal'
 import { textStyles } from '@/components/ui/text-styles'
+
+const RATING_COLORS: Record<number, string> = {
+  1: '#ef4444',
+  2: '#f97316',
+  3: '#eab308',
+  4: '#84cc16',
+  5: '#22c55e',
+}
 
 interface DetailPanelProps {
   album: DeezerAlbumResult
   artistName?: string
   listenedIds: Set<number>
   ratingMap: Map<number, number>
+  albumRating?: number
   onToggleTrack: (trackId: number) => void
   onRateTrack: (trackId: number, rating: number) => void
+  onRateAlbum: (rating: number) => void
   onTracksLoaded: (albumId: number, trackIds: number[]) => void
   onCheckAll: (trackIds: number[]) => void
   onUncheckAll: (trackIds: number[]) => void
   onClose: () => void
 }
 
-export default function DetailPanel({ album, artistName, listenedIds, ratingMap, onToggleTrack, onRateTrack, onTracksLoaded, onCheckAll, onUncheckAll, onClose }: DetailPanelProps) {
+export default function DetailPanel({ album, artistName, listenedIds, ratingMap, albumRating, onToggleTrack, onRateTrack, onRateAlbum, onTracksLoaded, onCheckAll, onUncheckAll, onClose }: DetailPanelProps) {
   const [tracks, setTracks] = useState<DeezerTrackResult[]>([])
   const [loadedAlbumId, setLoadedAlbumId] = useState<number | null>(null)
   const [visible, setVisible] = useState(false)
+  const [showRatingModal, setShowRatingModal] = useState(false)
+  const wasAllListened = useRef<boolean | null>(null)
   const loading = loadedAlbumId !== album.id
 
   useEffect(() => {
@@ -43,15 +56,22 @@ export default function DetailPanel({ album, artistName, listenedIds, ratingMap,
     return () => cancelAnimationFrame(id)
   }, [])
 
-  function handleClose() {
-    setVisible(false)
-    setTimeout(onClose, 250)
-  }
-
   const year = album.original_release_year ?? album.release_date?.slice(0, 4) ?? '—'
   const listenedCount = tracks.filter(t => listenedIds.has(t.id)).length
   const remaining = tracks.length - listenedCount
   const allListened = tracks.length > 0 && listenedCount === tracks.length
+
+  useEffect(() => {
+    if (loading) return
+    const prev = wasAllListened.current
+    wasAllListened.current = allListened
+    if (prev === false && allListened) {
+      const type = album.record_type
+      if ((type === 'album' || type === 'ep') && !albumRating) {
+        setTimeout(() => setShowRatingModal(true), 0)
+      }
+    }
+  }, [allListened, loading, album.record_type, albumRating])
 
   const avgRating = useMemo(() => {
     if (tracks.length === 0) return null
@@ -60,6 +80,16 @@ export default function DetailPanel({ album, artistName, listenedIds, ratingMap,
     const sum = tracks.reduce((acc, t) => acc + (ratingMap.get(t.id) ?? 0), 0)
     return Math.round((sum / tracks.length) * 10) / 10
   }, [tracks, listenedIds, ratingMap])
+
+  function handleClose() {
+    setVisible(false)
+    setTimeout(onClose, 250)
+  }
+
+  function handleRateInModal(rating: number) {
+    onRateAlbum(rating)
+    setShowRatingModal(false)
+  }
 
   return (
     <>
@@ -90,7 +120,7 @@ export default function DetailPanel({ album, artistName, listenedIds, ratingMap,
           <X size={14} />
         </button>
 
-        {/* Colored header with blurred cover */}
+        {/* Header with blurred cover */}
         <div className="relative flex-shrink-0 overflow-hidden">
           <Image
             src={album.cover_xl}
@@ -121,13 +151,25 @@ export default function DetailPanel({ album, artistName, listenedIds, ratingMap,
                 <p className={`${textStyles.body} text-white/70 mt-1 truncate`}>{artistName}</p>
               )}
               <p className={`${textStyles.caption} text-white/40 mt-0.5`}>{year}</p>
+              {albumRating && (
+                <button
+                  onClick={() => setShowRatingModal(true)}
+                  className={`${textStyles.caption} font-bold mt-2 w-fit px-2 py-0.5 rounded transition-opacity hover:opacity-80`}
+                  style={{
+                    color: RATING_COLORS[albumRating],
+                    backgroundColor: `${RATING_COLORS[albumRating]}33`,
+                  }}
+                >
+                  Note album : {albumRating}/5
+                </button>
+              )}
             </div>
           </div>
         </div>
 
-        {/* 3 widgets + Tout cocher */}
+        {/* 3 widgets */}
         {!loading && tracks.length > 0 && (
-          <div className="px-4 py-3 border-b border-border flex-shrink-0 flex flex-col gap-2">
+          <div className="px-4 py-3 border-b border-border flex-shrink-0">
             <div className="grid grid-cols-3 gap-2">
               <StatCard
                 icon={<Music2 size={15} className="text-text-secondary" />}
@@ -160,7 +202,6 @@ export default function DetailPanel({ album, artistName, listenedIds, ratingMap,
                 />
               )}
             </div>
-
           </div>
         )}
 
@@ -204,6 +245,15 @@ export default function DetailPanel({ album, artistName, listenedIds, ratingMap,
             />
           ))}
         </div>
+
+        {/* Album rating modal */}
+        {showRatingModal && (
+          <AlbumRatingModal
+            currentRating={albumRating}
+            onRate={handleRateInModal}
+            onSkip={() => setShowRatingModal(false)}
+          />
+        )}
       </div>
     </>
   )

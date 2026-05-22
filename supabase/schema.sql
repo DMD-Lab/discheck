@@ -126,3 +126,17 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
+  -- Notations d'albums (indépendant des notes de titres)
+CREATE TABLE album_ratings (
+  user_id         uuid REFERENCES profiles ON DELETE CASCADE,
+  album_deezer_id bigint NOT NULL,
+  rating          smallint NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  rated_at        timestamptz DEFAULT now(),
+  PRIMARY KEY (user_id, album_deezer_id)
+);
+
+ALTER TABLE album_ratings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can manage own album ratings"
+  ON album_ratings FOR ALL USING (auth.uid() = user_id);
+

@@ -101,7 +101,7 @@ export default function ArtistsPage() {
       <div className="flex flex-col flex-1 px-4 py-6 md:px-8 lg:px-16 lg:py-12">
         <div className="mb-10">
           <div className="flex items-baseline gap-3 mb-1.5">
-            <h1 className={`${textStyles.pageTitle} text-text-primary`}>Mes artistes</h1>
+            <h1 className={`${textStyles.pageTitle} text-text-green`}>Mes artistes</h1>
             {!loading && artists.length > 0 && (
               <span className={`${textStyles.caption} text-text-disabled`}>
                 {artists.length} artiste{artists.length > 1 ? 's' : ''}

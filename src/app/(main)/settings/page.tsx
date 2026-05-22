@@ -23,7 +23,7 @@ export default function SettingsPage() {
 
   return (
     <div className="px-4 py-6 md:px-8 lg:px-16 lg:py-12">
-      <h1 className={`${textStyles.pageTitle} text-text-primary mb-8`}>Paramètres</h1>
+      <h1 className={`${textStyles.pageTitle} text-text-green mb-8`}>Paramètres</h1>
 
       {/* WIP WHITE THEME — section Apparence (toggle thème clair/sombre)
       <div className="flex flex-col gap-1">
