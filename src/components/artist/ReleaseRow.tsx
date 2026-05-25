@@ -2,6 +2,7 @@ import Image from 'next/image'
 import { Check } from 'lucide-react'
 import type { DeezerAlbumResult } from '@/lib/deezer/types'
 import { textStyles } from '@/components/ui/text-styles'
+import MarqueeText from '@/components/ui/marquee-text'
 
 interface ReleaseRowProps {
   album: DeezerAlbumResult
@@ -40,7 +41,7 @@ export default function ReleaseRow({ album, listenedCount, total, rating, onClic
       />
 
       <div className="flex-1 min-w-0">
-        <p className={`${textStyles.body} font-medium text-text-primary truncate`}>{album.title}</p>
+        <MarqueeText className={`${textStyles.body} font-medium text-text-primary`}>{album.title}</MarqueeText>
         {showBar && barPct !== null && (
           <div className="mt-1.5 h-0.5 w-3/5 rounded-full overflow-hidden bg-bg-tertiary">
             <div

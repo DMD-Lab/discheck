@@ -1,6 +1,12 @@
+'use client'
+
+import { useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { textStyles } from "@/components/ui/text-styles";
 import AlbumFeaturedCard from "./AlbumFeaturedCard";
 import AlbumSmallCard from "./AlbumSmallCard";
+import Panel from "@/components/ui/panel";
+import AlbumsRanking from "./albums-ranking";
 
 export type TopAlbum = {
   rank: number;
@@ -10,23 +16,28 @@ export type TopAlbum = {
   coverXl: string;
   albumRating: number;
   trackAvg: number | null;
+  hasAnyTrackRating: boolean;
   ratedAt: string;
 };
 
 export default function TopAlbumsSection({ albums }: { albums: TopAlbum[] }) {
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
   if (albums.length === 0) return null;
   const [featured, ...rest] = albums;
 
   return (
+    <>
     <section className="mb-10">
       <div className="flex items-center gap-3 mb-4">
         <h2 className={`${textStyles.cardTitle} text-text-green`}>
           Vos albums préférés
         </h2>
         <button
-          className={`${textStyles.caption} text-text-secondary hover:text-text-primary transition-colors`}
+          onClick={() => setIsPanelOpen(true)}
+          className={`${textStyles.caption} text-text-secondary hover:text-text-primary transition-colors flex items-center gap-1`}
         >
           Voir plus
+          <ArrowRight size={12} />
         </button>
       </div>
 
@@ -71,5 +82,10 @@ export default function TopAlbumsSection({ albums }: { albums: TopAlbum[] }) {
         </div>
       </div>
     </section>
+
+    <Panel isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)}>
+      <AlbumsRanking />
+    </Panel>
+    </>
   );
 }

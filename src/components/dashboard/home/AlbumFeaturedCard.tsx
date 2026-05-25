@@ -12,7 +12,7 @@ export default function AlbumFeaturedCard({ album }: { album: TopAlbum }) {
   });
 
   return (
-    <div className="h-full flex gap-4 items-center border border-bg-secondary rounded-lg p-3">
+    <div className="h-full flex items-center border border-bg-secondary rounded-lg p-3">
       <div className="relative flex-shrink-0 w-40 h-40 lg:w-52 lg:h-52 2xl:w-auto 2xl:h-auto 2xl:self-stretch 2xl:aspect-square">
         <Image
           src={album.coverXl}
@@ -27,7 +27,7 @@ export default function AlbumFeaturedCard({ album }: { album: TopAlbum }) {
         </span>
       </div>
 
-      <div className="flex flex-col justify-around self-stretch flex-1 min-h-0 min-w-0">
+      <div className="flex flex-col justify-around self-stretch flex-1 min-h-0 min-w-0 px-5">
         <div className="min-w-0">
           <MarqueeText className={`${textStyles.cardTitle} font-semibold text-text-primary`}>
             {album.title}
@@ -39,14 +39,10 @@ export default function AlbumFeaturedCard({ album }: { album: TopAlbum }) {
             {date}
           </p>
         </div>
-        <div className="flex items-center">
-          <div className="flex-1 flex justify-center">
-            <RatingBadge label="Note attrib." value={album.albumRating} />
-          </div>
-          <div className="w-px h-10 bg-border mx-3 flex-shrink-0" />
-          <div className="flex-1 flex justify-center">
-            <RatingBadge label="Moy. tracks" value={album.trackAvg} />
-          </div>
+        <div className="flex items-center justify-between">
+          <RatingBadge label="Note attrib." value={album.albumRating} />
+          <div className="w-px h-10 bg-border flex-shrink-0" />
+          <RatingBadge label="Moy. tracks" value={album.trackAvg} />
         </div>
       </div>
     </div>

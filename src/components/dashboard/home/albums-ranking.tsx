@@ -1,0 +1,162 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import Image from 'next/image'
+import { Star } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { textStyles } from '@/components/ui/text-styles'
+import MarqueeText from '@/components/ui/marquee-text'
+import type { TopAlbum } from './TopAlbumsSection'
+
+export default function AlbumsRanking() {
+  const [albums, setAlbums] = useState<TopAlbum[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) { setLoading(false); return }
+
+      const { data: ratings } = await supabase
+        .from('album_ratings')
+        .select('album_deezer_id, rating, rated_at')
+        .eq('user_id', user.id)
+        .order('rating', { ascending: false })
+
+      if (!ratings || ratings.length === 0) { setLoading(false); return }
+
+      const albumIds = ratings.map(r => r.album_deezer_id)
+      const [{ data: albumsData }, { data: cachedTracksData }] = await Promise.all([
+        supabase
+          .from('cached_albums')
+          .select('album_deezer_id, title, artist_name, cover_xl, album_data')
+          .in('album_deezer_id', albumIds),
+        supabase
+          .from('cached_tracks')
+          .select('track_deezer_id, album_deezer_id')
+          .in('album_deezer_id', albumIds),
+      ])
+
+      const trackIds = (cachedTracksData ?? []).map(t => t.track_deezer_id)
+      const { data: trackRatingsData } = trackIds.length > 0
+        ? await supabase
+            .from('track_ratings')
+            .select('track_deezer_id, rating')
+            .eq('user_id', user.id)
+            .in('track_deezer_id', trackIds)
+        : { data: [] }
+
+      const mapped: TopAlbum[] = ratings.map((r, i) => {
+        const album = (albumsData ?? []).find(a => a.album_deezer_id === r.album_deezer_id)
+        const raw = album?.album_data as { title?: string; cover_xl?: string } | null
+        const tracks = (cachedTracksData ?? []).filter(t => t.album_deezer_id === r.album_deezer_id)
+        const ratedTracks = (trackRatingsData ?? []).filter(tr =>
+          tracks.some(t => t.track_deezer_id === tr.track_deezer_id)
+        )
+        const trackAvg = ratedTracks.length > 0 && ratedTracks.length === tracks.length
+          ? Math.round((ratedTracks.reduce((s, tr) => s + tr.rating, 0) / ratedTracks.length) * 10) / 10
+          : null
+        return {
+          rank: i + 1,
+          albumDeezerId: r.album_deezer_id,
+          title: album?.title ?? raw?.title ?? 'Album inconnu',
+          artistName: album?.artist_name ?? '',
+          coverXl: album?.cover_xl ?? raw?.cover_xl ?? '',
+          albumRating: r.rating,
+          trackAvg,
+          hasAnyTrackRating: ratedTracks.length > 0,
+          ratedAt: r.rated_at,
+        }
+      })
+
+      const sorted = mapped
+        .sort((a, b) => {
+          if (b.albumRating !== a.albumRating) return b.albumRating - a.albumRating;
+          const aHasAvg = a.trackAvg !== null;
+          const bHasAvg = b.trackAvg !== null;
+          if (aHasAvg !== bHasAvg) return bHasAvg ? 1 : -1;
+          if (aHasAvg && bHasAvg && b.trackAvg! !== a.trackAvg!) return b.trackAvg! - a.trackAvg!;
+          if (a.hasAnyTrackRating !== b.hasAnyTrackRating) return b.hasAnyTrackRating ? 1 : -1;
+          return new Date(b.ratedAt).getTime() - new Date(a.ratedAt).getTime();
+        })
+        .map((a, i) => ({ ...a, rank: i + 1 }));
+
+      setAlbums(sorted)
+      setLoading(false)
+    })
+  }, [])
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="px-5 pt-5 pb-4 pr-14 flex-shrink-0 border-b border-border">
+        <h2 className={`${textStyles.cardTitle} text-text-primary`}>Vos albums préférés</h2>
+        {!loading && (
+          <p className={`${textStyles.caption} text-text-secondary mt-0.5`}>
+            {albums.length} album{albums.length > 1 ? 's' : ''} noté{albums.length > 1 ? 's' : ''}
+          </p>
+        )}
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        {loading && (
+          <p className={`${textStyles.body} text-text-secondary px-5 py-4`}>Chargement...</p>
+        )}
+        {!loading && albums.map(album => (
+          <AlbumRankingRow key={album.albumDeezerId} album={album} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function AlbumRankingRow({ album }: { album: TopAlbum }) {
+  const date = new Date(album.ratedAt).toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+
+  return (
+    <div className="flex items-center gap-3 px-5 py-3 hover:bg-bg-tertiary transition-colors border-b border-border last:border-0">
+      <span className={`${textStyles.caption} text-text-disabled w-5 text-right flex-shrink-0`}>
+        {album.rank}
+      </span>
+      <div className="relative w-10 h-10 flex-shrink-0 rounded overflow-hidden bg-bg-tertiary">
+        {album.coverXl && (
+          <Image
+            src={album.coverXl}
+            alt={album.title}
+            fill
+            sizes="40px"
+            className="object-cover"
+          />
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <MarqueeText className={`${textStyles.caption} font-medium text-text-primary`} fromColor="from-bg-secondary">{album.title}</MarqueeText>
+        <p className={`${textStyles.caption} text-text-secondary truncate`}>{album.artistName}</p>
+      </div>
+      <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex flex-col items-center gap-0.5">
+          <span className="text-[10px] text-text-secondary">Note attrib.</span>
+          <div className="flex items-center gap-1">
+            <Star size={11} className="text-text-green fill-text-green" />
+            <span className={`${textStyles.caption} font-semibold text-text-primary`}>
+              {album.albumRating.toFixed(1)}
+            </span>
+          </div>
+        </div>
+        <div className="w-px h-7 bg-border flex-shrink-0" />
+        <div className="flex flex-col items-center gap-0.5">
+          <span className="text-[10px] text-text-secondary">Moy. tracks</span>
+          <div className="flex items-center gap-1">
+            <Star size={11} className="text-text-green fill-text-green" />
+            <span className={`${textStyles.caption} font-semibold text-text-primary`}>
+              {album.trackAvg !== null ? album.trackAvg.toFixed(1) : '—'}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

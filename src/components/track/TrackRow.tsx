@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { Check, X } from 'lucide-react'
 import { textStyles } from '@/components/ui/text-styles'
+import MarqueeText from '@/components/ui/marquee-text'
 
 interface TrackRowProps {
   position: number
@@ -59,15 +60,15 @@ export default function TrackRow({ position, title, duration, listened, rating, 
         {position}
       </span>
 
-      <span className={`flex-1 ${textStyles.body} truncate ${listened ? 'text-text-secondary' : 'text-text-primary'}`}>
-        {title}
-      </span>
+      <div className="flex-1 min-w-0">
+        <MarqueeText className={`${textStyles.body} ${listened ? 'text-text-secondary' : 'text-text-primary'}`} fromColor="from-bg-secondary">{title}</MarqueeText>
+      </div>
 
       <span className={`${textStyles.caption} text-text-disabled flex-shrink-0`}>
         {formatDuration(duration)}
       </span>
 
-      <div className="flex-shrink-0 w-12 h-6 flex justify-end items-center">
+      <div className="flex-shrink-0 w-12 h-6 flex justify-center items-center">
         {!rating && (
           <button
             onClick={openRating}

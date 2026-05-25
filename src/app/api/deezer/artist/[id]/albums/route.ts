@@ -89,6 +89,9 @@ export async function GET(
           album_data: album,
           cached_at: new Date().toISOString(),
           original_release_year: yearMap.get(album.id) ?? null,
+          title: album.title,
+          cover_xl: album.cover_xl,
+          artist_name: artistName ?? '',
         })),
         { onConflict: 'album_deezer_id' }
       )

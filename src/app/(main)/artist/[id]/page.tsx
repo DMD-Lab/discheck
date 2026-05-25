@@ -8,7 +8,8 @@ import StatCard from '@/components/ui/StatCard'
 import { textStyles } from '@/components/ui/text-styles'
 import type { DeezerArtistResult, DeezerAlbumResult } from '@/lib/deezer/types'
 import ReleaseRow from '@/components/artist/ReleaseRow'
-import DetailPanel from '@/components/layout/DetailPanel'
+import Panel from '@/components/ui/panel'
+import AlbumDetail from '@/components/layout/album-detail'
 import { createClient } from '@/lib/supabase/client'
 
 type Filter = 'all' | 'album' | 'ep' | 'single'
@@ -337,22 +338,23 @@ export default function ArtistPage() {
         </div>
       </div>
 
-      {selectedAlbum && (
-        <DetailPanel
-          album={selectedAlbum}
-          artistName={artist.name}
-          listenedIds={listenedIds}
-          ratingMap={ratingMap}
-          albumRating={albumRatingMap.get(selectedAlbum.id)}
-          onToggleTrack={handleToggleTrack}
-          onRateTrack={handleRateTrack}
-          onRateAlbum={(rating) => handleRateAlbum(selectedAlbum.id, rating)}
-          onTracksLoaded={handleTracksLoaded}
-          onCheckAll={handleCheckAll}
-          onUncheckAll={handleUncheckAll}
-          onClose={() => setSelectedAlbum(null)}
-        />
-      )}
+      <Panel isOpen={!!selectedAlbum} onClose={() => setSelectedAlbum(null)}>
+        {selectedAlbum && (
+          <AlbumDetail
+            album={selectedAlbum}
+            artistName={artist.name}
+            listenedIds={listenedIds}
+            ratingMap={ratingMap}
+            albumRating={albumRatingMap.get(selectedAlbum.id)}
+            onToggleTrack={handleToggleTrack}
+            onRateTrack={handleRateTrack}
+            onRateAlbum={(rating) => handleRateAlbum(selectedAlbum.id, rating)}
+            onTracksLoaded={handleTracksLoaded}
+            onCheckAll={handleCheckAll}
+            onUncheckAll={handleUncheckAll}
+          />
+        )}
+      </Panel>
     </div>
   )
 }

@@ -56,8 +56,7 @@ export default async function HomePage() {
     .from("album_ratings")
     .select("album_deezer_id, rating, rated_at")
     .eq("user_id", user.id)
-    .order("rating", { ascending: false })
-    .limit(5);
+    .order("rating", { ascending: false });
 
   let topAlbums: TopAlbum[] = [];
 
@@ -68,7 +67,7 @@ export default async function HomePage() {
       await Promise.all([
         supabase
           .from("cached_albums")
-          .select("album_deezer_id, title, artist_name, cover_xl")
+          .select("album_deezer_id, title, artist_name, cover_xl, album_data")
           .in("album_deezer_id", albumIds),
         supabase
           .from("cached_tracks")
@@ -90,6 +89,7 @@ export default async function HomePage() {
       const album = (albumsData ?? []).find(
         (a) => a.album_deezer_id === r.album_deezer_id,
       );
+      const raw = album?.album_data as { title?: string; cover_xl?: string } | null;
       const tracks = (cachedTracksData ?? []).filter(
         (t) => t.album_deezer_id === r.album_deezer_id,
       );
@@ -97,7 +97,7 @@ export default async function HomePage() {
         tracks.some((t) => t.track_deezer_id === tr.track_deezer_id),
       );
       const trackAvg =
-        ratings.length > 0
+        ratings.length > 0 && ratings.length === tracks.length
           ? Math.round(
               (ratings.reduce((s, tr) => s + tr.rating, 0) / ratings.length) *
                 10,
@@ -106,14 +106,28 @@ export default async function HomePage() {
       return {
         rank: i + 1,
         albumDeezerId: r.album_deezer_id,
-        title: album?.title ?? "Album inconnu",
+        title: album?.title ?? raw?.title ?? "Album inconnu",
         artistName: album?.artist_name ?? "",
-        coverXl: album?.cover_xl ?? "",
+        coverXl: album?.cover_xl ?? raw?.cover_xl ?? "",
         albumRating: r.rating,
         trackAvg,
+        hasAnyTrackRating: ratings.length > 0,
         ratedAt: r.rated_at,
       };
     });
+
+    topAlbums = topAlbums
+      .sort((a, b) => {
+        if (b.albumRating !== a.albumRating) return b.albumRating - a.albumRating;
+        const aHasAvg = a.trackAvg !== null;
+        const bHasAvg = b.trackAvg !== null;
+        if (aHasAvg !== bHasAvg) return bHasAvg ? 1 : -1;
+        if (aHasAvg && bHasAvg && b.trackAvg! !== a.trackAvg!) return b.trackAvg! - a.trackAvg!;
+        if (a.hasAnyTrackRating !== b.hasAnyTrackRating) return b.hasAnyTrackRating ? 1 : -1;
+        return new Date(b.ratedAt).getTime() - new Date(a.ratedAt).getTime();
+      })
+      .slice(0, 5)
+      .map((a, i) => ({ ...a, rank: i + 1 }));
   }
 
   const albumsEcoutes = new Set(
