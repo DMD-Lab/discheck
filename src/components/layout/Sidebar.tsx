@@ -13,7 +13,7 @@ import { useState, useEffect, useRef } from 'react'
 import type { DeezerArtistResult } from '@/lib/deezer/types'
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: Home },
+  { href: '/dashboard', label: 'Accueil', icon: Home },
   { href: '/search', label: 'Recherche', icon: Search },
   { href: '/artists', label: 'Mes artistes', icon: Music2 },
 ]

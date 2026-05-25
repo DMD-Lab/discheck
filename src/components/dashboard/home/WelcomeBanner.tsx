@@ -19,9 +19,9 @@ export default function WelcomeBanner({
   stats: Stats;
 }) {
   return (
-    <div className="flex flex-col xl:flex-row xl:items-center gap-6 xl:gap-0 mb-10">
-      {/* Gauche — message (~1/4) */}
-      <div className="xl:w-1/4 xl:pr-8 shrink-0">
+    <div className="flex flex-col xl:flex-row xl:items-center gap-6 xl:gap-0 mb-10 justify-between">
+      {/* Gauche — message bievenue (1/2) */}
+      <div className="xl:w-1/2 shrink-0">
         <h1 className={`${textStyles.pageTitle} text-text-primary`}>
           {message},&nbsp;
           <span className="text-text-green">{pseudo}.</span>
@@ -31,8 +31,8 @@ export default function WelcomeBanner({
         </p>
       </div>
 
-      {/* Droite — 4 stats (~3/4) */}
-      <div className="grid grid-cols-2 gap-px bg-border lg:flex lg:bg-transparent lg:gap-0 lg:divide-x lg:divide-border xl:w-1/2 xl:ml-auto">
+      {/* Droite — 4 stats (1/2) */}
+      <div className="xl:w-1/2 grid grid-cols-2 gap-px bg-border lg:flex lg:bg-transparent lg:gap-0 lg:divide-x lg:divide-border">
         <StatWidget
           icon={Disc3}
           value={stats.albumsEcoutes}
