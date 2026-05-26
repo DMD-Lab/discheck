@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import WelcomeBanner from "@/components/dashboard/home/WelcomeBanner";
 import TopAlbumsSection from "@/components/dashboard/home/TopAlbumsSection";
 import type { TopAlbum } from "@/components/dashboard/home/TopAlbumsSection";
+import TopArtistesSection from "@/components/dashboard/home/TopArtistesSection";
+import type { TopArtist } from "@/components/dashboard/home/TopArtistesSection";
 
 const RETURN_MESSAGES = [
   "Content de te retrouver",
@@ -130,6 +132,78 @@ export default async function HomePage() {
       .map((a, i) => ({ ...a, rank: i + 1 }));
   }
 
+  // Top 5 artistes notés
+  let topArtists: TopArtist[] = [];
+  const { data: allTrackRatings } = await supabase
+    .from("track_ratings")
+    .select("track_deezer_id, rating")
+    .eq("user_id", user.id);
+
+  if (allTrackRatings && allTrackRatings.length > 0) {
+    const trackIds = allTrackRatings.map((r) => r.track_deezer_id);
+    const { data: tracksForArtist } = await supabase
+      .from("cached_tracks")
+      .select("track_deezer_id, album_deezer_id")
+      .in("track_deezer_id", trackIds);
+
+    if (tracksForArtist && tracksForArtist.length > 0) {
+      const albumIdsForArtist = [...new Set(tracksForArtist.map((t) => t.album_deezer_id))];
+      const { data: albumsForArtist } = await supabase
+        .from("cached_albums")
+        .select("album_deezer_id, artist_deezer_id, artist_name")
+        .in("album_deezer_id", albumIdsForArtist);
+
+      if (albumsForArtist && albumsForArtist.length > 0) {
+        const artistIdsForTop = [...new Set(albumsForArtist.map((a) => a.artist_deezer_id).filter(Boolean))];
+        const { data: artistsForTop } = await supabase
+          .from("cached_artists")
+          .select("artist_deezer_id, artist_data")
+          .in("artist_deezer_id", artistIdsForTop);
+
+        const artistMap = new Map<number, { totalRating: number; count: number; name: string; pictureXl: string }>();
+
+        for (const tr of allTrackRatings) {
+          const track = tracksForArtist.find((t) => t.track_deezer_id === tr.track_deezer_id);
+          if (!track) continue;
+          const album = albumsForArtist.find((a) => a.album_deezer_id === track.album_deezer_id);
+          if (!album?.artist_deezer_id) continue;
+          const artistId = album.artist_deezer_id;
+
+          if (!artistMap.has(artistId)) {
+            const artist = (artistsForTop ?? []).find((a) => a.artist_deezer_id === artistId);
+            const raw = artist?.artist_data as { name?: string; picture_xl?: string } | null;
+            artistMap.set(artistId, {
+              name: album.artist_name ?? raw?.name ?? "",
+              pictureXl: raw?.picture_xl ?? "",
+              totalRating: 0,
+              count: 0,
+            });
+          }
+          const entry = artistMap.get(artistId)!;
+          entry.totalRating += tr.rating;
+          entry.count += 1;
+        }
+
+        topArtists = [...artistMap.entries()]
+          .map(([artistId, data]) => ({
+            rank: 0,
+            artistDeezerId: artistId,
+            name: data.name,
+            pictureXl: data.pictureXl,
+            avgRating: Math.round((data.totalRating / data.count) * 100) / 100,
+            tracksRated: data.count,
+          }))
+          .filter((a) => a.tracksRated >= 5)
+          .sort((a, b) => {
+            if (b.avgRating !== a.avgRating) return b.avgRating - a.avgRating;
+            return b.tracksRated - a.tracksRated;
+          })
+          .slice(0, 5)
+          .map((a, i) => ({ ...a, rank: i + 1 }));
+      }
+    }
+  }
+
   const albumsEcoutes = new Set(
     listenedData?.map((t) => t.album_deezer_id).filter(Boolean),
   ).size;
@@ -152,6 +226,9 @@ export default async function HomePage() {
         }}
       />
       <TopAlbumsSection albums={topAlbums} />
+      <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6 mb-6">
+        <TopArtistesSection artists={topArtists} />
+      </div>
     </>
   );
 }

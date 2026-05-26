@@ -19,7 +19,7 @@ export default function WelcomeBanner({
   stats: Stats;
 }) {
   return (
-    <div className="flex flex-col xl:flex-row xl:items-center gap-6 xl:gap-0 mb-10 justify-between">
+    <div className="flex flex-col xl:flex-row xl:items-center gap-6 xl:gap-0 mb-6 justify-between">
       {/* Gauche — message bievenue (1/2) */}
       <div className="xl:w-1/2 shrink-0">
         <h1 className={`${textStyles.pageTitle} text-text-primary`}>

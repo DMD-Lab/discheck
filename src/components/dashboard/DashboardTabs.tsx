@@ -13,7 +13,7 @@ export default function DashboardTabs() {
   const pathname = usePathname()
 
   return (
-    <div className="flex gap-1 border-b border-border mb-8">
+    <div className="flex gap-1 border-b border-border mb-5">
       {tabs.map(({ href, label }) => {
         const active = pathname.startsWith(href)
         return (

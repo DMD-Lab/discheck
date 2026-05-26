@@ -1,3 +1,33 @@
+function ArtistFeaturedSkeleton() {
+  return (
+    <div className="h-full flex flex-col items-center justify-center gap-3">
+      <div className="relative w-36 h-36 lg:w-40 lg:h-40 flex-shrink-0">
+        <div className="w-full h-full rounded-full bg-bg-tertiary animate-pulse" />
+        <div className="absolute -top-2 -left-2 w-6 h-6 rounded bg-bg-secondary animate-pulse" />
+      </div>
+      <div className="flex flex-col items-center gap-1.5 w-full">
+        <div className="h-3.5 w-2/3 bg-bg-tertiary rounded animate-pulse" />
+        <div className="h-4 w-1/2 bg-bg-tertiary rounded animate-pulse" />
+        <div className="h-3 w-1/3 bg-bg-tertiary rounded animate-pulse" />
+      </div>
+    </div>
+  )
+}
+
+function ArtistRowSkeleton() {
+  return (
+    <div className="flex items-center gap-3 px-4 py-3">
+      <div className="w-6 h-6 rounded bg-bg-tertiary animate-pulse flex-shrink-0" />
+      <div className="w-9 h-9 rounded-full bg-bg-tertiary animate-pulse flex-shrink-0" />
+      <div className="flex-1 space-y-1.5">
+        <div className="h-3.5 w-3/4 bg-bg-tertiary rounded animate-pulse" />
+        <div className="h-3 w-1/2 bg-bg-tertiary rounded animate-pulse" />
+      </div>
+      <div className="h-4 w-10 bg-bg-tertiary rounded animate-pulse flex-shrink-0" />
+    </div>
+  )
+}
+
 function FeaturedSkeleton() {
   return (
     <div className="h-full flex gap-4 items-center border border-bg-secondary rounded-lg p-3">
@@ -48,7 +78,7 @@ export default function DashboardHomeLoading() {
   return (
     <>
       {/* WelcomeBanner skeleton */}
-      <div className="flex flex-col xl:flex-row xl:items-center gap-6 xl:gap-0 mb-10 justify-between">
+      <div className="flex flex-col xl:flex-row xl:items-center gap-6 xl:gap-0 mb-6 justify-between">
         <div className="xl:w-1/2 shrink-0 space-y-2.5">
           <div className="h-9 w-72 bg-bg-tertiary rounded animate-pulse" />
           <div className="h-3.5 w-48 bg-bg-tertiary rounded animate-pulse" />
@@ -67,7 +97,7 @@ export default function DashboardHomeLoading() {
       </div>
 
       {/* TopAlbumsSection skeleton */}
-      <div className="mb-10">
+      <div className="mb-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="h-5 w-48 bg-bg-tertiary rounded animate-pulse" />
           <div className="h-3.5 w-16 bg-bg-tertiary rounded animate-pulse" />
@@ -109,6 +139,48 @@ export default function DashboardHomeLoading() {
           </div>
           <div className="flex-1 grid grid-cols-4 gap-4 min-w-0">
             {[0, 1, 2, 3].map(i => <SmallSkeleton key={i} />)}
+          </div>
+        </div>
+      </div>
+
+      {/* TopArtistes + TracksFavorites skeleton */}
+      <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6 mb-6">
+        {/* TopArtistes */}
+        <div>
+          <div className="flex items-center gap-3 pb-3 mb-3 border-b border-border">
+            <div className="h-5 w-36 bg-bg-tertiary rounded animate-pulse" />
+            <div className="h-3.5 w-16 bg-bg-tertiary rounded animate-pulse" />
+          </div>
+          <div className="flex md:hidden flex-col divide-y divide-border">
+            {[0, 1, 2, 3, 4].map(i => <ArtistRowSkeleton key={i} />)}
+          </div>
+          <div className="hidden md:flex gap-4 items-stretch">
+            <div className="flex-shrink-0 w-[200px] lg:w-[220px]">
+              <ArtistFeaturedSkeleton />
+            </div>
+            <div className="flex-1 flex flex-col divide-y divide-border min-w-0">
+              {[0, 1, 2, 3].map(i => <ArtistRowSkeleton key={i} />)}
+            </div>
+          </div>
+        </div>
+
+        {/* TracksFavorites */}
+        <div>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-5 w-40 bg-bg-tertiary rounded animate-pulse" />
+            <div className="h-3.5 w-16 bg-bg-tertiary rounded animate-pulse" />
+          </div>
+          <div className="flex flex-col border border-bg-secondary rounded-lg overflow-hidden divide-y divide-border">
+            {[0, 1, 2, 3, 4].map(i => (
+              <div key={i} className="flex items-center gap-3 px-4 py-3">
+                <div className="w-9 h-9 rounded bg-bg-tertiary animate-pulse flex-shrink-0" />
+                <div className="flex-1 space-y-1.5">
+                  <div className="h-3.5 w-3/4 bg-bg-tertiary rounded animate-pulse" />
+                  <div className="h-3 w-1/2 bg-bg-tertiary rounded animate-pulse" />
+                </div>
+                <div className="h-4 w-10 bg-bg-tertiary rounded animate-pulse flex-shrink-0" />
+              </div>
+            ))}
           </div>
         </div>
       </div>

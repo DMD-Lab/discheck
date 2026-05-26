@@ -27,14 +27,14 @@ export default function TopAlbumsSection({ albums }: { albums: TopAlbum[] }) {
 
   return (
     <>
-    <section className="mb-10">
-      <div className="flex items-center gap-3 mb-4">
+    <section className="mb-6">
+      <div className="flex items-center justify-between mb-4">
         <h2 className={`${textStyles.cardTitle} text-text-green`}>
           Vos albums préférés
         </h2>
         <button
           onClick={() => setIsPanelOpen(true)}
-          className={`${textStyles.caption} text-text-secondary hover:text-text-primary transition-colors flex items-center gap-1`}
+          className={`${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1`}
         >
           Voir plus
           <ArrowRight size={12} />
