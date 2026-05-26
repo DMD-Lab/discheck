@@ -24,7 +24,7 @@ export default function TopArtistesSection({ artists }: { artists: TopArtist[] }
 
   return (
     <>
-      <section>
+      <section className="2xl:pr-6 2xl:border-r 2xl:border-border">
         <div className="flex items-center justify-between pb-3 mb-3 border-b border-border">
           <h2 className={`${textStyles.cardTitle} text-text-green`}>
             Top Artistes
@@ -45,7 +45,7 @@ export default function TopArtistesSection({ artists }: { artists: TopArtist[] }
           ))}
         </div>
 
-        {/* md+ — featured gauche + liste droite */}
+        {/* md+ — featured + liste */}
         <div className="hidden md:flex gap-4 items-stretch">
           <div className="flex-shrink-0 w-[200px] lg:w-[220px]">
             <ArtistFeaturedCard artist={featured} />

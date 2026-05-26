@@ -20,7 +20,6 @@ export default function WelcomeBanner({
 }) {
   return (
     <div className="flex flex-col xl:flex-row xl:items-center gap-6 xl:gap-0 mb-6 justify-between">
-      {/* Gauche — message bievenue (1/2) */}
       <div className="xl:w-1/2 shrink-0">
         <h1 className={`${textStyles.pageTitle} text-text-primary`}>
           {message},&nbsp;
@@ -31,7 +30,6 @@ export default function WelcomeBanner({
         </p>
       </div>
 
-      {/* Droite — 4 stats (1/2) */}
       <div className="xl:w-1/2 grid grid-cols-2 gap-px bg-border lg:flex lg:bg-transparent lg:gap-0 lg:divide-x lg:divide-border">
         <StatWidget
           icon={Disc3}

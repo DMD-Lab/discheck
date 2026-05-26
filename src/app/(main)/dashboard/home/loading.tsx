@@ -98,7 +98,7 @@ export default function DashboardHomeLoading() {
 
       {/* TopAlbumsSection skeleton */}
       <div className="mb-6">
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center justify-between mb-4">
           <div className="h-5 w-48 bg-bg-tertiary rounded animate-pulse" />
           <div className="h-3.5 w-16 bg-bg-tertiary rounded animate-pulse" />
         </div>
@@ -144,10 +144,10 @@ export default function DashboardHomeLoading() {
       </div>
 
       {/* TopArtistes + TracksFavorites skeleton */}
-      <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6 2xl:gap-0 mb-6">
         {/* TopArtistes */}
-        <div>
-          <div className="flex items-center gap-3 pb-3 mb-3 border-b border-border">
+        <div className="2xl:pr-6 2xl:border-r 2xl:border-border">
+          <div className="flex items-center justify-between pb-3 mb-3 border-b border-border">
             <div className="h-5 w-36 bg-bg-tertiary rounded animate-pulse" />
             <div className="h-3.5 w-16 bg-bg-tertiary rounded animate-pulse" />
           </div>
@@ -165,20 +165,23 @@ export default function DashboardHomeLoading() {
         </div>
 
         {/* TracksFavorites */}
-        <div>
-          <div className="flex items-center gap-3 mb-4">
+        <div className="2xl:pl-6">
+          <div className="flex items-center justify-between pb-3 mb-3 border-b border-border">
             <div className="h-5 w-40 bg-bg-tertiary rounded animate-pulse" />
             <div className="h-3.5 w-16 bg-bg-tertiary rounded animate-pulse" />
           </div>
-          <div className="flex flex-col border border-bg-secondary rounded-lg overflow-hidden divide-y divide-border">
+          <div className="flex flex-col divide-y divide-border">
             {[0, 1, 2, 3, 4].map(i => (
-              <div key={i} className="flex items-center gap-3 px-4 py-3">
+              <div key={i} className="flex items-center gap-3 px-4 py-1.5">
                 <div className="w-9 h-9 rounded bg-bg-tertiary animate-pulse flex-shrink-0" />
                 <div className="flex-1 space-y-1.5">
                   <div className="h-3.5 w-3/4 bg-bg-tertiary rounded animate-pulse" />
                   <div className="h-3 w-1/2 bg-bg-tertiary rounded animate-pulse" />
                 </div>
-                <div className="h-4 w-10 bg-bg-tertiary rounded animate-pulse flex-shrink-0" />
+                <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                  <div className="h-3.5 w-8 bg-bg-tertiary rounded animate-pulse" />
+                  <div className="h-3 w-14 bg-bg-tertiary rounded animate-pulse" />
+                </div>
               </div>
             ))}
           </div>

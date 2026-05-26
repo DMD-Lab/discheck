@@ -5,6 +5,8 @@ import TopAlbumsSection from "@/components/dashboard/home/TopAlbumsSection";
 import type { TopAlbum } from "@/components/dashboard/home/TopAlbumsSection";
 import TopArtistesSection from "@/components/dashboard/home/TopArtistesSection";
 import type { TopArtist } from "@/components/dashboard/home/TopArtistesSection";
+import TracksFavoritesSection from "@/components/dashboard/home/TracksFavoritesSection";
+import type { TopTrack } from "@/components/dashboard/home/TracksFavoritesSection";
 
 const RETURN_MESSAGES = [
   "Content de te retrouver",
@@ -53,7 +55,7 @@ export default async function HomePage() {
       .eq("user_id", user.id),
   ]);
 
-  // Top 5 albums notés
+  // top albums
   const { data: topAlbumRatings } = await supabase
     .from("album_ratings")
     .select("album_deezer_id, rating, rated_at")
@@ -132,7 +134,7 @@ export default async function HomePage() {
       .map((a, i) => ({ ...a, rank: i + 1 }));
   }
 
-  // Top 5 artistes notés
+  // top artistes
   let topArtists: TopArtist[] = [];
   const { data: allTrackRatings } = await supabase
     .from("track_ratings")
@@ -204,6 +206,43 @@ export default async function HomePage() {
     }
   }
 
+  // tracks 5/5
+  let topTracks: TopTrack[] = [];
+  const { data: topTrackRatings } = await supabase
+    .from("track_ratings")
+    .select("track_deezer_id, rated_at")
+    .eq("user_id", user.id)
+    .eq("rating", 5)
+    .order("rated_at", { ascending: false })
+    .limit(5);
+
+  if (topTrackRatings && topTrackRatings.length > 0) {
+    const trackIds = topTrackRatings.map((r) => r.track_deezer_id);
+    const { data: tracksForFav } = await supabase
+      .from("cached_tracks")
+      .select("track_deezer_id, album_deezer_id, track_data")
+      .in("track_deezer_id", trackIds);
+
+    const albumIdsForFav = [...new Set((tracksForFav ?? []).map((t) => t.album_deezer_id))];
+    const { data: albumsForFav } = await supabase
+      .from("cached_albums")
+      .select("album_deezer_id, artist_name, cover_xl")
+      .in("album_deezer_id", albumIdsForFav);
+
+    topTracks = topTrackRatings.map((r) => {
+      const track = (tracksForFav ?? []).find((t) => t.track_deezer_id === r.track_deezer_id);
+      const album = (albumsForFav ?? []).find((a) => a.album_deezer_id === track?.album_deezer_id);
+      const raw = track?.track_data as { title?: string } | null;
+      return {
+        trackDeezerId: r.track_deezer_id,
+        title: raw?.title ?? "Track inconnue",
+        artistName: album?.artist_name ?? "",
+        coverXl: album?.cover_xl ?? "",
+        ratedAt: r.rated_at,
+      };
+    });
+  }
+
   const albumsEcoutes = new Set(
     listenedData?.map((t) => t.album_deezer_id).filter(Boolean),
   ).size;
@@ -226,8 +265,9 @@ export default async function HomePage() {
         }}
       />
       <TopAlbumsSection albums={topAlbums} />
-      <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 2xl:grid-cols-2 gap-6 2xl:gap-0 mb-6">
         <TopArtistesSection artists={topArtists} />
+        <TracksFavoritesSection tracks={topTracks} />
       </div>
     </>
   );
