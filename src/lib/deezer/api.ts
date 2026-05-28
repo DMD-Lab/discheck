@@ -2,6 +2,7 @@ import type {
   DeezerSearchResponse,
   DeezerDiscographyResponse,
   DeezerTracksResponse,
+  DeezerGenresResponse,
 } from './types'
 
 const BASE_URL = 'https://api.deezer.com'
@@ -33,5 +34,11 @@ export async function getAlbumTracks(albumId: number): Promise<DeezerTracksRespo
 export async function getArtist(artistId: number) {
   const res = await fetch(`${BASE_URL}/artist/${artistId}`)
   if (!res.ok) throw new Error('Deezer artist fetch failed')
+  return res.json()
+}
+
+export async function getGenres(): Promise<DeezerGenresResponse> {
+  const res = await fetch(`${BASE_URL}/genre`)
+  if (!res.ok) throw new Error('Deezer genres fetch failed')
   return res.json()
 }

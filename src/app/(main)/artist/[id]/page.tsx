@@ -80,7 +80,7 @@ export default function ArtistPage() {
       await supabase.from('listened_tracks').delete().eq('user_id', user.id).eq('track_deezer_id', trackId)
       setListenedIds(prev => { const next = new Set(prev); next.delete(trackId); return next })
     } else {
-      await supabase.from('listened_tracks').insert({ user_id: user.id, track_deezer_id: trackId })
+      await supabase.from('listened_tracks').insert({ user_id: user.id, track_deezer_id: trackId, album_deezer_id: trackAlbumMap.get(trackId) ?? null })
       setListenedIds(prev => new Set(prev).add(trackId))
     }
   }
@@ -120,7 +120,7 @@ export default function ArtistPage() {
     const unlistened = trackIds.filter(id => !listenedIds.has(id))
     if (unlistened.length === 0) return
     await supabase.from('listened_tracks').insert(
-      unlistened.map(id => ({ user_id: user.id, track_deezer_id: id }))
+      unlistened.map(id => ({ user_id: user.id, track_deezer_id: id, album_deezer_id: trackAlbumMap.get(id) ?? null }))
     )
     setListenedIds(prev => new Set([...prev, ...unlistened]))
   }
@@ -156,6 +156,14 @@ export default function ArtistPage() {
     const pct = albums.length > 0 ? Math.round((terminées / albums.length) * 100) : 0
     return { terminées, enCours, pct }
   }, [albums, albumTracksMap, listenedIds])
+
+  const trackAlbumMap = useMemo(() => {
+    const map = new Map<number, number>()
+    for (const [albumId, tracks] of albumTracksMap.entries()) {
+      for (const trackId of tracks) map.set(trackId, albumId)
+    }
+    return map
+  }, [albumTracksMap])
 
   const trackAvgMap = useMemo(() => {
     const map = new Map<number, number>()

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Mic2 } from "lucide-react";
 import { textStyles } from "@/components/ui/text-styles";
 import ArtistFeaturedCard from "./ArtistFeaturedCard";
 import ArtistSmallCard from "./ArtistSmallCard";
@@ -19,7 +19,25 @@ export type TopArtist = {
 
 export default function TopArtistesSection({ artists }: { artists: TopArtist[] }) {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
-  if (artists.length === 0) return null;
+
+  if (artists.length === 0) {
+    return (
+      <section className="2xl:pr-6 2xl:border-r 2xl:border-border">
+        <div className="flex items-center pb-3 mb-3 border-b border-border">
+          <h2 className={`${textStyles.cardTitle} text-text-green`}>Top Artistes</h2>
+        </div>
+        <div className="md:min-h-[243px] flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3 text-center p-6">
+            <Mic2 size={28} className="text-text-disabled" />
+            <p className={`${textStyles.caption} text-text-secondary max-w-[200px]`}>
+              Notez au moins 5 tracks d'un artiste pour le voir ici
+            </p>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
   const [featured, ...rest] = artists;
 
   return (

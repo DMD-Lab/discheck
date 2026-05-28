@@ -89,7 +89,7 @@ export default function AlbumsRanking() {
   return (
     <div className="flex flex-col h-full">
       <div className="px-5 pt-5 pb-4 pr-14 flex-shrink-0 border-b border-border">
-        <h2 className={`${textStyles.cardTitle} text-text-primary`}>Vos albums préférés</h2>
+        <h2 className={`${textStyles.cardTitle} text-text-green`}>Vos albums préférés</h2>
         {!loading && (
           <p className={`${textStyles.caption} text-text-secondary mt-0.5`}>
             {albums.length} album{albums.length > 1 ? 's' : ''} noté{albums.length > 1 ? 's' : ''}
@@ -110,12 +110,6 @@ export default function AlbumsRanking() {
 }
 
 function AlbumRankingRow({ album }: { album: TopAlbum }) {
-  const date = new Date(album.ratedAt).toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  })
-
   return (
     <div className="flex items-center gap-3 px-5 py-3 hover:bg-bg-tertiary transition-colors border-b border-border last:border-0">
       <span className={`${textStyles.caption} text-text-disabled w-5 text-right flex-shrink-0`}>

@@ -31,6 +31,17 @@ export interface DeezerAlbumResult {
   original_release_year?: number | null
 }
 
+export interface DeezerGenresResponse {
+  data: DeezerGenreResult[]
+}
+
+export interface DeezerGenreResult {
+  id: number
+  name: string
+  picture_xl: string
+  type: 'genre'
+}
+
 export interface DeezerTracksResponse {
   data: DeezerTrackResult[]
 }

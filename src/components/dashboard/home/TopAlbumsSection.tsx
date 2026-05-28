@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Disc } from "lucide-react";
 import { textStyles } from "@/components/ui/text-styles";
 import AlbumFeaturedCard from "./AlbumFeaturedCard";
 import AlbumSmallCard from "./AlbumSmallCard";
@@ -22,7 +22,25 @@ export type TopAlbum = {
 
 export default function TopAlbumsSection({ albums }: { albums: TopAlbum[] }) {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
-  if (albums.length === 0) return null;
+
+  if (albums.length === 0) {
+    return (
+      <section className="mb-6">
+        <div className="flex items-center mb-4">
+          <h2 className={`${textStyles.cardTitle} text-text-green`}>Vos albums préférés</h2>
+        </div>
+        <div className="md:min-h-[484px] lg:min-h-[532px] 2xl:min-h-[282px] flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3 text-center p-6">
+            <Disc size={28} className="text-text-disabled" />
+            <p className={`${textStyles.caption} text-text-secondary max-w-[200px]`}>
+              Notez des albums pour les voir dans votre classement
+            </p>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
   const [featured, ...rest] = albums;
 
   return (

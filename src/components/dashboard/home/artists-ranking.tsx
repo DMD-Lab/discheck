@@ -94,7 +94,7 @@ export default function ArtistsRanking() {
   return (
     <div className="flex flex-col h-full">
       <div className="px-5 pt-5 pb-4 pr-14 flex-shrink-0 border-b border-border">
-        <h2 className={`${textStyles.cardTitle} text-text-primary`}>Top Artistes</h2>
+        <h2 className={`${textStyles.cardTitle} text-text-green`}>Top Artistes</h2>
         {!loading && (
           <p className={`${textStyles.caption} text-text-secondary mt-0.5`}>
             {artists.length} artiste{artists.length > 1 ? 's' : ''} noté{artists.length > 1 ? 's' : ''}

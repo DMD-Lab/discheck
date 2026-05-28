@@ -92,6 +92,7 @@ export async function GET(
           title: album.title,
           cover_xl: album.cover_xl,
           artist_name: artistName ?? '',
+          genre_id: (album as unknown as { genre_id?: number }).genre_id ?? null,
         })),
         { onConflict: 'album_deezer_id' }
       )
