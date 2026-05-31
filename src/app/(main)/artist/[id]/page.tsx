@@ -80,7 +80,7 @@ export default function ArtistPage() {
       await supabase.from('listened_tracks').delete().eq('user_id', user.id).eq('track_deezer_id', trackId)
       setListenedIds(prev => { const next = new Set(prev); next.delete(trackId); return next })
     } else {
-      await supabase.from('listened_tracks').insert({ user_id: user.id, track_deezer_id: trackId, album_deezer_id: trackAlbumMap.get(trackId) ?? null })
+      await supabase.from('listened_tracks').insert({ user_id: user.id, track_deezer_id: trackId, album_deezer_id: trackAlbumMap.get(trackId) ?? selectedAlbum?.id ?? null })
       setListenedIds(prev => new Set(prev).add(trackId))
     }
   }
@@ -120,7 +120,7 @@ export default function ArtistPage() {
     const unlistened = trackIds.filter(id => !listenedIds.has(id))
     if (unlistened.length === 0) return
     await supabase.from('listened_tracks').insert(
-      unlistened.map(id => ({ user_id: user.id, track_deezer_id: id, album_deezer_id: trackAlbumMap.get(id) ?? null }))
+      unlistened.map(id => ({ user_id: user.id, track_deezer_id: id, album_deezer_id: trackAlbumMap.get(id) ?? selectedAlbum?.id ?? null }))
     )
     setListenedIds(prev => new Set([...prev, ...unlistened]))
   }

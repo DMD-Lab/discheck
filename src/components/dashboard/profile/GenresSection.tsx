@@ -25,7 +25,7 @@ export default function GenresSection({
         </div>
         <div className="h-52 flex items-center justify-center">
           <div className="flex flex-col items-center gap-3 text-center p-6">
-            <Music size={28} className="text-text-disabled" />
+            <Music size={45} className="text-text-disabled w-7 h-7 md:w-[45px] md:h-[45px]" />
             <p className={`${textStyles.caption} text-text-secondary max-w-[200px]`}>
               Vos genres s&apos;afficheront ici après vos premières notes
             </p>
@@ -59,7 +59,7 @@ export default function GenresSection({
         </div>
 
         {/* mobile */}
-        <div className="grid grid-cols-2 gap-3 lg:hidden">
+        <div className="grid grid-cols-2 gap-4 lg:hidden">
           {displayed.map((genre, i) => (
             <div key={genre.genreId} className="aspect-square sm:aspect-[3/2]">
               <GenreCard genre={genre} priority={i === 0} rank={i + 1} />
@@ -76,7 +76,7 @@ export default function GenresSection({
 
         {/* desktop */}
         <div
-          className="hidden lg:grid gap-3 h-52"
+          className="hidden lg:grid gap-4 h-52"
           style={{ gridTemplateColumns: '1fr 1fr 1fr 0.6fr' }}
         >
           {displayed.map((genre, i) => (

@@ -10,7 +10,7 @@ function GenresSkeleton() {
       </div>
 
       {/* mobile */}
-      <div className="grid grid-cols-2 gap-3 lg:hidden">
+      <div className="grid grid-cols-2 gap-4 lg:hidden">
         {[0, 1, 2, 3].map(i => (
           <div key={i} className="aspect-square sm:aspect-[3/2] bg-bg-tertiary rounded-xl animate-pulse" />
         ))}
@@ -18,7 +18,7 @@ function GenresSkeleton() {
 
       {/* desktop */}
       <div
-        className="hidden lg:grid gap-3 h-52"
+        className="hidden lg:grid gap-4 h-52"
         style={{ gridTemplateColumns: '1fr 1fr 1fr 0.6fr' }}
       >
         {[0, 1, 2, 3].map(i => (
@@ -32,21 +32,67 @@ function GenresSkeleton() {
 function DecadesSkeleton() {
   const bars = [0.4, 1, 0.6, 0.3, 0.85, 0.5, 0.2]
   return (
-    <section className="border border-bg-secondary rounded-lg p-5">
-      <div className="mb-3 space-y-1.5">
+    <section className="border border-bg-secondary rounded-lg p-5 flex flex-col">
+      <div className="mb-3 flex-shrink-0 space-y-1.5">
         <div className="h-5 w-44 bg-bg-tertiary rounded animate-pulse" />
         <div className="h-3 w-56 bg-bg-tertiary rounded animate-pulse" />
       </div>
-      <div className="flex items-end gap-1 pt-3">
+      <div className="flex gap-1 pt-7 h-[120px] lg:h-auto lg:flex-1 min-h-0">
         {bars.map((ratio, i) => (
-          <div key={i} className="flex-1 flex flex-col items-center gap-1">
-            <div
-              className="w-8 bg-bg-tertiary rounded-t animate-pulse"
-              style={{ height: `${ratio * 80}px` }}
-            />
-            <div className="h-2.5 w-5 bg-bg-tertiary rounded animate-pulse" />
+          <div key={i} className="flex-1 flex flex-col items-center min-h-0">
+            <div className="flex-1 relative flex items-end justify-center min-h-0 w-full">
+              <div
+                className="w-8 lg:w-5 xl:w-8 bg-bg-tertiary rounded-t animate-pulse"
+                style={{ height: `${ratio * 100}%` }}
+              />
+            </div>
+            <div className="flex-shrink-0 h-2.5 w-5 bg-bg-tertiary rounded animate-pulse mt-1" />
           </div>
         ))}
+      </div>
+    </section>
+  )
+}
+
+function ListenerSkeleton() {
+  return (
+    <section className="border border-bg-secondary rounded-lg p-5">
+      <div className="mb-3 space-y-1.5">
+        <div className="h-5 w-44 bg-bg-tertiary rounded animate-pulse" />
+        <div className="h-3 w-52 bg-bg-tertiary rounded animate-pulse" />
+      </div>
+      <div className="flex items-center gap-3 pt-2 lg:flex-col lg:gap-4 xl:flex-row xl:gap-3">
+        {/* stat gauche */}
+        <div className="flex-1 flex flex-col items-center gap-1.5 lg:hidden xl:flex">
+          <div className="h-6 w-12 bg-bg-tertiary rounded animate-pulse" />
+          <div className="h-3 w-16 bg-bg-tertiary rounded animate-pulse" />
+          <div className="h-3 w-14 bg-bg-tertiary rounded animate-pulse" />
+        </div>
+
+        {/* donut */}
+        <div className="relative flex-shrink-0 w-24 h-24 xl:w-[120px] xl:h-[120px] rounded-full border-[12px] border-bg-tertiary animate-pulse" />
+
+        {/* stat droite */}
+        <div className="flex-1 flex flex-col items-center gap-1.5 lg:hidden xl:flex">
+          <div className="h-6 w-12 bg-bg-tertiary rounded animate-pulse" />
+          <div className="h-3 w-14 bg-bg-tertiary rounded animate-pulse" />
+          <div className="h-3 w-14 bg-bg-tertiary rounded animate-pulse" />
+        </div>
+
+        {/* stats sous donut — lg only */}
+        <div className="hidden lg:flex xl:hidden w-full items-center gap-3">
+          <div className="flex-1 flex flex-col items-center gap-1.5">
+            <div className="h-6 w-12 bg-bg-tertiary rounded animate-pulse" />
+            <div className="h-3 w-16 bg-bg-tertiary rounded animate-pulse" />
+            <div className="h-3 w-14 bg-bg-tertiary rounded animate-pulse" />
+          </div>
+          <div className="w-px h-10 bg-border flex-shrink-0" />
+          <div className="flex-1 flex flex-col items-center gap-1.5">
+            <div className="h-6 w-12 bg-bg-tertiary rounded animate-pulse" />
+            <div className="h-3 w-14 bg-bg-tertiary rounded animate-pulse" />
+            <div className="h-3 w-14 bg-bg-tertiary rounded animate-pulse" />
+          </div>
+        </div>
       </div>
     </section>
   )
@@ -56,8 +102,9 @@ export default function ProfileLoading() {
   return (
     <div className="flex flex-col gap-6">
       <GenresSkeleton />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <DecadesSkeleton />
+        <ListenerSkeleton />
       </div>
     </div>
   )
