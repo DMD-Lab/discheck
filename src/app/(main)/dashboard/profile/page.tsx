@@ -14,6 +14,9 @@ import { getListenerInsight } from "@/lib/insights/listener-insight"
 import type { ListenerStats } from "@/lib/insights/listener-insight"
 import { getConcentrationInsight } from "@/lib/insights/concentration-insight"
 import type { ConcentrationStats } from "@/lib/insights/concentration-insight"
+import CritiqueSection from "@/components/dashboard/profile/CritiqueSection"
+import { emptyCritiqueModeStats } from "@/lib/insights/critique-insight"
+import type { CritiqueStats, CritiqueModeStats } from "@/lib/insights/critique-insight"
 
 const GENRES_TTL_MS = 7 * 24 * 60 * 60 * 1000
 
@@ -54,10 +57,15 @@ export default async function ProfilePage() {
 
   await refreshGenresIfStale()
 
-  const { data: listenedAlbums } = await supabase
-    .from("listened_tracks")
-    .select("album_deezer_id")
-    .eq("user_id", user.id)
+  const [
+    { data: listenedAlbums },
+    { data: albumRatingsData },
+    { data: trackRatingsData },
+  ] = await Promise.all([
+    supabase.from("listened_tracks").select("album_deezer_id").eq("user_id", user.id),
+    supabase.from("album_ratings").select("rating").eq("user_id", user.id),
+    supabase.from("track_ratings").select("rating").eq("user_id", user.id),
+  ])
 
   let genreStats: GenreStats[] = []
   const decadeStats: DecadeStats[] = []
@@ -220,6 +228,21 @@ export default async function ProfilePage() {
     }
   }
 
+  function computeCritiqueMode(ratings: number[]): CritiqueModeStats {
+    const dist = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } as Record<1 | 2 | 3 | 4 | 5, number>
+    let sum = 0
+    for (const r of ratings) {
+      if (r >= 1 && r <= 5) { dist[r as 1 | 2 | 3 | 4 | 5]++; sum += r }
+    }
+    const total = dist[1] + dist[2] + dist[3] + dist[4] + dist[5]
+    return { distribution: dist, average: total > 0 ? Math.round((sum / total) * 100) / 100 : 0, total }
+  }
+
+  const critiqueStats: CritiqueStats = {
+    albums: albumRatingsData?.length ? computeCritiqueMode(albumRatingsData.map(r => r.rating)) : emptyCritiqueModeStats(),
+    tracks: trackRatingsData?.length ? computeCritiqueMode(trackRatingsData.map(r => r.rating)) : emptyCritiqueModeStats(),
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <GenresSection genres={genreStats} insight={getGenreInsight(genreStats)} />
@@ -227,6 +250,11 @@ export default async function ProfilePage() {
         <DecadesSection decades={decadeStats} insight={getDecadeInsight(decadeStats)} />
         <ListenerSection stats={listenerStats} insight={getListenerInsight(listenerStats)} />
         <ConcentrationSection stats={concentrationStats} insight={getConcentrationInsight(concentrationStats)} />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <div className="lg:col-span-full xl:col-span-2">
+          <CritiqueSection stats={critiqueStats} />
+        </div>
       </div>
     </div>
   )

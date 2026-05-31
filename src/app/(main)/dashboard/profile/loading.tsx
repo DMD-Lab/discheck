@@ -138,6 +138,36 @@ function ConcentrationSkeleton() {
   )
 }
 
+function CritiqueSkeleton() {
+  return (
+    <section className="border border-bg-secondary rounded-lg p-5">
+      <div className="flex items-center justify-between mb-1">
+        <div className="h-5 w-36 bg-bg-tertiary rounded animate-pulse" />
+        <div className="h-6 w-28 bg-bg-tertiary rounded-full animate-pulse" />
+      </div>
+      <div className="h-3 w-64 bg-bg-tertiary rounded animate-pulse mt-1 mb-4" />
+      <div className="flex items-center gap-4">
+        <div className="w-3/5 flex flex-col gap-2">
+          {[85, 65, 40, 25, 15].map((w, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-bg-tertiary rounded animate-pulse flex-shrink-0" />
+              <div className="flex-1 h-2 bg-bg-tertiary rounded-full overflow-hidden">
+                <div className="h-full bg-bg-secondary rounded-full" style={{ width: `${w}%` }} />
+              </div>
+              <div className="w-8 h-3 bg-bg-tertiary rounded animate-pulse flex-shrink-0" />
+            </div>
+          ))}
+        </div>
+        <div className="flex-1 flex flex-col items-center justify-center gap-0.5 pl-4 border-l border-border">
+          <div className="h-8 w-12 bg-bg-tertiary rounded animate-pulse" />
+          <div className="h-3 w-14 bg-bg-tertiary rounded animate-pulse mt-0.5" />
+          <div className="h-3 w-10 bg-bg-tertiary rounded animate-pulse mt-0.5" />
+        </div>
+      </div>
+    </section>
+  )
+}
+
 import DischecLoader from '@/components/ui/DischecLoader'
 
 export default function ProfileLoading() {
@@ -148,6 +178,11 @@ export default function ProfileLoading() {
         <DecadesSkeleton />
         <ListenerSkeleton />
         <ConcentrationSkeleton />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <div className="lg:col-span-full xl:col-span-2">
+          <CritiqueSkeleton />
+        </div>
       </div>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg-primary/60 backdrop-blur-[2px] pointer-events-none">
         <DischecLoader size={80} />

@@ -1,13 +1,6 @@
 import { X } from 'lucide-react'
 import { textStyles } from '@/components/ui/text-styles'
-
-const RATING_COLORS: Record<number, string> = {
-  1: '#ef4444',
-  2: '#f97316',
-  3: '#eab308',
-  4: '#84cc16',
-  5: '#22c55e',
-}
+import { RATING_COLORS } from '@/lib/rating-colors'
 
 interface AlbumRatingModalProps {
   currentRating?: number

@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { Check, X } from 'lucide-react'
 import { textStyles } from '@/components/ui/text-styles'
 import MarqueeText from '@/components/ui/marquee-text'
+import { RATING_COLORS } from '@/lib/rating-colors'
 
 interface TrackRowProps {
   position: number
@@ -13,13 +14,6 @@ interface TrackRowProps {
   onRate: (rating: number) => void
 }
 
-const RATING_COLORS: Record<number, string> = {
-  1: '#ef4444',
-  2: '#f97316',
-  3: '#eab308',
-  4: '#84cc16',
-  5: '#22c55e',
-}
 
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60)
