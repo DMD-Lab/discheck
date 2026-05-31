@@ -100,11 +100,21 @@ export default function ArtistsPage() {
 
       <div className="max-w-5xl mx-auto w-full flex flex-col flex-1 px-4 py-6 md:px-8 lg:px-16 lg:py-12">
         <div className="mb-10">
-          <div className="flex items-baseline gap-3 mb-1.5">
-            <h1 className={`${textStyles.pageTitle} text-text-green`}>Mes artistes</h1>
-            {!loading && artists.length > 0 && (
-              <span className={`${textStyles.caption} text-text-disabled`}>
-                {artists.length} artiste{artists.length > 1 ? 's' : ''}
+          <div className="flex items-baseline justify-between gap-3 mb-1.5">
+            <div className="flex items-baseline gap-3">
+              <h1 className={`${textStyles.pageTitle} text-text-green`}>Mes artistes</h1>
+              {!loading && artists.length > 0 && (
+                <span className={`${textStyles.caption} text-text-disabled`}>
+                  {artists.length} artiste{artists.length > 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+            {!loading && (
+              <span className={`${textStyles.caption} flex items-center gap-1 flex-shrink-0 ${
+                favoriteIds.size >= 5 ? 'text-primary' : 'text-text-disabled'
+              }`}>
+                <Star size={11} fill={favoriteIds.size > 0 ? 'currentColor' : 'none'} />
+                {favoriteIds.size}/5 favoris
               </span>
             )}
           </div>

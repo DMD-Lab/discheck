@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import { Music2, CheckCircle2, Activity } from 'lucide-react'
@@ -11,6 +11,7 @@ import ReleaseRow from '@/components/artist/ReleaseRow'
 import Panel from '@/components/ui/panel'
 import AlbumDetail from '@/components/layout/album-detail'
 import { createClient } from '@/lib/supabase/client'
+import DischecLoader from '@/components/ui/DischecLoader'
 
 type Filter = 'all' | 'album' | 'ep' | 'single'
 
@@ -109,9 +110,9 @@ export default function ArtistPage() {
     setAlbumRatingMap(prev => new Map(prev).set(albumId, rating))
   }
 
-  const handleTracksLoaded = useCallback((albumId: number, trackIds: number[]) => {
+  function handleTracksLoaded(albumId: number, trackIds: number[]) {
     setAlbumTracksMap(prev => new Map(prev).set(albumId, trackIds))
-  }, [])
+  }
 
   async function handleCheckAll(trackIds: number[]) {
     const supabase = createClient()
@@ -140,62 +141,47 @@ export default function ArtistPage() {
     })
   }
 
-  const stats = useMemo(() => {
-    let terminées = 0
-    let enCours = 0
-
-    albums.forEach(album => {
-      const tracks = albumTracksMap.get(album.id) ?? []
-      const count = tracks.filter(tid => listenedIds.has(tid)).length
-      if (tracks.length > 0) {
-        if (count >= tracks.length) terminées++
-        else if (count > 0) enCours++
-      }
-    })
-
-    const pct = albums.length > 0 ? Math.round((terminées / albums.length) * 100) : 0
-    return { terminées, enCours, pct }
-  }, [albums, albumTracksMap, listenedIds])
-
-  const trackAlbumMap = useMemo(() => {
-    const map = new Map<number, number>()
-    for (const [albumId, tracks] of albumTracksMap.entries()) {
-      for (const trackId of tracks) map.set(trackId, albumId)
+  let terminées = 0
+  let enCours = 0
+  albums.forEach(album => {
+    const tracks = albumTracksMap.get(album.id) ?? []
+    const count = tracks.filter(tid => listenedIds.has(tid)).length
+    if (tracks.length > 0) {
+      if (count >= tracks.length) terminées++
+      else if (count > 0) enCours++
     }
-    return map
-  }, [albumTracksMap])
+  })
+  const stats = { terminées, enCours, pct: albums.length > 0 ? Math.round((terminées / albums.length) * 100) : 0 }
 
-  const trackAvgMap = useMemo(() => {
-    const map = new Map<number, number>()
-    albums.forEach(album => {
-      const tracks = albumTracksMap.get(album.id)
-      if (!tracks || tracks.length === 0) return
-      if (!tracks.every(tid => listenedIds.has(tid))) return
-      if (!tracks.every(tid => ratingMap.has(tid))) return
-      const avg = tracks.reduce((sum, tid) => sum + (ratingMap.get(tid) ?? 0), 0) / tracks.length
-      map.set(album.id, Math.round(avg * 10) / 10)
-    })
-    return map
-  }, [albums, albumTracksMap, listenedIds, ratingMap])
+  const trackAlbumMap = new Map<number, number>()
+  for (const [albumId, tracks] of albumTracksMap.entries()) {
+    for (const trackId of tracks) trackAlbumMap.set(trackId, albumId)
+  }
 
-  const filteredAlbums = useMemo(() => {
-    if (activeFilter === 'all') return albums
-    return albums.filter(a => a.record_type === activeFilter)
-  }, [albums, activeFilter])
+  const trackAvgMap = new Map<number, number>()
+  albums.forEach(album => {
+    const tracks = albumTracksMap.get(album.id)
+    if (!tracks || tracks.length === 0) return
+    if (!tracks.every(tid => listenedIds.has(tid))) return
+    if (!tracks.every(tid => ratingMap.has(tid))) return
+    const avg = tracks.reduce((sum, tid) => sum + (ratingMap.get(tid) ?? 0), 0) / tracks.length
+    trackAvgMap.set(album.id, Math.round(avg * 10) / 10)
+  })
 
-  const groupedByYear = useMemo(() => {
-    const map = new Map<string, DeezerAlbumResult[]>()
-    filteredAlbums.forEach(album => {
-      const year = String(album.original_release_year ?? album.release_date?.slice(0, 4) ?? '—')
-      const list = map.get(year) ?? []
-      list.push(album)
-      map.set(year, list)
-    })
-    return Array.from(map.entries()).map(([year, releases]) => ({ year, releases }))
-  }, [filteredAlbums])
+  const filteredAlbums = activeFilter === 'all' ? albums : albums.filter(a => a.record_type === activeFilter)
+
+  const yearMap = new Map<string, DeezerAlbumResult[]>()
+  filteredAlbums.forEach(album => {
+    const year = String(album.original_release_year ?? album.release_date?.slice(0, 4) ?? '—')
+    const list = yearMap.get(year) ?? []
+    list.push(album)
+    yearMap.set(year, list)
+  })
+  const groupedByYear = Array.from(yearMap.entries()).map(([year, releases]) => ({ year, releases }))
 
   if (loading) {
     return (
+      <div className="relative">
       <div className="max-w-5xl mx-auto w-full px-4 py-6 md:px-8 lg:px-16 lg:py-12">
         <div className="flex items-start gap-4 md:gap-6 mb-4 md:mb-8">
           <div className="w-20 h-20 md:w-28 md:h-28 rounded-lg bg-bg-tertiary animate-pulse flex-shrink-0" />
@@ -247,6 +233,10 @@ export default function ArtistPage() {
             ))}
           </div>
         </div>
+      </div>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg-primary/60 backdrop-blur-[2px] pointer-events-none">
+        <DischecLoader size={80} />
+      </div>
       </div>
     )
   }

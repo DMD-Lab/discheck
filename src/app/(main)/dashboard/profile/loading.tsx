@@ -138,14 +138,19 @@ function ConcentrationSkeleton() {
   )
 }
 
+import DischecLoader from '@/components/ui/DischecLoader'
+
 export default function ProfileLoading() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="relative flex flex-col gap-6">
       <GenresSkeleton />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <DecadesSkeleton />
         <ListenerSkeleton />
         <ConcentrationSkeleton />
+      </div>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg-primary/60 backdrop-blur-[2px] pointer-events-none">
+        <DischecLoader size={80} />
       </div>
     </div>
   )

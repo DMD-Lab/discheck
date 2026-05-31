@@ -74,9 +74,11 @@ function SmallSkeleton() {
   )
 }
 
+import DischecLoader from '@/components/ui/DischecLoader'
+
 export default function DashboardHomeLoading() {
   return (
-    <>
+    <div className="relative">
       {/* WelcomeBanner skeleton */}
       <div className="flex flex-col xl:flex-row xl:items-center gap-6 xl:gap-0 mb-6 justify-between">
         <div className="xl:w-1/2 shrink-0 space-y-2.5">
@@ -187,6 +189,9 @@ export default function DashboardHomeLoading() {
           </div>
         </div>
       </div>
-    </>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg-primary/60 backdrop-blur-[2px] pointer-events-none">
+        <DischecLoader size={80} />
+      </div>
+    </div>
   )
 }
