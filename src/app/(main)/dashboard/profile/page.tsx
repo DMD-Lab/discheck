@@ -5,12 +5,15 @@ import { getGenreColor } from "@/lib/genre-colors"
 import GenresSection from "@/components/dashboard/profile/GenresSection"
 import DecadesSection from "@/components/dashboard/profile/DecadesSection"
 import ListenerSection from "@/components/dashboard/profile/ListenerSection"
+import ConcentrationSection from "@/components/dashboard/profile/ConcentrationSection"
 import { getGenreInsight } from "@/lib/insights/genre-insight"
 import type { GenreStats } from "@/lib/insights/genre-insight"
 import { getDecadeInsight, decadeLabel } from "@/lib/insights/decade-insight"
 import type { DecadeStats } from "@/lib/insights/decade-insight"
 import { getListenerInsight } from "@/lib/insights/listener-insight"
 import type { ListenerStats } from "@/lib/insights/listener-insight"
+import { getConcentrationInsight } from "@/lib/insights/concentration-insight"
+import type { ConcentrationStats } from "@/lib/insights/concentration-insight"
 
 const GENRES_TTL_MS = 7 * 24 * 60 * 60 * 1000
 
@@ -59,6 +62,7 @@ export default async function ProfilePage() {
   let genreStats: GenreStats[] = []
   const decadeStats: DecadeStats[] = []
   let listenerStats: ListenerStats = { albumFull: 0, albumPartial: 0, albumFullPct: 0, albumPartialPct: 0 }
+  let concentrationStats: ConcentrationStats = { top3Pct: 0, totalTracks: 0, totalArtists: 0, top3Artists: [] }
 
   const uniqueAlbumIds = [
     ...new Set((listenedAlbums ?? []).map((t) => t.album_deezer_id).filter(Boolean)),
@@ -67,7 +71,7 @@ export default async function ProfilePage() {
   if (uniqueAlbumIds.length > 0) {
     const { data: albumData } = await supabase
       .from("cached_albums")
-      .select("album_deezer_id, genre_id, original_release_year, track_count, record_type")
+      .select("album_deezer_id, genre_id, original_release_year, track_count, record_type, artist_deezer_id, artist_name")
       .in("album_deezer_id", uniqueAlbumIds)
 
     // genres
@@ -186,6 +190,34 @@ export default async function ProfilePage() {
         }
       }
     }
+
+    // concentration
+    const albumArtistMap = new Map<number, { id: number; name: string }>()
+    for (const a of albumData ?? []) {
+      if (a.artist_deezer_id) albumArtistMap.set(a.album_deezer_id, { id: a.artist_deezer_id, name: a.artist_name ?? '' })
+    }
+
+    const artistTrackMap = new Map<number, { name: string; count: number }>()
+    for (const track of listenedAlbums ?? []) {
+      const artist = albumArtistMap.get(track.album_deezer_id)
+      if (!artist) continue
+      const entry = artistTrackMap.get(artist.id)
+      if (entry) entry.count++
+      else artistTrackMap.set(artist.id, { name: artist.name, count: 1 })
+    }
+
+    const totalTracks = [...artistTrackMap.values()].reduce((s, a) => s + a.count, 0)
+    if (totalTracks > 0) {
+      const sorted = [...artistTrackMap.values()].sort((a, b) => b.count - a.count)
+      const top3 = sorted.slice(0, 3)
+      const top3Total = top3.reduce((s, a) => s + a.count, 0)
+      concentrationStats = {
+        top3Pct: Math.round((top3Total / totalTracks) * 100),
+        totalTracks,
+        totalArtists: artistTrackMap.size,
+        top3Artists: top3.map(a => ({ name: a.name, pct: Math.round((a.count / totalTracks) * 100) })),
+      }
+    }
   }
 
   return (
@@ -194,6 +226,7 @@ export default async function ProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <DecadesSection decades={decadeStats} insight={getDecadeInsight(decadeStats)} />
         <ListenerSection stats={listenerStats} insight={getListenerInsight(listenerStats)} />
+        <ConcentrationSection stats={concentrationStats} insight={getConcentrationInsight(concentrationStats)} />
       </div>
     </div>
   )

@@ -62,7 +62,7 @@ export default function GenresSection({
         <div className="grid grid-cols-2 gap-4 lg:hidden">
           {displayed.map((genre, i) => (
             <div key={genre.genreId} className="aspect-square sm:aspect-[3/2]">
-              <GenreCard genre={genre} priority={i === 0} rank={i + 1} />
+              <GenreCard genre={genre} priority={i < 2} rank={i + 1} />
             </div>
           ))}
           <div className="aspect-square sm:aspect-[3/2]">
@@ -80,7 +80,7 @@ export default function GenresSection({
           style={{ gridTemplateColumns: '1fr 1fr 1fr 0.6fr' }}
         >
           {displayed.map((genre, i) => (
-            <GenreCard key={genre.genreId} genre={genre} priority={i === 0} rank={i + 1} />
+            <GenreCard key={genre.genreId} genre={genre} priority={i < 2} rank={i + 1} />
           ))}
           <AutresCard
             count={othersCount > 0 ? othersCount : 0}

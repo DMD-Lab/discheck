@@ -62,7 +62,7 @@ export default function DecadesSection({
                 </div>
               )}
               <div
-                className="relative w-8 lg:w-5 xl:w-8 bg-text-green rounded-t transition-all duration-300"
+                className="relative w-5 lg:w-5 xl:w-8 bg-text-green rounded-t transition-all duration-300"
                 style={{
                   height: d.percentage > 0 ? `${(d.percentage / max) * 100}%` : '2px',
                   opacity: d.percentage > 0 ? 1 : 0.2,
@@ -75,7 +75,10 @@ export default function DecadesSection({
                 )}
               </div>
             </div>
-            <span className="flex-shrink-0 text-[10px] text-text-secondary mt-1">{d.label}</span>
+            <span className="flex-shrink-0 text-[10px] text-text-secondary mt-1 lg:hidden xl:block">{d.label}</span>
+            <span className="flex-shrink-0 text-[10px] text-text-secondary mt-1 hidden lg:block xl:hidden">
+              {d.decade >= 2000 ? `${String(d.decade).slice(2)}s` : d.label}
+            </span>
           </div>
         ))}
       </div>

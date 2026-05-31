@@ -40,7 +40,7 @@ export default function ListenerSection({
 
   return (
     <section className="border border-bg-secondary rounded-lg p-5">
-      <div className="mb-3">
+      <div className="mb-3 lg:min-h-[128px] xl:min-h-0 2xl:min-h-[64px]">
         <h2 className={`${textStyles.cardTitle} text-text-green`}>Album vs track listener</h2>
         {insight && (
           <p className={`${textStyles.caption} text-text-secondary mt-1`}>{insight}</p>

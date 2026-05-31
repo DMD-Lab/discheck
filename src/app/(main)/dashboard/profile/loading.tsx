@@ -57,7 +57,7 @@ function DecadesSkeleton() {
 function ListenerSkeleton() {
   return (
     <section className="border border-bg-secondary rounded-lg p-5">
-      <div className="mb-3 space-y-1.5">
+      <div className="mb-3 space-y-1.5 lg:min-h-[128px] xl:min-h-0 2xl:min-h-[64px]">
         <div className="h-5 w-44 bg-bg-tertiary rounded animate-pulse" />
         <div className="h-3 w-52 bg-bg-tertiary rounded animate-pulse" />
       </div>
@@ -98,6 +98,46 @@ function ListenerSkeleton() {
   )
 }
 
+function ConcentrationSkeleton() {
+  return (
+    <section className="border border-bg-secondary rounded-lg p-5">
+      <div className="mb-3 space-y-1.5 lg:min-h-[128px] xl:min-h-0 2xl:min-h-[64px]">
+        <div className="h-5 w-44 bg-bg-tertiary rounded animate-pulse" />
+        <div className="h-3 w-52 bg-bg-tertiary rounded animate-pulse" />
+      </div>
+      <div className="flex items-center gap-3 pt-2 lg:flex-col lg:gap-4 xl:flex-row xl:gap-3">
+        {/* stat gauche */}
+        <div className="flex-1 flex flex-col items-center gap-1.5 lg:hidden xl:flex">
+          <div className="h-6 w-12 bg-bg-tertiary rounded animate-pulse" />
+          <div className="h-3 w-20 bg-bg-tertiary rounded animate-pulse" />
+        </div>
+
+        {/* donut */}
+        <div className="relative flex-shrink-0 w-24 h-24 xl:w-[120px] xl:h-[120px] rounded-full border-[12px] border-bg-tertiary animate-pulse" />
+
+        {/* stat droite */}
+        <div className="flex-1 flex flex-col items-center gap-1.5 lg:hidden xl:flex">
+          <div className="h-6 w-16 bg-bg-tertiary rounded animate-pulse" />
+          <div className="h-3 w-24 bg-bg-tertiary rounded animate-pulse" />
+        </div>
+
+        {/* stats sous donut — lg only */}
+        <div className="hidden lg:flex xl:hidden w-full items-center gap-3">
+          <div className="flex-1 flex flex-col items-center gap-1.5">
+            <div className="h-6 w-12 bg-bg-tertiary rounded animate-pulse" />
+            <div className="h-3 w-20 bg-bg-tertiary rounded animate-pulse" />
+          </div>
+          <div className="w-px h-10 bg-border flex-shrink-0" />
+          <div className="flex-1 flex flex-col items-center gap-1.5">
+            <div className="h-6 w-16 bg-bg-tertiary rounded animate-pulse" />
+            <div className="h-3 w-24 bg-bg-tertiary rounded animate-pulse" />
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export default function ProfileLoading() {
   return (
     <div className="flex flex-col gap-6">
@@ -105,6 +145,7 @@ export default function ProfileLoading() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <DecadesSkeleton />
         <ListenerSkeleton />
+        <ConcentrationSkeleton />
       </div>
     </div>
   )
