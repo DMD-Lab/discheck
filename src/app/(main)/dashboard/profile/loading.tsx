@@ -168,6 +168,68 @@ function CritiqueSkeleton() {
   )
 }
 
+function EcartSkeleton() {
+  return (
+    <section className="border border-bg-secondary rounded-lg p-5">
+      <div className="flex items-center justify-between mb-1">
+        <div className="h-5 w-32 bg-bg-tertiary rounded animate-pulse" />
+        <div className="h-3 w-16 bg-bg-tertiary rounded animate-pulse" />
+      </div>
+      <div className="h-3 w-72 bg-bg-tertiary rounded animate-pulse mt-1 mb-4" />
+
+      {/* mobile */}
+      <div className="flex flex-col divide-y divide-border sm:hidden">
+        {[0, 1, 2].map(i => (
+          <div key={i} className="flex items-center gap-3 py-2.5">
+            <div className="w-10 h-10 bg-bg-tertiary rounded animate-pulse flex-shrink-0" />
+            <div className="flex-1 min-w-0 space-y-1.5">
+              <div className="h-3 w-36 bg-bg-tertiary rounded animate-pulse" />
+              <div className="h-3 w-24 bg-bg-tertiary rounded animate-pulse" />
+            </div>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <div className="flex flex-col items-center gap-1">
+                <div className="h-5 w-8 bg-bg-tertiary rounded animate-pulse" />
+                <div className="h-2.5 w-14 bg-bg-tertiary rounded animate-pulse" />
+              </div>
+              <div className="w-px h-8 bg-border flex-shrink-0" />
+              <div className="flex flex-col items-center gap-1">
+                <div className="h-5 w-8 bg-bg-tertiary rounded animate-pulse" />
+                <div className="h-2.5 w-14 bg-bg-tertiary rounded animate-pulse" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* desktop */}
+      <div className="hidden sm:grid grid-cols-3 gap-3">
+        {[0, 1, 2].map(i => (
+          <div key={i} className="flex flex-col border border-bg-secondary rounded-lg overflow-hidden">
+            <div className="w-full h-32 bg-bg-tertiary animate-pulse" />
+            <div className="p-3 flex flex-col gap-2">
+              <div className="space-y-1.5">
+                <div className="h-3 w-full bg-bg-tertiary rounded animate-pulse" />
+                <div className="h-3 w-3/4 bg-bg-tertiary rounded animate-pulse" />
+              </div>
+              <div className="flex items-center border-t border-border pt-2">
+                <div className="flex-1 flex flex-col items-center gap-1">
+                  <div className="h-5 w-8 bg-bg-tertiary rounded animate-pulse" />
+                  <div className="h-2.5 w-14 bg-bg-tertiary rounded animate-pulse" />
+                </div>
+                <div className="w-px h-8 bg-border flex-shrink-0" />
+                <div className="flex-1 flex flex-col items-center gap-1">
+                  <div className="h-5 w-8 bg-bg-tertiary rounded animate-pulse" />
+                  <div className="h-2.5 w-14 bg-bg-tertiary rounded animate-pulse" />
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 import DischecLoader from '@/components/ui/DischecLoader'
 
 export default function ProfileLoading() {
@@ -182,6 +244,9 @@ export default function ProfileLoading() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <div className="lg:col-span-full xl:col-span-2">
           <CritiqueSkeleton />
+        </div>
+        <div className="lg:col-span-full xl:col-span-3">
+          <EcartSkeleton />
         </div>
       </div>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg-primary/60 backdrop-blur-[2px] pointer-events-none">

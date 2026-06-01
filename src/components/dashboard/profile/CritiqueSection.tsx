@@ -18,7 +18,7 @@ export default function CritiqueSection({ stats }: { stats: CritiqueStats }) {
 
   if (isEmpty) {
     return (
-      <section className="border border-bg-secondary rounded-lg p-5">
+      <section className="border border-bg-secondary rounded-lg p-5 h-full">
         <div className="mb-3">
           <h2 className={`${textStyles.cardTitle} text-text-green`}>Profil critique</h2>
         </div>
@@ -37,7 +37,7 @@ export default function CritiqueSection({ stats }: { stats: CritiqueStats }) {
   const maxCount = Math.max(...([1, 2, 3, 4, 5] as const).map(r => current.distribution[r]))
 
   return (
-    <section className="border border-bg-secondary rounded-lg p-5">
+    <section className="border border-bg-secondary rounded-lg p-5 h-full flex flex-col">
       <div className="flex items-center justify-between mb-1">
         <h2 className={`${textStyles.cardTitle} text-text-green`}>Profil critique</h2>
         <div className="flex items-center gap-0.5 bg-bg-tertiary rounded-full p-0.5">
@@ -62,14 +62,14 @@ export default function CritiqueSection({ stats }: { stats: CritiqueStats }) {
       )}
 
       {current.total === 0 ? (
-        <div className="flex items-center justify-center min-h-[100px]">
+        <div className="flex-1 flex items-center justify-center">
           <p className={`${textStyles.caption} text-text-disabled`}>
             Aucune note {mode === 'albums' ? "d'album" : 'de track'} pour l&apos;instant
           </p>
         </div>
       ) : (
-        <div className="flex items-center gap-4">
-          <div className="w-3/5 flex flex-col gap-2">
+        <div className="flex-1 flex items-stretch gap-4">
+          <div className="w-3/5 flex flex-col justify-around py-2 md:gap-1">
             {([5, 4, 3, 2, 1] as const).map(rating => {
               const count = current.distribution[rating]
               const pct = Math.round((count / current.total) * 100)
@@ -80,7 +80,7 @@ export default function CritiqueSection({ stats }: { stats: CritiqueStats }) {
                   <span className={`${textStyles.caption} text-text-disabled w-3 text-right flex-shrink-0`}>
                     {rating}
                   </span>
-                  <div className="flex-1 h-2 bg-bg-tertiary rounded-full overflow-hidden">
+                  <div className="flex-1 h-3 bg-bg-tertiary rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{ width: `${barWidth}%`, backgroundColor: RATING_COLORS[rating] }}

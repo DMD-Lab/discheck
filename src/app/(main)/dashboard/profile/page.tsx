@@ -17,6 +17,8 @@ import type { ConcentrationStats } from "@/lib/insights/concentration-insight"
 import CritiqueSection from "@/components/dashboard/profile/CritiqueSection"
 import { emptyCritiqueModeStats } from "@/lib/insights/critique-insight"
 import type { CritiqueStats, CritiqueModeStats } from "@/lib/insights/critique-insight"
+import EcartSection from "@/components/dashboard/profile/EcartSection"
+import type { EcartItem } from "@/lib/insights/ecart-insight"
 
 const GENRES_TTL_MS = 7 * 24 * 60 * 60 * 1000
 
@@ -63,23 +65,27 @@ export default async function ProfilePage() {
     { data: trackRatingsData },
   ] = await Promise.all([
     supabase.from("listened_tracks").select("album_deezer_id").eq("user_id", user.id),
-    supabase.from("album_ratings").select("rating").eq("user_id", user.id),
-    supabase.from("track_ratings").select("rating").eq("user_id", user.id),
+    supabase.from("album_ratings").select("rating, album_deezer_id").eq("user_id", user.id),
+    supabase.from("track_ratings").select("rating, track_deezer_id").eq("user_id", user.id),
   ])
 
   let genreStats: GenreStats[] = []
   const decadeStats: DecadeStats[] = []
   let listenerStats: ListenerStats = { albumFull: 0, albumPartial: 0, albumFullPct: 0, albumPartialPct: 0 }
   let concentrationStats: ConcentrationStats = { top3Pct: 0, totalTracks: 0, totalArtists: 0, top3Artists: [] }
+  let ecartItems: EcartItem[] = []
 
   const uniqueAlbumIds = [
-    ...new Set((listenedAlbums ?? []).map((t) => t.album_deezer_id).filter(Boolean)),
+    ...new Set([
+      ...(listenedAlbums ?? []).map(t => t.album_deezer_id).filter(Boolean),
+      ...(albumRatingsData ?? []).map(r => r.album_deezer_id).filter(Boolean),
+    ]),
   ]
 
   if (uniqueAlbumIds.length > 0) {
     const { data: albumData } = await supabase
       .from("cached_albums")
-      .select("album_deezer_id, genre_id, original_release_year, track_count, record_type, artist_deezer_id, artist_name")
+      .select("album_deezer_id, genre_id, original_release_year, track_count, record_type, artist_deezer_id, artist_name, title, cover_xl")
       .in("album_deezer_id", uniqueAlbumIds)
 
     // genres
@@ -226,6 +232,54 @@ export default async function ProfilePage() {
         top3Artists: top3.map(a => ({ name: a.name, pct: Math.round((a.count / totalTracks) * 100) })),
       }
     }
+
+    // ecart
+    const ratedAlbumIds = (albumRatingsData ?? []).map(r => r.album_deezer_id).filter((id): id is number => !!id)
+    if (ratedAlbumIds.length > 0) {
+      const { data: ecartTracksData } = await supabase
+        .from("cached_tracks")
+        .select("track_deezer_id, album_deezer_id")
+        .in("album_deezer_id", ratedAlbumIds)
+
+      const trackRatingMap = new Map<number, number>()
+      for (const r of trackRatingsData ?? []) {
+        if (r.track_deezer_id) trackRatingMap.set(r.track_deezer_id, r.rating)
+      }
+
+      const cachedTracksByAlbum = new Map<number, number[]>()
+      for (const t of ecartTracksData ?? []) {
+        const arr = cachedTracksByAlbum.get(t.album_deezer_id) ?? []
+        arr.push(t.track_deezer_id)
+        cachedTracksByAlbum.set(t.album_deezer_id, arr)
+      }
+
+      for (const r of albumRatingsData ?? []) {
+        if (!r.album_deezer_id) continue
+        const trackIds = cachedTracksByAlbum.get(r.album_deezer_id)
+        if (!trackIds || trackIds.length === 0) continue
+
+        const ratings = trackIds.map(id => trackRatingMap.get(id)).filter((v): v is number => v !== undefined)
+        if (ratings.length < trackIds.length) continue
+
+        const trackAvg = Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 100) / 100
+        const diff = Math.round((r.rating - trackAvg) * 100) / 100
+
+        const meta = albumData?.find(a => a.album_deezer_id === r.album_deezer_id)
+        if (!meta?.title || !meta?.cover_xl) continue
+
+        ecartItems.push({
+          albumDeezerId: r.album_deezer_id,
+          title: meta.title,
+          artistName: meta.artist_name ?? '',
+          coverXl: meta.cover_xl,
+          albumRating: r.rating,
+          trackAvg,
+          diff,
+        })
+      }
+
+      ecartItems.sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff))
+    }
   }
 
   function computeCritiqueMode(ratings: number[]): CritiqueModeStats {
@@ -254,6 +308,9 @@ export default async function ProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <div className="lg:col-span-full xl:col-span-2">
           <CritiqueSection stats={critiqueStats} />
+        </div>
+        <div className="lg:col-span-full xl:col-span-3">
+          <EcartSection items={ecartItems} />
         </div>
       </div>
     </div>
