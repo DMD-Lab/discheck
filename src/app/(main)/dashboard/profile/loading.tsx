@@ -230,6 +230,56 @@ function EcartSkeleton() {
   )
 }
 
+function DepthSkeleton() {
+  return (
+    <section className="border border-bg-secondary rounded-lg p-5">
+      <div className="flex items-center justify-between mb-1">
+        <div className="h-5 w-44 bg-bg-tertiary rounded animate-pulse" />
+        <div className="h-3 w-16 bg-bg-tertiary rounded animate-pulse" />
+      </div>
+      <div className="h-3 w-80 bg-bg-tertiary rounded animate-pulse mt-1 mb-4" />
+
+      <div className="flex flex-col gap-6 xl:grid xl:grid-cols-3 xl:gap-6">
+        {/* stat box */}
+        <div className="flex flex-col justify-between bg-bg-secondary rounded-lg p-6">
+          <div className="flex flex-col items-center gap-2 py-3 sm:py-4">
+            <div className="w-16 h-16 rounded-full border-2 border-bg-tertiary animate-pulse" />
+            <div className="h-7 w-10 bg-bg-tertiary rounded animate-pulse" />
+            <div className="h-3 w-24 bg-bg-tertiary rounded animate-pulse" />
+          </div>
+          <div className="border-t border-border pt-4 flex flex-col gap-2.5">
+            <div className="h-3 w-full bg-bg-tertiary rounded animate-pulse" />
+            <div className="h-3 w-4/5 bg-bg-tertiary rounded animate-pulse" />
+          </div>
+        </div>
+
+        {/* table */}
+        <div className="col-span-2 min-w-0">
+          <div className="flex items-center gap-3 pb-2 border-b border-border">
+            <div className="w-36 md:w-48 h-2.5 bg-bg-tertiary rounded animate-pulse flex-shrink-0" />
+            <div className="flex-1" />
+            <div className="w-14 h-2.5 bg-bg-tertiary rounded animate-pulse flex-shrink-0" />
+            <div className="w-24 h-2.5 bg-bg-tertiary rounded animate-pulse flex-shrink-0 ml-3" />
+          </div>
+          <div className="flex flex-col divide-y divide-border">
+            {[0, 1, 2, 3, 4].map(i => (
+              <div key={i} className="flex items-center gap-3 py-2.5">
+                <div className="flex-1 sm:flex-none sm:w-36 md:w-48 flex items-center gap-2 sm:flex-shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-bg-tertiary animate-pulse flex-shrink-0" />
+                  <div className="flex-1 h-3 bg-bg-tertiary rounded animate-pulse" />
+                </div>
+                <div className="flex-1 hidden sm:block h-1.5 bg-bg-tertiary rounded-full animate-pulse" />
+                <div className="w-14 h-3 bg-bg-tertiary rounded animate-pulse flex-shrink-0" />
+                <div className="w-24 h-3 bg-bg-tertiary rounded animate-pulse flex-shrink-0 ml-3" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 import DischecLoader from '@/components/ui/DischecLoader'
 
 export default function ProfileLoading() {
@@ -249,6 +299,7 @@ export default function ProfileLoading() {
           <EcartSkeleton />
         </div>
       </div>
+      <DepthSkeleton />
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg-primary/60 backdrop-blur-[2px] pointer-events-none">
         <DischecLoader size={80} />
       </div>

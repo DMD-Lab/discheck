@@ -19,6 +19,8 @@ import { emptyCritiqueModeStats } from "@/lib/insights/critique-insight"
 import type { CritiqueStats, CritiqueModeStats } from "@/lib/insights/critique-insight"
 import EcartSection from "@/components/dashboard/profile/EcartSection"
 import type { EcartItem } from "@/lib/insights/ecart-insight"
+import DepthSection from "@/components/dashboard/profile/DepthSection"
+import type { DepthItem } from "@/lib/insights/depth-insight"
 
 const GENRES_TTL_MS = 7 * 24 * 60 * 60 * 1000
 
@@ -74,6 +76,7 @@ export default async function ProfilePage() {
   let listenerStats: ListenerStats = { albumFull: 0, albumPartial: 0, albumFullPct: 0, albumPartialPct: 0 }
   let concentrationStats: ConcentrationStats = { top3Pct: 0, totalTracks: 0, totalArtists: 0, top3Artists: [] }
   let ecartItems: EcartItem[] = []
+  let depthItems: DepthItem[] = []
 
   const uniqueAlbumIds = [
     ...new Set([
@@ -280,6 +283,52 @@ export default async function ProfilePage() {
 
       ecartItems.sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff))
     }
+
+    // depth
+    const artistDeezerIds = [...new Set((albumData ?? []).map(a => a.artist_deezer_id).filter((id): id is number => !!id))]
+    if (artistDeezerIds.length > 0) {
+      const [{ data: allArtistAlbums }, { data: cachedArtistsData }] = await Promise.all([
+        supabase.from('cached_albums').select('album_deezer_id, artist_deezer_id').in('artist_deezer_id', artistDeezerIds),
+        supabase.from('cached_artists').select('artist_deezer_id, artist_data').in('artist_deezer_id', artistDeezerIds),
+      ])
+
+      const listenedAlbumSet = new Set((listenedAlbums ?? []).map(t => t.album_deezer_id).filter(Boolean))
+
+      const artistPictureMap = new Map<number, string>()
+      for (const a of cachedArtistsData ?? []) {
+        const raw = a.artist_data as { picture_xl?: string } | null
+        if (raw?.picture_xl) artistPictureMap.set(a.artist_deezer_id, raw.picture_xl)
+      }
+
+      const artistNameMap = new Map<number, string>()
+      for (const a of albumData ?? []) {
+        if (a.artist_deezer_id && a.artist_name && !artistNameMap.has(a.artist_deezer_id)) {
+          artistNameMap.set(a.artist_deezer_id, a.artist_name)
+        }
+      }
+
+      const progressMap = new Map<number, { total: number; listened: number }>()
+      for (const ca of allArtistAlbums ?? []) {
+        if (!ca.artist_deezer_id) continue
+        const current = progressMap.get(ca.artist_deezer_id) ?? { total: 0, listened: 0 }
+        progressMap.set(ca.artist_deezer_id, {
+          total: current.total + 1,
+          listened: current.listened + (listenedAlbumSet.has(ca.album_deezer_id) ? 1 : 0),
+        })
+      }
+
+      depthItems = [...progressMap.entries()]
+        .filter(([, p]) => p.listened > 0)
+        .map(([artistId, p]) => ({
+          artistDeezerId: artistId,
+          name: artistNameMap.get(artistId) ?? '',
+          pictureXl: artistPictureMap.get(artistId) ?? '',
+          listened: p.listened,
+          total: p.total,
+          pct: Math.round((p.listened / p.total) * 100),
+        }))
+        .sort((a, b) => b.pct - a.pct || b.listened - a.listened)
+    }
   }
 
   function computeCritiqueMode(ratings: number[]): CritiqueModeStats {
@@ -313,6 +362,7 @@ export default async function ProfilePage() {
           <EcartSection items={ecartItems} />
         </div>
       </div>
+      <DepthSection items={depthItems} />
     </div>
   )
 }
