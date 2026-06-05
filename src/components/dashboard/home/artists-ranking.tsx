@@ -150,7 +150,7 @@ function ArtistRankingRow({ artist }: { artist: TopArtist }) {
           <div className="flex items-center gap-1">
             <Star size={11} className="text-text-green fill-text-green" />
             <span className={`${textStyles.caption} font-semibold text-text-primary`}>
-              {artist.avgRating.toFixed(2)}
+              {artist.avgRating.toFixed(1).replace('.', ',')}
             </span>
           </div>
         </div>

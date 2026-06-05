@@ -95,8 +95,8 @@ export default function CritiqueSection({ stats }: { stats: CritiqueStats }) {
           </div>
 
           <div className="flex-1 flex flex-col items-center justify-center gap-0.5 pl-4 border-l border-border">
-            <span className="text-2xl font-bold text-text-primary leading-none tabular-nums">
-              {current.average.toFixed(2).replace('.', ',')}
+            <span className={`${textStyles.statLg} text-text-primary leading-none tabular-nums`}>
+              {current.average.toFixed(1).replace('.', ',')}
             </span>
             <span className={`${textStyles.caption} text-text-secondary text-center`}>
               Note moy.

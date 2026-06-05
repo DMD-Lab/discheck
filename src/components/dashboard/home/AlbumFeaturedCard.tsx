@@ -39,27 +39,28 @@ export default function AlbumFeaturedCard({ album }: { album: TopAlbum }) {
             {date}
           </p>
         </div>
-        <div className="flex items-center justify-between">
-          <RatingBadge label="Note attrib." value={album.albumRating} />
+        <div className="flex items-center justify-around">
+          <RatingBadge label="Note attrib." value={album.albumRating} size="lg" />
           <div className="w-px h-10 bg-border flex-shrink-0" />
-          <RatingBadge label="Moy. tracks" value={album.trackAvg} />
+          <RatingBadge label="Moy. tracks" value={album.trackAvg} size="lg" />
         </div>
       </div>
     </div>
   );
 }
 
-export function RatingBadge({ label, value }: {
+export function RatingBadge({ label, value, size = 'sm' }: {
   label: string
   value: number | null
+  size?: 'lg' | 'sm'
 }) {
   return (
     <div className="flex flex-col items-center gap-0.5">
       <span className="text-[10px] text-text-secondary">{label}</span>
-      <span className="flex items-center gap-1 text-sm">
-        <Star size={13} className="text-text-green fill-text-green" />
-        <span className="text-text-primary font-semibold">
-          {value !== null ? value.toFixed(1) : "—"}
+      <span className="flex items-center gap-1">
+        <Star size={size === 'lg' ? 16 : 13} className="text-text-green fill-text-green" />
+        <span className={`${size === 'lg' ? textStyles.statLg : textStyles.statSm} text-text-primary`}>
+          {value !== null ? value.toFixed(1).replace('.', ',') : "—"}
         </span>
       </span>
     </div>

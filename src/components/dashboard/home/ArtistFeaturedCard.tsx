@@ -31,8 +31,8 @@ export default function ArtistFeaturedCard({ artist }: { artist: TopArtist }) {
         </MarqueeText>
         <div className="flex items-center gap-1">
           <Star size={13} className="text-text-green fill-text-green" />
-          <span className={`${textStyles.body} font-bold text-text-primary`}>
-            {artist.avgRating.toFixed(2)}
+          <span className={`${textStyles.statSm} text-text-primary`}>
+            {artist.avgRating.toFixed(1).replace('.', ',')}
           </span>
         </div>
         <p className={`${textStyles.caption} text-text-disabled`}>

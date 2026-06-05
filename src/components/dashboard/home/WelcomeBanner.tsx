@@ -69,7 +69,7 @@ function StatWidget({
     <div className="lg:flex-1 flex flex-row gap-3 items-center lg:justify-center bg-bg-primary lg:bg-transparent px-4 py-3 lg:px-0 lg:py-0">
       <Icon size={30} className="text-text-green" />
       <div className="flex flex-col gap-0.5">
-        <span className={`${textStyles.sectionTitle} text-text-primary`}>
+        <span className={`${textStyles.statLg} text-text-primary`}>
           {value}
         </span>
         <span className={`${textStyles.caption} text-text-secondary`}>

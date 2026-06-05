@@ -137,7 +137,7 @@ export default function DepthSection({ items }: { items: DepthItem[] }) {
               <div className="border-2 border-primary rounded-full p-3">
                 <Users size={36} className="text-primary" />
               </div>
-              <span className="text-3xl font-bold text-text-primary tabular-nums leading-none mt-1">{total}</span>
+              <span className={`${textStyles.statLg} text-text-primary tabular-nums leading-none mt-1`}>{total}</span>
               <span className={`${textStyles.caption} text-text-secondary text-center`}>Artistes écoutés</span>
             </div>
             <div className="border-t border-border pt-4 flex flex-col gap-2.5">

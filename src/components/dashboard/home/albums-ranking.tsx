@@ -136,7 +136,7 @@ function AlbumRankingRow({ album }: { album: TopAlbum }) {
           <div className="flex items-center gap-1">
             <Star size={11} className="text-text-green fill-text-green" />
             <span className={`${textStyles.caption} font-semibold text-text-primary`}>
-              {album.albumRating.toFixed(1)}
+              {album.albumRating.toFixed(1).replace('.', ',')}
             </span>
           </div>
         </div>
@@ -146,7 +146,7 @@ function AlbumRankingRow({ album }: { album: TopAlbum }) {
           <div className="flex items-center gap-1">
             <Star size={11} className="text-text-green fill-text-green" />
             <span className={`${textStyles.caption} font-semibold text-text-primary`}>
-              {album.trackAvg !== null ? album.trackAvg.toFixed(1) : '—'}
+              {album.trackAvg !== null ? album.trackAvg.toFixed(1).replace('.', ',') : '—'}
             </span>
           </div>
         </div>

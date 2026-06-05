@@ -28,7 +28,7 @@ export function GenreCard({ genre, priority = false, rank }: { genre: GenreStats
       )}
       <div className="absolute inset-0 flex flex-col justify-end p-4 lg:p-8">
         <span className={`${textStyles.caption} text-white/75 leading-none`}>{genre.name}</span>
-        <span className="text-white font-bold text-base sm:text-xl lg:text-3xl leading-none mt-0.5">{genre.percentage}%</span>
+        <span className="text-white font-bold text-base sm:text-xl lg:text-2xl leading-none mt-2">{genre.percentage}%</span>
       </div>
     </div>
   )
@@ -56,7 +56,7 @@ export function AutresCard({
         <span className={`${textStyles.caption} text-text-disabled leading-none block mt-1.5`}>
           {count} genre{count > 1 ? "s" : ""}
         </span>
-        <span className="text-text-primary font-bold text-base sm:text-xl lg:text-3xl leading-none block mt-2">
+        <span className="text-text-primary font-bold text-base sm:text-xl lg:text-2xl leading-none block mt-2">
           {percentage}%
         </span>
       </div>

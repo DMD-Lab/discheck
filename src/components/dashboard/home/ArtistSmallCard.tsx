@@ -36,8 +36,8 @@ export default function ArtistSmallCard({ artist }: { artist: TopArtist }) {
       </div>
       <div className="flex items-center gap-1 flex-shrink-0">
         <Star size={11} className="text-text-green fill-text-green" />
-        <span className={`${textStyles.caption} font-semibold text-text-primary`}>
-          {artist.avgRating.toFixed(2)}
+        <span className={`${textStyles.statSm} text-text-primary`}>
+          {artist.avgRating.toFixed(1).replace('.', ',')}
         </span>
       </div>
     </div>

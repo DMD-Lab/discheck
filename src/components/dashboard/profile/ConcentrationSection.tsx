@@ -51,7 +51,7 @@ export default function ConcentrationSection({
       <div className="flex items-center gap-3 pt-2 lg:flex-col lg:gap-4 xl:flex-row xl:gap-3">
         {/* Stat gauche — masquée au lg, visible sinon */}
         <div className="flex-1 flex flex-col items-center gap-0.5 lg:hidden xl:flex">
-          <span className="text-xl font-bold text-text-primary leading-none">{stats.top3Pct}%</span>
+          <span className={`${textStyles.statLg} text-text-primary leading-none`}>{stats.top3Pct}%</span>
           <span className={`${textStyles.caption} text-text-secondary text-center`}>Top 3 artistes</span>
         </div>
 
@@ -101,19 +101,19 @@ export default function ConcentrationSection({
 
         {/* Stat droite — masquée au lg, visible sinon */}
         <div className="flex-1 flex flex-col items-center gap-0.5 lg:hidden xl:flex">
-          <span className="text-xl font-bold text-text-primary leading-none">{stats.totalTracks.toLocaleString('fr-FR')}</span>
+          <span className={`${textStyles.statLg} text-text-primary leading-none`}>{stats.totalTracks.toLocaleString('fr-FR')}</span>
           <span className={`${textStyles.caption} text-text-secondary text-center`}>tracks écoutées</span>
         </div>
 
         {/* Stats côte à côte sous le donut — uniquement au lg */}
         <div className="hidden lg:flex xl:hidden w-full items-center gap-3">
           <div className="flex-1 flex flex-col items-center gap-0.5">
-            <span className="text-xl font-bold text-text-primary leading-none">{stats.top3Pct}%</span>
+            <span className={`${textStyles.statLg} text-text-primary leading-none`}>{stats.top3Pct}%</span>
             <span className={`${textStyles.caption} text-text-secondary text-center`}>Top 3 artistes</span>
           </div>
           <div className="w-px h-10 bg-border flex-shrink-0" />
           <div className="flex-1 flex flex-col items-center gap-0.5">
-            <span className="text-xl font-bold text-text-primary leading-none">{stats.totalTracks.toLocaleString('fr-FR')}</span>
+            <span className={`${textStyles.statLg} text-text-primary leading-none`}>{stats.totalTracks.toLocaleString('fr-FR')}</span>
             <span className={`${textStyles.caption} text-text-secondary text-center`}>tracks écoutées</span>
           </div>
         </div>

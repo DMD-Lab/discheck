@@ -40,8 +40,8 @@ export default function TrackCard({ track }: { track: TopTrack }) {
       <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
         <div className="flex items-center gap-1">
           <Star size={11} className="text-text-green fill-text-green" />
-          <span className={`${textStyles.caption} font-semibold text-text-primary`}>
-            5
+          <span className={`${textStyles.statSm} text-text-primary`}>
+            5,0
           </span>
         </div>
         <span className="text-[10px] text-text-disabled">{date}</span>

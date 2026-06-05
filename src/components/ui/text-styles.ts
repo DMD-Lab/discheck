@@ -26,4 +26,8 @@ export const textStyles = {
   overline:     'text-xs font-medium uppercase tracking-wide',
   /** 20px bold tight — logo "Discheck" partout */
   branding:     'text-xl font-bold tracking-tight',
+  /** Chiffre mis en avant — grande taille responsive */
+  statLg:       'text-xl font-bold md:text-2xl',
+  /** Chiffre secondaire — taille modérée */
+  statSm:       'text-sm font-semibold',
 } as const
