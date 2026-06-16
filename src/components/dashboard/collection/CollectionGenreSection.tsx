@@ -27,8 +27,6 @@ export type CollectionGenreData = {
   all: CollectionGenreStat[]
 }
 
-const CARD_GROWS = [1.5, 1, 1, 0.85]
-const OTHERS_GROW = 0.7
 const CARD_HEIGHT = 260
 const OTHERS_COLOR = '#A0A4AA'
 
@@ -44,15 +42,15 @@ function DeltaBadge({ pctChange, onDark = true }: { pctChange: number | null; on
   )
 }
 
-function GenreCard({ genre, rank, grow, className = '' }: { genre: CollectionGenreStat; rank: number; grow: number; className?: string }) {
+function EmptySlot({ className = '' }: { className?: string }) {
+  return <div className={className} style={{ height: CARD_HEIGHT }} />
+}
+
+function GenreCard({ genre, rank, className = '' }: { genre: CollectionGenreStat; rank: number; className?: string }) {
   return (
     <div
       className={`relative overflow-hidden flex flex-col justify-end ${className}`}
       style={{
-        flexGrow: grow,
-        flexShrink: 1,
-        flexBasis: 0,
-        minWidth: 0,
         height: CARD_HEIGHT,
         borderRadius: 18,
         border: `1px solid ${genre.color}60`,
@@ -98,15 +96,11 @@ function GenreCard({ genre, rank, grow, className = '' }: { genre: CollectionGen
   )
 }
 
-function OthersCard({ others, className = '' }: { others: CollectionGenreOthers; className?: string }) {
+function OthersCard({ others }: { others: CollectionGenreOthers }) {
   return (
     <div
-      className={`relative overflow-hidden flex flex-col justify-end ${className}`}
+      className="relative overflow-hidden flex flex-col justify-end"
       style={{
-        flexGrow: OTHERS_GROW,
-        flexShrink: 1,
-        flexBasis: 0,
-        minWidth: 0,
         height: CARD_HEIGHT,
         borderRadius: 18,
         border: `1px solid ${OTHERS_COLOR}60`,
@@ -222,7 +216,6 @@ export default function CollectionGenreSection({ data }: { data: CollectionGenre
           </button>
         </div>
 
-        {/* mobile list */}
         <div className="md:hidden flex flex-col">
           {data.top.map((genre, i) => (
             <GenreListRow key={genre.genreId} genre={genre} rank={i + 1} />
@@ -230,20 +223,16 @@ export default function CollectionGenreSection({ data }: { data: CollectionGenre
           {data.others && <OthersListRow others={data.others} />}
         </div>
 
-        {/* card gallery — md+ */}
-        <div className="hidden md:flex gap-3">
-          {data.top.map((genre, i) => (
-            <GenreCard
-              key={genre.genreId}
-              genre={genre}
-              rank={i + 1}
-              grow={CARD_GROWS[i] ?? 1}
-              className={i === 2 ? 'md:hidden lg:flex' : i === 3 ? 'md:hidden xl:flex' : ''}
-            />
-          ))}
-          {data.others && (
-            <OthersCard others={data.others} />
-          )}
+        <div className="hidden md:grid gap-3 md:[grid-template-columns:1.5fr_1fr_0.7fr] lg:[grid-template-columns:1.5fr_1fr_1fr_0.7fr] xl:[grid-template-columns:1.5fr_1fr_1fr_0.85fr_0.7fr]">
+          {data.top[0] ? <GenreCard genre={data.top[0]} rank={1} /> : <EmptySlot />}
+          {data.top[1] ? <GenreCard genre={data.top[1]} rank={2} /> : <EmptySlot />}
+          {data.top[2]
+            ? <GenreCard genre={data.top[2]} rank={3} className="md:hidden lg:flex" />
+            : <EmptySlot className="md:hidden lg:block" />}
+          {data.top[3]
+            ? <GenreCard genre={data.top[3]} rank={4} className="md:hidden xl:flex" />
+            : <EmptySlot className="md:hidden xl:block" />}
+          {data.others ? <OthersCard others={data.others} /> : <EmptySlot />}
         </div>
       </section>
 
