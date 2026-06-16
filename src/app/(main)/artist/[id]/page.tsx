@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import { Music2, CheckCircle2, Activity } from 'lucide-react'
@@ -110,9 +110,9 @@ export default function ArtistPage() {
     setAlbumRatingMap(prev => new Map(prev).set(albumId, rating))
   }
 
-  function handleTracksLoaded(albumId: number, trackIds: number[]) {
+  const handleTracksLoaded = useCallback((albumId: number, trackIds: number[]) => {
     setAlbumTracksMap(prev => new Map(prev).set(albumId, trackIds))
-  }
+  }, [])
 
   async function handleCheckAll(trackIds: number[]) {
     const supabase = createClient()

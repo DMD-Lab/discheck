@@ -5,6 +5,9 @@ import PeriodSelector from '@/components/dashboard/collection/PeriodSelector'
 import type { PeriodType } from '@/components/dashboard/collection/PeriodSelector'
 import CollectionGlobalSection from '@/components/dashboard/collection/CollectionGlobalSection'
 import type { CollectionGlobalStats } from '@/components/dashboard/collection/CollectionGlobalSection'
+import CollectionGenreSection from '@/components/dashboard/collection/CollectionGenreSection'
+import type { CollectionGenreData } from '@/components/dashboard/collection/CollectionGenreSection'
+import { getGenreColor } from '@/lib/genre-colors'
 
 const VALID_PERIODS: PeriodType[] = ['30d', '3m', '1y', 'all']
 
@@ -16,11 +19,9 @@ function getPeriodDates(period: PeriodType) {
   if (period === 'all') {
     return { start: null, end: null, prevStart: null, prevEnd: null }
   }
-
   const now = new Date()
   let start: Date
   let prevStart: Date
-
   if (period === '30d') {
     start = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
     prevStart = new Date(start.getTime() - 30 * 24 * 60 * 60 * 1000)
@@ -31,7 +32,6 @@ function getPeriodDates(period: PeriodType) {
     start = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
     prevStart = new Date(now.getFullYear() - 2, now.getMonth(), now.getDate())
   }
-
   return {
     start: start.toISOString(),
     end: now.toISOString(),
@@ -76,42 +76,9 @@ export default async function CollectionPage({
     albumAgg.set(t.album_deezer_id, entry)
   }
 
-  const trackCountMap = new Map<number, number>()
-  const artistMap = new Map<number, number | null>()
-  const allAlbumIds = [...albumAgg.keys()]
-
-  if (allAlbumIds.length > 0) {
-    const [{ data: cachedTracks }, { data: albumMeta }] = await Promise.all([
-      supabase
-        .from('cached_tracks')
-        .select('album_deezer_id')
-        .in('album_deezer_id', allAlbumIds),
-      supabase
-        .from('cached_albums')
-        .select('album_deezer_id, artist_deezer_id')
-        .in('album_deezer_id', allAlbumIds),
-    ])
-
-    for (const t of cachedTracks ?? []) {
-      trackCountMap.set(t.album_deezer_id, (trackCountMap.get(t.album_deezer_id) ?? 0) + 1)
-    }
-
-    for (const a of albumMeta ?? []) {
-      artistMap.set(a.album_deezer_id, a.artist_deezer_id)
-    }
-  }
-
-  const tracksCurrentCount = current.length
-  const tracksPrevCount = prev?.length ?? null
-
-  const secondsCurrent = current.reduce((s, t) => s + (t.duration_seconds ?? 0), 0)
-  const secondsPrev = prev !== null
-    ? prev.reduce((s, t) => s + (t.duration_seconds ?? 0), 0)
-    : null
-
-  function pct(current: number, prev: number | null): number | null {
-    if (prev === null || prev === 0) return null
-    return Math.round((current - prev) / prev * 100)
+  function pct(curr: number, p: number | null): number | null {
+    if (p === null || p === 0) return null
+    return Math.round((curr - p) / p * 100)
   }
 
   function formatTime(seconds: number): string {
@@ -122,6 +89,80 @@ export default async function CollectionPage({
     return `${h}h ${m}m`
   }
 
+  const trackCountMap = new Map<number, number>()
+  const artistMap = new Map<number, number | null>()
+  const albumGenreMap = new Map<number, number>()
+  const genreNameMap = new Map<number, string>()
+  let genreData: CollectionGenreData = { top: [], others: null, all: [] }
+  const allAlbumIds = [...albumAgg.keys()]
+
+  if (allAlbumIds.length > 0) {
+    const [{ data: cachedTracks }, { data: albumMeta }, { data: allGenres }] = await Promise.all([
+      supabase
+        .from('cached_tracks')
+        .select('album_deezer_id')
+        .in('album_deezer_id', allAlbumIds),
+      supabase
+        .from('cached_albums')
+        .select('album_deezer_id, artist_deezer_id, genre_id')
+        .in('album_deezer_id', allAlbumIds),
+      supabase.from('cached_genres').select('deezer_id, name'),
+    ])
+
+    for (const t of cachedTracks ?? []) {
+      trackCountMap.set(t.album_deezer_id, (trackCountMap.get(t.album_deezer_id) ?? 0) + 1)
+    }
+    for (const g of allGenres ?? []) {
+      genreNameMap.set(g.deezer_id, g.name)
+    }
+    for (const a of albumMeta ?? []) {
+      artistMap.set(a.album_deezer_id, a.artist_deezer_id)
+      if (a.genre_id) albumGenreMap.set(a.album_deezer_id, a.genre_id)
+    }
+
+    const currentGenreCount = new Map<number, number>()
+    for (const t of current) {
+      const gId = albumGenreMap.get(t.album_deezer_id)
+      if (gId) currentGenreCount.set(gId, (currentGenreCount.get(gId) ?? 0) + 1)
+    }
+
+    const prevGenreCount = new Map<number, number>()
+    if (prev !== null) {
+      for (const t of prev) {
+        const gId = albumGenreMap.get(t.album_deezer_id)
+        if (gId) prevGenreCount.set(gId, (prevGenreCount.get(gId) ?? 0) + 1)
+      }
+    }
+
+    const sortedGenres = [...currentGenreCount.entries()]
+      .filter(([genreId]) => genreId !== -1 && genreNameMap.has(genreId))
+      .sort((a, b) => b[1] - a[1])
+    const top4Ids = new Set(sortedGenres.slice(0, 4).map(([id]) => id))
+    const othersGenres = sortedGenres.slice(4)
+    const currentOthersCount = othersGenres.reduce((s, [, c]) => s + c, 0)
+    const prevOthersCount = prev !== null
+      ? [...prevGenreCount.entries()].filter(([id]) => !top4Ids.has(id)).reduce((s, [, c]) => s + c, 0)
+      : null
+
+    const allGenreStats = sortedGenres.map(([genreId, count]) => ({
+      genreId,
+      name: genreNameMap.get(genreId) ?? 'Inconnu',
+      count,
+      pctChange: pct(count, prev !== null ? (prevGenreCount.get(genreId) ?? 0) : null),
+      color: getGenreColor(genreId),
+    }))
+
+    genreData = {
+      top: allGenreStats.slice(0, 4),
+      all: allGenreStats,
+      others: othersGenres.length > 0 ? {
+        count: currentOthersCount,
+        pctChange: pct(currentOthersCount, prevOthersCount),
+        otherCount: othersGenres.length,
+      } : null,
+    }
+  }
+
   // completion date = last track checked
   let albumsCompletedCurrent = 0
   let albumsCompletedPrev: number | null = prev !== null ? 0 : null
@@ -129,12 +170,8 @@ export default async function CollectionPage({
   for (const [albumId, agg] of albumAgg) {
     const trackCount = trackCountMap.get(albumId)
     if (!trackCount || agg.totalListened < trackCount) continue
-
-    const inCurrent = start
-      ? agg.maxDate >= start && agg.maxDate < end!
-      : true
+    const inCurrent = start ? agg.maxDate >= start && agg.maxDate < end! : true
     if (inCurrent) albumsCompletedCurrent++
-
     if (prevStart && agg.maxDate >= prevStart && agg.maxDate < prevEnd!) {
       if (albumsCompletedPrev !== null) albumsCompletedPrev++
     }
@@ -142,7 +179,6 @@ export default async function CollectionPage({
 
   const currentAlbumIds = new Set(current.map(t => t.album_deezer_id))
   const prevAlbumIds = new Set(prev?.map(t => t.album_deezer_id) ?? [])
-
   const artistsCurrent = new Set<number>()
   const artistsPrev = new Set<number>()
 
@@ -152,6 +188,10 @@ export default async function CollectionPage({
     if (prevAlbumIds.has(albumId)) artistsPrev.add(artistId)
   }
 
+  const tracksCurrentCount = current.length
+  const tracksPrevCount = prev?.length ?? null
+  const secondsCurrent = current.reduce((s, t) => s + (t.duration_seconds ?? 0), 0)
+  const secondsPrev = prev !== null ? prev.reduce((s, t) => s + (t.duration_seconds ?? 0), 0) : null
   const minutesCurrent = Math.floor(secondsCurrent / 60)
   const minutesPrev = secondsPrev !== null ? Math.floor(secondsPrev / 60) : null
 
@@ -182,6 +222,11 @@ export default async function CollectionPage({
         </Suspense>
       </div>
       <CollectionGlobalSection stats={stats} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="lg:col-span-2 xl:col-span-2 2xl:col-span-1">
+          <CollectionGenreSection data={genreData} />
+        </div>
+      </div>
     </div>
   )
 }
