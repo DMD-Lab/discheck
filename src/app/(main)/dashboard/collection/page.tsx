@@ -7,6 +7,9 @@ import CollectionGlobalSection from '@/components/dashboard/collection/Collectio
 import type { CollectionGlobalStats } from '@/components/dashboard/collection/CollectionGlobalSection'
 import CollectionGenreSection from '@/components/dashboard/collection/CollectionGenreSection'
 import type { CollectionGenreData } from '@/components/dashboard/collection/CollectionGenreSection'
+import CollectionDecadeSection from '@/components/dashboard/collection/CollectionDecadeSection'
+import type { CollectionDecadeStat } from '@/components/dashboard/collection/CollectionDecadeSection'
+import { COLLECTION_DECADES } from '@/components/dashboard/collection/CollectionDecadeSection'
 import { getGenreColor } from '@/lib/genre-colors'
 
 const VALID_PERIODS: PeriodType[] = ['30d', '3m', '1y', 'all']
@@ -94,6 +97,12 @@ export default async function CollectionPage({
   const albumGenreMap = new Map<number, number>()
   const genreNameMap = new Map<number, string>()
   let genreData: CollectionGenreData = { top: [], others: null, all: [] }
+  let decadeData: CollectionDecadeStat[] = COLLECTION_DECADES.map(decade => ({
+    decade,
+    label: decade >= 2000 ? `${decade}s` : `${String(decade).slice(2)}s`,
+    count: 0,
+    pctChange: null,
+  }))
   const allAlbumIds = [...albumAgg.keys()]
 
   if (allAlbumIds.length > 0) {
@@ -104,7 +113,7 @@ export default async function CollectionPage({
         .in('album_deezer_id', allAlbumIds),
       supabase
         .from('cached_albums')
-        .select('album_deezer_id, artist_deezer_id, genre_id')
+        .select('album_deezer_id, artist_deezer_id, genre_id, original_release_year')
         .in('album_deezer_id', allAlbumIds),
       supabase.from('cached_genres').select('deezer_id, name'),
     ])
@@ -115,9 +124,11 @@ export default async function CollectionPage({
     for (const g of allGenres ?? []) {
       genreNameMap.set(g.deezer_id, g.name)
     }
+    const albumYearMap = new Map<number, number>()
     for (const a of albumMeta ?? []) {
       artistMap.set(a.album_deezer_id, a.artist_deezer_id)
       if (a.genre_id) albumGenreMap.set(a.album_deezer_id, a.genre_id)
+      if (a.original_release_year) albumYearMap.set(a.album_deezer_id, a.original_release_year)
     }
 
     const currentGenreCount = new Map<number, number>()
@@ -161,6 +172,31 @@ export default async function CollectionPage({
         otherCount: othersGenres.length,
       } : null,
     }
+
+    const currentDecadeCount = new Map<number, number>()
+    for (const t of current) {
+      const year = albumYearMap.get(t.album_deezer_id)
+      if (!year) continue
+      const decade = Math.floor(year / 10) * 10
+      currentDecadeCount.set(decade, (currentDecadeCount.get(decade) ?? 0) + 1)
+    }
+
+    const prevDecadeCount = new Map<number, number>()
+    if (prev !== null) {
+      for (const t of prev) {
+        const year = albumYearMap.get(t.album_deezer_id)
+        if (!year) continue
+        const decade = Math.floor(year / 10) * 10
+        prevDecadeCount.set(decade, (prevDecadeCount.get(decade) ?? 0) + 1)
+      }
+    }
+
+    decadeData = COLLECTION_DECADES.map(decade => ({
+      decade,
+      label: decade >= 2000 ? `${decade}s` : `${String(decade).slice(2)}s`,
+      count: currentDecadeCount.get(decade) ?? 0,
+      pctChange: pct(currentDecadeCount.get(decade) ?? 0, prev !== null ? (prevDecadeCount.get(decade) ?? 0) : null),
+    }))
   }
 
   // completion date = last track checked
@@ -225,6 +261,9 @@ export default async function CollectionPage({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="lg:col-span-2 xl:col-span-2 2xl:col-span-1">
           <CollectionGenreSection data={genreData} />
+        </div>
+        <div className="lg:col-span-2 xl:col-span-2 2xl:col-span-1">
+          <CollectionDecadeSection data={decadeData} />
         </div>
       </div>
     </div>
