@@ -13,6 +13,8 @@ import { COLLECTION_DECADES } from '@/components/dashboard/collection/Collection
 import { getGenreColor } from '@/lib/genre-colors'
 import CollectionArtistExplorationSection from '@/components/dashboard/collection/CollectionArtistExplorationSection'
 import type { DepthItem } from '@/lib/insights/depth-insight'
+import CollectionRecentActivitySection from '@/components/dashboard/collection/CollectionRecentActivitySection'
+import type { RecentTrack, RecentAlbum } from '@/components/dashboard/collection/CollectionRecentActivitySection'
 
 const VALID_PERIODS: PeriodType[] = ['30d', '3m', '1y', 'all']
 
@@ -61,7 +63,7 @@ export default async function CollectionPage({
 
   const { data: allListened } = await supabase
     .from('listened_tracks')
-    .select('album_deezer_id, listened_at, duration_seconds')
+    .select('track_deezer_id, album_deezer_id, listened_at, duration_seconds')
     .eq('user_id', user.id)
 
   const listened = allListened ?? []
@@ -100,6 +102,8 @@ export default async function CollectionPage({
   const genreNameMap = new Map<number, string>()
   let genreData: CollectionGenreData = { top: [], others: null, all: [] }
   let depthItems: DepthItem[] = []
+  let recentTracks: RecentTrack[] = []
+  let recentAlbums: RecentAlbum[] = []
   let decadeData: CollectionDecadeStat[] = COLLECTION_DECADES.map(decade => ({
     decade,
     label: decade >= 2000 ? `${decade}s` : `${String(decade).slice(2)}s`,
@@ -112,26 +116,37 @@ export default async function CollectionPage({
     const [{ data: cachedTracks }, { data: albumMeta }, { data: allGenres }] = await Promise.all([
       supabase
         .from('cached_tracks')
-        .select('album_deezer_id')
+        .select('track_deezer_id, album_deezer_id, track_data')
         .in('album_deezer_id', allAlbumIds),
       supabase
         .from('cached_albums')
-        .select('album_deezer_id, artist_deezer_id, artist_name, genre_id, original_release_year')
+        .select('album_deezer_id, artist_deezer_id, artist_name, title, cover_xl, genre_id, original_release_year')
         .in('album_deezer_id', allAlbumIds),
       supabase.from('cached_genres').select('deezer_id, name'),
     ])
 
+    const trackInfoMap = new Map<number, string>()
     for (const t of cachedTracks ?? []) {
       trackCountMap.set(t.album_deezer_id, (trackCountMap.get(t.album_deezer_id) ?? 0) + 1)
+      if (t.track_deezer_id) {
+        const data = t.track_data as { title?: string } | null
+        trackInfoMap.set(t.track_deezer_id, data?.title ?? '')
+      }
     }
     for (const g of allGenres ?? []) {
       genreNameMap.set(g.deezer_id, g.name)
     }
     const albumYearMap = new Map<number, number>()
+    const albumCoverMap = new Map<number, string>()
+    const albumTitleMap = new Map<number, string>()
+    const albumArtistNameMap = new Map<number, string>()
     for (const a of albumMeta ?? []) {
       artistMap.set(a.album_deezer_id, a.artist_deezer_id)
       if (a.genre_id) albumGenreMap.set(a.album_deezer_id, a.genre_id)
       if (a.original_release_year) albumYearMap.set(a.album_deezer_id, a.original_release_year)
+      if (a.cover_xl) albumCoverMap.set(a.album_deezer_id, a.cover_xl)
+      if (a.title) albumTitleMap.set(a.album_deezer_id, a.title)
+      if (a.artist_name) albumArtistNameMap.set(a.album_deezer_id, a.artist_name)
     }
 
     const currentGenreCount = new Map<number, number>()
@@ -245,6 +260,26 @@ export default async function CollectionPage({
         }))
         .sort((a, b) => b.pct - a.pct || b.listened - a.listened)
     }
+
+    const sortedByDate = [...current].sort((a, b) => b.listened_at.localeCompare(a.listened_at))
+    recentTracks = sortedByDate
+      .filter(t => t.track_deezer_id != null && trackInfoMap.has(t.track_deezer_id))
+      .map(t => ({
+        trackDeezerId: t.track_deezer_id!,
+        title: trackInfoMap.get(t.track_deezer_id!)!,
+        artistName: albumArtistNameMap.get(t.album_deezer_id) ?? '',
+        coverXl: albumCoverMap.get(t.album_deezer_id) ?? '',
+        listenedAt: t.listened_at,
+      }))
+    const currentAlbumMaxDate = new Map<number, string>()
+    for (const t of current) {
+      const existing = currentAlbumMaxDate.get(t.album_deezer_id)
+      if (!existing || t.listened_at > existing) currentAlbumMaxDate.set(t.album_deezer_id, t.listened_at)
+    }
+    recentAlbums = [...currentAlbumMaxDate.entries()]
+      .sort((a, b) => b[1].localeCompare(a[1]))
+      .filter(([id]) => albumTitleMap.has(id))
+      .map(([id, maxDate]) => ({ albumDeezerId: id, title: albumTitleMap.get(id) ?? '', artistName: albumArtistNameMap.get(id) ?? '', coverXl: albumCoverMap.get(id) ?? '', lastListenedAt: maxDate }))
   }
 
   // completion date = last track checked
@@ -317,6 +352,14 @@ export default async function CollectionPage({
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2">
           <CollectionArtistExplorationSection items={depthItems} />
+        </div>
+        <div>
+          <CollectionRecentActivitySection
+            recentTracks={recentTracks.slice(0, 5)}
+            recentAlbums={recentAlbums.slice(0, 5)}
+            allTracks={recentTracks}
+            allAlbums={recentAlbums}
+          />
         </div>
       </div>
     </div>

@@ -103,6 +103,30 @@ function CollectionArtistExplorationSkeleton() {
   )
 }
 
+function CollectionRecentActivitySkeleton() {
+  return (
+    <div className="border border-bg-secondary rounded-lg p-5 flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <div className="h-4 w-32 bg-bg-tertiary rounded animate-pulse" />
+        <div className="h-7 w-32 bg-bg-tertiary rounded-full animate-pulse" />
+      </div>
+      <div className="flex flex-col">
+        {[0, 1, 2, 3, 4].map(i => (
+          <div key={i} className={`flex items-center gap-3 py-2.5 ${i < 4 ? 'border-b border-bg-secondary' : ''}`}>
+            <div className="w-10 h-10 rounded-md bg-bg-tertiary animate-pulse flex-shrink-0" />
+            <div className="flex-1 flex flex-col gap-1.5 min-w-0">
+              <div className="h-3 w-28 bg-bg-tertiary rounded animate-pulse" />
+              <div className="h-3 w-20 bg-bg-tertiary rounded animate-pulse" />
+            </div>
+            <div className="h-3 w-12 bg-bg-tertiary rounded animate-pulse flex-shrink-0" />
+          </div>
+        ))}
+      </div>
+      <div className="h-3 w-14 bg-bg-tertiary rounded animate-pulse" />
+    </div>
+  )
+}
+
 function PeriodSelectorSkeleton() {
   return (
     <div className="flex items-center gap-0.5 bg-bg-tertiary rounded-full p-0.5">
@@ -149,6 +173,9 @@ export default function CollectionLoading() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2">
           <CollectionArtistExplorationSkeleton />
+        </div>
+        <div>
+          <CollectionRecentActivitySkeleton />
         </div>
       </div>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg-primary/60 backdrop-blur-[2px] pointer-events-none">
