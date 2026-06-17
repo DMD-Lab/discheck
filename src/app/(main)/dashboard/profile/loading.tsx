@@ -286,12 +286,12 @@ export default function ProfileLoading() {
   return (
     <div className="relative flex flex-col gap-6">
       <GenresSkeleton />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <DecadesSkeleton />
         <ListenerSkeleton />
         <ConcentrationSkeleton />
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-full xl:col-span-2">
           <CritiqueSkeleton />
         </div>

@@ -177,7 +177,7 @@ export default function CollectionArtistExplorationSection({ items }: { items: D
               {completed.length} artiste{completed.length > 1 ? 's' : ''}
             </p>
           </div>
-          <div className="flex-1 overflow-y-auto px-5 pt-2">
+          <div className="flex-1 overflow-y-auto px-5 pt-4">
             {completed.map(item => (
               <CompletedPanelRow key={item.artistDeezerId} item={item} />
             ))}
@@ -193,7 +193,7 @@ export default function CollectionArtistExplorationSection({ items }: { items: D
               {inProgress.length} artiste{inProgress.length > 1 ? 's' : ''}
             </p>
           </div>
-          <div className="flex-1 overflow-y-auto px-5 pt-2">
+          <div className="flex-1 overflow-y-auto px-5 pt-4">
             {inProgress.map(item => (
               <InProgressPanelRow key={item.artistDeezerId} item={item} />
             ))}

@@ -134,12 +134,12 @@ export default function EcartSection({ items }: { items: EcartItem[] }) {
       <Panel isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)}>
         <div className="flex flex-col h-full">
           <div className="p-5 border-b border-border flex-shrink-0 pr-12">
-            <h2 className={`${textStyles.sectionTitle} text-text-primary`}>Écarts de notes</h2>
+            <h2 className={`${textStyles.sectionTitle} text-text-green`}>Écarts de notes</h2>
             <p className={`${textStyles.caption} text-text-secondary mt-1`}>
               Albums dont tous les titres ont été notés
             </p>
           </div>
-          <div className="flex-1 overflow-y-auto px-5">
+          <div className="flex-1 overflow-y-auto px-5 pt-4">
             <div className="flex flex-col divide-y divide-border">
               {items.map(item => (
                 <EcartRow key={item.albumDeezerId} item={item} />

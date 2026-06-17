@@ -18,7 +18,10 @@ function GenreRow({ genre, rank }: { genre: CollectionGenreStat; rank: number })
   return (
     <div className="flex items-center gap-3 py-3">
       <span className={`${textStyles.caption} text-text-disabled w-5 text-right flex-shrink-0`}>{rank}</span>
-      <div className="relative w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
+      <div
+        className="relative w-10 h-10 rounded-lg overflow-hidden flex-shrink-0"
+        style={{ boxShadow: `0 4px 14px ${genre.color}70` }}
+      >
         <Image
           src={`/genre/${genre.genreId}.png`}
           alt={genre.name}

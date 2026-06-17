@@ -349,12 +349,12 @@ export default async function ProfilePage() {
   return (
     <div className="flex flex-col gap-6">
       <GenresSection genres={genreStats} insight={getGenreInsight(genreStats)} />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <DecadesSection decades={decadeStats} insight={getDecadeInsight(decadeStats)} />
         <ListenerSection stats={listenerStats} insight={getListenerInsight(listenerStats)} />
         <ConcentrationSection stats={concentrationStats} insight={getConcentrationInsight(concentrationStats)} />
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-full xl:col-span-2">
           <CritiqueSection stats={critiqueStats} />
         </div>

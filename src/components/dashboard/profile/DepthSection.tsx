@@ -164,7 +164,7 @@ export default function DepthSection({ items }: { items: DepthItem[] }) {
       <Panel isOpen={isPanelOpen} onClose={() => setIsPanelOpen(false)}>
         <div className="flex flex-col h-full">
           <div className="p-5 border-b border-border flex-shrink-0 pr-12">
-            <h2 className={`${textStyles.sectionTitle} text-text-primary`}>Profondeur d&apos;écoute</h2>
+            <h2 className={`${textStyles.sectionTitle} text-text-green`}>Profondeur d&apos;écoute</h2>
             <p className={`${textStyles.caption} text-text-secondary mt-1`}>
               {total} artiste{total > 1 ? 's' : ''}
             </p>

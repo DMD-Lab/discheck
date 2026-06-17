@@ -130,7 +130,7 @@ export default function CollectionRecentActivitySection({
               {mode === 'tracks' ? allTracks.length : allAlbums.length} au total
             </p>
           </div>
-          <div className="flex-1 overflow-y-auto px-5 pt-2">
+          <div className="flex-1 overflow-y-auto px-5 pt-4">
             {mode === 'tracks'
               ? allTracks.map(t => <TrackRow key={t.trackDeezerId} {...t} />)
               : allAlbums.map(a => <AlbumRow key={a.albumDeezerId} {...a} />)}
