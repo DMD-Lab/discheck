@@ -90,9 +90,8 @@ export default function SearchPage() {
             <h1 className={`${textStyles.display} text-text-green mb-4`}>
               Trouvez votre<br />prochaine<br />discographie
             </h1>
-            <p className={`${textStyles.body} text-text-secondary leading-relaxed mb-10`}>
-              Recherchez un artiste et explorez sa discographie complète.
-              <br />Les résultats s&apos;affichent au fil de la saisie.
+            <p className={`${textStyles.body} text-text-secondary leading-relaxed mb-10 max-w-xs`}>
+              Cherchez un artiste, explorez sa discographie et complétez ce que vous n&apos;avez pas encore écouté.<br />Votre prochain objectif vous attend.
             </p>
             <div className="flex gap-2 flex-wrap">
               <Link

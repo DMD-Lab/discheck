@@ -94,7 +94,7 @@ export default function AuthForm({ initialView }: { initialView: View }) {
       </div>
 
   <div className="text-center mb-7">
-          <h1 className={`${textStyles.sectionTitle} text-text-primary mb-2`}>{titles[view]}</h1>
+          <h1 className={`${textStyles.sectionTitle} text-text-green mb-2`}>{titles[view]}</h1>
           <p className={`${textStyles.body} text-text-secondary leading-relaxed max-w-xs mx-auto`}>{subtitles[view]}</p>
         </div>
 

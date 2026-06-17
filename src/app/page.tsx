@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import { Link } from 'next-view-transitions'
-import { Disc3, TrendingUp, History, ArrowRight } from 'lucide-react'
+import { Disc3, Star, BarChart2, ArrowRight } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { textStyles } from '@/components/ui/text-styles'
 import DischecLogo from '@/components/ui/DischecLogo'
@@ -9,18 +9,18 @@ import ThemeToggle from '@/components/ui/ThemeToggle'
 const features = [
   {
     icon: Disc3,
-    title: 'Discographies complètes',
-    description: 'Accédez aux discographies complètes de vos artistes préférés, albums et singles réunis.',
+    title: 'Explorez sans limite',
+    description: 'Parcourez les discographies complètes de vos artistes et voyez exactement où vous en êtes, album par album.',
   },
   {
-    icon: TrendingUp,
-    title: 'Suivi de progression',
-    description: 'Suivez vos écoutes et actualisez votre progression en cours d\'écoute.',
+    icon: Star,
+    title: 'Notez ce que vous aimez',
+    description: "Chaque évaluation enrichit votre profil et révèle vos goûts avec une précision que vous n'attendiez pas.",
   },
   {
-    icon: History,
-    title: 'Historique clair',
-    description: 'Retrouvez facilement ce que vous avez écouté et ce qu\'il vous reste à explorer.',
+    icon: BarChart2,
+    title: 'Votre portrait musical révélé',
+    description: "Discheck assemble vos genres, top artistes et tendances pour composer un portrait musical précis et surprenant.",
   },
 ]
 
@@ -58,12 +58,11 @@ export default function LandingPage() {
         <div className="mb-10 max-w-2xl gap-6 flex flex-col">
           <DischecLogo height={40} variant="auto" className="self-start sm:hidden" />
           <DischecLogo height={60} variant="auto" className="self-start hidden sm:flex" />
-          <h1 className={`${textStyles.display} text-text-primary`}>
-            Suivez votre discographie<br />simplement.
+          <h1 className={`${textStyles.display} text-text-green`}>
+            Découvrez ce que votre<br />musique dit de vous.
           </h1>
           <p className={`${textStyles.bodyLg} text-text-secondary`}>
-            Discheck vous aide à suivre vos artistes préférés, albums et singles.
-            Explorez des discographies complètes et suivez votre progression, artiste par artiste.
+            Suivez vos écoutes, notez vos albums et laissez-nous révéler le profil musical unique qui se cache derrière vos goûts.
           </p>
           <Link
             href="/login?view=register"
@@ -73,17 +72,20 @@ export default function LandingPage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-4xl">
           {features.map(({ icon: Icon, title, description }) => (
             <div
               key={title}
-              className="rounded-xl border border-border bg-bg-secondary/40 backdrop-blur-sm px-4 py-3.5"
+              className="rounded-xl border border-border bg-bg-secondary/40 backdrop-blur-sm px-4 py-4 flex flex-col gap-3"
             >
-              <div className="mb-2.5">
-                <Icon size={32} style={{ color: 'var(--primary)' }} />
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: 'color-mix(in srgb, var(--primary) 12%, transparent)' }}
+              >
+                <Icon size={22} style={{ color: 'var(--primary)' }} />
               </div>
-              <p className={`${textStyles.body} font-semibold text-text-primary mb-1`}>{title}</p>
-              <p className={`${textStyles.caption} text-text-disabled leading-relaxed`}>{description}</p>
+              <p className={`${textStyles.cardTitle} text-text-primary`}>{title}</p>
+              <p className={`${textStyles.body} text-text-secondary leading-relaxed`}>{description}</p>
             </div>
           ))}
         </div>
