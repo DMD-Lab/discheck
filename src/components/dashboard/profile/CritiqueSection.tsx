@@ -6,6 +6,7 @@ import { textStyles } from '@/components/ui/text-styles'
 import type { CritiqueStats } from '@/lib/insights/critique-insight'
 import { getCritiqueInsight } from '@/lib/insights/critique-insight'
 import { RATING_COLORS } from '@/lib/rating-colors'
+import { RatingBadge } from '@/components/dashboard/home/AlbumFeaturedCard'
 
 type Mode = 'albums' | 'tracks'
 
@@ -94,14 +95,9 @@ export default function CritiqueSection({ stats }: { stats: CritiqueStats }) {
             })}
           </div>
 
-          <div className="flex-1 flex flex-col items-center justify-center gap-0.5 pl-4 border-l border-border">
-            <span className={`${textStyles.statLg} text-text-primary leading-none tabular-nums`}>
-              {current.average.toFixed(1).replace('.', ',')}
-            </span>
-            <span className={`${textStyles.caption} text-text-secondary text-center`}>
-              Note moy.
-            </span>
-            <span className={`${textStyles.caption} text-text-disabled text-center mt-0.5`}>
+          <div className="flex-1 flex flex-col items-center justify-center gap-1 pl-4 border-l border-border">
+            <RatingBadge label="Note moy." value={current.average} size="lg" />
+            <span className={`${textStyles.caption} text-text-disabled text-center`}>
               {current.total} note{current.total > 1 ? 's' : ''}
             </span>
           </div>

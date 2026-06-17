@@ -7,8 +7,8 @@ import { textStyles } from '@/components/ui/text-styles'
 import MarqueeText from '@/components/ui/marquee-text'
 import type { EcartItem } from '@/lib/insights/ecart-insight'
 import { getEcartInsight } from '@/lib/insights/ecart-insight'
-import { RATING_COLORS } from '@/lib/rating-colors'
 import Panel from '@/components/ui/panel'
+import { RatingBadge } from '@/components/dashboard/home/AlbumFeaturedCard'
 
 function EcartCard({ item }: { item: EcartItem }) {
   return (
@@ -28,18 +28,12 @@ function EcartCard({ item }: { item: EcartItem }) {
           <MarqueeText className={`${textStyles.caption} text-text-secondary`}>{item.artistName}</MarqueeText>
         </div>
         <div className="flex items-center border-t border-border pt-2">
-          <div className="flex-1 flex flex-col items-center gap-0.5">
-            <span className="text-sm font-bold tabular-nums" style={{ color: RATING_COLORS[item.albumRating] }}>
-              {item.albumRating.toFixed(1).replace('.', ',')}
-            </span>
-            <span className={`${textStyles.caption} text-text-disabled text-center`}>Note album</span>
+          <div className="flex-1 flex justify-center">
+            <RatingBadge label="Note album" value={item.albumRating} />
           </div>
           <div className="w-px h-8 bg-border flex-shrink-0" />
-          <div className="flex-1 flex flex-col items-center gap-0.5">
-            <span className="text-sm font-bold tabular-nums" style={{ color: RATING_COLORS[Math.round(item.trackAvg)] }}>
-              {item.trackAvg.toFixed(1).replace('.', ',')}
-            </span>
-            <span className={`${textStyles.caption} text-text-disabled text-center`}>Moy. tracks</span>
+          <div className="flex-1 flex justify-center">
+            <RatingBadge label="Moy. tracks" value={item.trackAvg} />
           </div>
         </div>
       </div>
@@ -58,19 +52,9 @@ function EcartRow({ item }: { item: EcartItem }) {
         <MarqueeText className={`${textStyles.caption} text-text-secondary`}>{item.artistName}</MarqueeText>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
-        <div className="flex flex-col items-center gap-0.5">
-          <span className="text-sm font-bold tabular-nums" style={{ color: RATING_COLORS[item.albumRating] }}>
-            {item.albumRating.toFixed(1).replace('.', ',')}
-          </span>
-          <span className={`${textStyles.caption} text-text-disabled`}>Note album</span>
-        </div>
+        <RatingBadge label="Note album" value={item.albumRating} />
         <div className="w-px h-8 bg-border flex-shrink-0" />
-        <div className="flex flex-col items-center gap-0.5">
-          <span className="text-sm font-bold tabular-nums" style={{ color: RATING_COLORS[Math.round(item.trackAvg)] }}>
-            {item.trackAvg.toFixed(1).replace('.', ',')}
-          </span>
-          <span className={`${textStyles.caption} text-text-disabled`}>Moy. tracks</span>
-        </div>
+        <RatingBadge label="Moy. tracks" value={item.trackAvg} />
       </div>
     </div>
   )

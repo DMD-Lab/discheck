@@ -46,7 +46,7 @@ export default function CollectionDecadeSection({ data }: { data: CollectionDeca
 
               <div className="flex-1 flex items-center justify-end gap-3">
                 <div className="flex items-baseline gap-1.5">
-                  <span className={`${textStyles.statSm} tabular-nums ${d.count > 0 ? 'text-text-primary' : 'text-text-disabled'}`}>
+                  <span className={`${textStyles.statSm} tabular-nums ${d.count > 0 ? 'text-text-green' : 'text-text-disabled'}`}>
                     {d.count.toLocaleString('fr-FR')}
                   </span>
                   <span className={`${textStyles.caption} text-text-secondary`}>tracks écoutés</span>

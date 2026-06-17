@@ -94,7 +94,7 @@ export default async function ProfilePage() {
     // genres
     const albumGenreMap = new Map<number, number>()
     for (const a of albumData ?? []) {
-      if (a.genre_id) albumGenreMap.set(a.album_deezer_id, a.genre_id)
+      if (a.genre_id && a.genre_id !== -1) albumGenreMap.set(a.album_deezer_id, a.genre_id)
     }
 
     const genreCountMap = new Map<number, number>()
@@ -113,11 +113,12 @@ export default async function ProfilePage() {
       const total = [...genreCountMap.values()].reduce((a, b) => a + b, 0)
 
       genreStats = [...genreCountMap.entries()]
+        .filter(([genreId]) => genreNames?.some((g) => g.deezer_id === genreId))
         .map(([genreId, count]) => {
           const genre = genreNames?.find((g) => g.deezer_id === genreId)
           return {
             genreId,
-            name: genre?.name ?? "Inconnu",
+            name: genre!.name,
             count,
             percentage: Math.round((count / total) * 100),
             color: getGenreColor(genreId),
