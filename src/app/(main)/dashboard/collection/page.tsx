@@ -11,6 +11,8 @@ import CollectionDecadeSection from '@/components/dashboard/collection/Collectio
 import type { CollectionDecadeStat } from '@/components/dashboard/collection/CollectionDecadeSection'
 import { COLLECTION_DECADES } from '@/components/dashboard/collection/CollectionDecadeSection'
 import { getGenreColor } from '@/lib/genre-colors'
+import CollectionArtistExplorationSection from '@/components/dashboard/collection/CollectionArtistExplorationSection'
+import type { DepthItem } from '@/lib/insights/depth-insight'
 
 const VALID_PERIODS: PeriodType[] = ['30d', '3m', '1y', 'all']
 
@@ -97,6 +99,7 @@ export default async function CollectionPage({
   const albumGenreMap = new Map<number, number>()
   const genreNameMap = new Map<number, string>()
   let genreData: CollectionGenreData = { top: [], others: null, all: [] }
+  let depthItems: DepthItem[] = []
   let decadeData: CollectionDecadeStat[] = COLLECTION_DECADES.map(decade => ({
     decade,
     label: decade >= 2000 ? `${decade}s` : `${String(decade).slice(2)}s`,
@@ -113,7 +116,7 @@ export default async function CollectionPage({
         .in('album_deezer_id', allAlbumIds),
       supabase
         .from('cached_albums')
-        .select('album_deezer_id, artist_deezer_id, genre_id, original_release_year')
+        .select('album_deezer_id, artist_deezer_id, artist_name, genre_id, original_release_year')
         .in('album_deezer_id', allAlbumIds),
       supabase.from('cached_genres').select('deezer_id, name'),
     ])
@@ -197,6 +200,51 @@ export default async function CollectionPage({
       count: currentDecadeCount.get(decade) ?? 0,
       pctChange: pct(currentDecadeCount.get(decade) ?? 0, prev !== null ? (prevDecadeCount.get(decade) ?? 0) : null),
     }))
+
+    const artistDeezerIds = [...new Set((albumMeta ?? []).map(a => a.artist_deezer_id).filter((id): id is number => !!id))]
+    if (artistDeezerIds.length > 0) {
+      const [{ data: allArtistAlbums }, { data: cachedArtistsData }] = await Promise.all([
+        supabase.from('cached_albums').select('album_deezer_id, artist_deezer_id').in('artist_deezer_id', artistDeezerIds),
+        supabase.from('cached_artists').select('artist_deezer_id, artist_data').in('artist_deezer_id', artistDeezerIds),
+      ])
+
+      const listenedAlbumSet = new Set(allAlbumIds)
+
+      const artistPictureMap = new Map<number, string>()
+      for (const a of cachedArtistsData ?? []) {
+        const raw = a.artist_data as { picture_xl?: string } | null
+        if (raw?.picture_xl) artistPictureMap.set(a.artist_deezer_id, raw.picture_xl)
+      }
+
+      const artistNameMap = new Map<number, string>()
+      for (const a of albumMeta ?? []) {
+        if (a.artist_deezer_id && a.artist_name && !artistNameMap.has(a.artist_deezer_id)) {
+          artistNameMap.set(a.artist_deezer_id, a.artist_name)
+        }
+      }
+
+      const progressMap = new Map<number, { total: number; listened: number }>()
+      for (const ca of allArtistAlbums ?? []) {
+        if (!ca.artist_deezer_id) continue
+        const curr = progressMap.get(ca.artist_deezer_id) ?? { total: 0, listened: 0 }
+        progressMap.set(ca.artist_deezer_id, {
+          total: curr.total + 1,
+          listened: curr.listened + (listenedAlbumSet.has(ca.album_deezer_id) ? 1 : 0),
+        })
+      }
+
+      depthItems = [...progressMap.entries()]
+        .filter(([, p]) => p.listened > 0)
+        .map(([artistId, p]) => ({
+          artistDeezerId: artistId,
+          name: artistNameMap.get(artistId) ?? '',
+          pictureXl: artistPictureMap.get(artistId) ?? '',
+          listened: p.listened,
+          total: p.total,
+          pct: Math.round((p.listened / p.total) * 100),
+        }))
+        .sort((a, b) => b.pct - a.pct || b.listened - a.listened)
+    }
   }
 
   // completion date = last track checked
@@ -264,6 +312,11 @@ export default async function CollectionPage({
         </div>
         <div className="lg:col-span-2 xl:col-span-2 2xl:col-span-1">
           <CollectionDecadeSection data={decadeData} />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-2">
+          <CollectionArtistExplorationSection items={depthItems} />
         </div>
       </div>
     </div>

@@ -48,7 +48,7 @@ export default function CollectionGenrePanel({ data }: { data: CollectionGenreDa
   return (
     <div className="flex flex-col h-full">
       <div className="p-5 border-b border-border flex-shrink-0 pr-12">
-        <h2 className={`${textStyles.sectionTitle} text-text-primary`}>Tous les genres</h2>
+        <h2 className={`${textStyles.sectionTitle} text-text-green`}>Tous les genres</h2>
         <p className={`${textStyles.caption} text-text-secondary mt-1`}>
           {data.all.length} genre{data.all.length > 1 ? 's' : ''} écouté{data.all.length > 1 ? 's' : ''}
         </p>

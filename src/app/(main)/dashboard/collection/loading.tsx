@@ -56,6 +56,53 @@ function CollectionDecadeSkeleton() {
   )
 }
 
+function CollectionArtistExplorationSkeleton() {
+  return (
+    <div className="border border-bg-secondary rounded-lg p-5 flex flex-col gap-4">
+      <div className="h-4 w-48 bg-bg-tertiary rounded animate-pulse" />
+      <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
+        <div className="flex flex-col gap-3 lg:flex-1">
+          <div className="h-3.5 w-40 bg-bg-tertiary rounded animate-pulse" />
+          <div className="flex flex-col">
+            {[0, 1, 2].map(i => (
+              <div key={i} className="flex items-center gap-3 py-2">
+                <div className="w-16 h-16 rounded-md bg-bg-tertiary animate-pulse flex-shrink-0" />
+                <div className="flex-1 flex flex-col gap-1.5 min-w-0">
+                  <div className="h-3 w-28 bg-bg-tertiary rounded animate-pulse" />
+                  <div className="h-3 w-16 bg-bg-tertiary rounded animate-pulse" />
+                </div>
+                <div className="h-5 w-16 bg-bg-tertiary rounded flex-shrink-0 animate-pulse" />
+              </div>
+            ))}
+          </div>
+          <div className="h-3 w-14 bg-bg-tertiary rounded animate-pulse" />
+        </div>
+
+        <div className="h-px w-full bg-bg-secondary lg:h-auto lg:w-px lg:self-stretch flex-shrink-0" />
+
+        <div className="flex flex-col gap-3 lg:flex-1">
+          <div className="h-3.5 w-16 bg-bg-tertiary rounded animate-pulse" />
+          <div className="flex flex-col">
+            {[0, 1, 2, 3, 4].map(i => (
+              <div key={i} className={`flex items-center gap-3 py-2 ${i < 4 ? 'border-b border-bg-secondary' : ''}`}>
+                <div className="w-10 h-10 rounded-md bg-bg-tertiary animate-pulse flex-shrink-0" />
+                <div className="flex-1 flex flex-col gap-1.5 min-w-0">
+                  <div className="flex justify-between gap-2">
+                    <div className="h-3 w-24 bg-bg-tertiary rounded animate-pulse" />
+                    <div className="h-3 w-20 bg-bg-tertiary rounded animate-pulse flex-shrink-0" />
+                  </div>
+                  <div className="h-1.5 w-full bg-bg-tertiary rounded-full animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="h-3 w-14 bg-bg-tertiary rounded animate-pulse" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function PeriodSelectorSkeleton() {
   return (
     <div className="flex items-center gap-0.5 bg-bg-tertiary rounded-full p-0.5">
@@ -97,6 +144,11 @@ export default function CollectionLoading() {
         </div>
         <div className="lg:col-span-2 xl:col-span-2 2xl:col-span-1">
           <CollectionDecadeSkeleton />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="xl:col-span-2">
+          <CollectionArtistExplorationSkeleton />
         </div>
       </div>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg-primary/60 backdrop-blur-[2px] pointer-events-none">

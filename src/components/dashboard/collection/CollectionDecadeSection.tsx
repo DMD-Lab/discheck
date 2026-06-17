@@ -28,7 +28,6 @@ export default function CollectionDecadeSection({ data }: { data: CollectionDeca
       <h2 className={`${textStyles.cardTitle} text-text-green flex-shrink-0`}>Collection par décennie</h2>
 
       <div className="relative flex-1 flex flex-col">
-        {/* vertical line — isolated in frise column */}
         <div
           className="absolute top-0 bottom-0 w-px left-4"
           style={{ backgroundColor: 'var(--border-color)' }}
