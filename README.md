@@ -11,11 +11,11 @@ Tracker de discographie musicale. Explorez, cochez et notez chaque sortie de vos
 
 ## Pourquoi cette app
 
-Discheck est née d'un besoin simple : garder une trace de son parcours musical artiste par artiste. Sa discographie complète s'affiche (albums, EPs, singles), on coche ce qu'on a écouté, on note chaque titre. Pas de streaming, pas de recommandations algorithmiques — juste sa bibliothèque, ses écoutes, ses notes.
+Discheck est née d'un besoin simple : garder une trace de son parcours musical artiste par artiste. La discographie complète s'affiche (albums, EPs, singles), on coche ce qu'on a écouté, on note chaque titre. Le dashboard analyse les habitudes d'écoute : classements, genres, décennies, profondeur d'exploration. Pas de streaming, pas de recommandations algorithmiques — juste sa bibliothèque, ses écoutes, ses notes.
 
 ## Stack
 
-Next.js · Tailwind CSS v4 · Supabase (PostgreSQL) · Deezer API · Vercel · Lucide React
+Next.js · Tailwind CSS v4 · Supabase (PostgreSQL) · Deezer API · MusicBrainz API · Lucide React
 
 ## Couleurs
 
@@ -23,6 +23,7 @@ Primaire vert `#22c55e`
 
 ## Fonctionnalités
 
+### Recherche & Discographie
 - Recherche d'artiste en temps réel (Deezer API, debounce 350ms)
 - Discographie complète triée par date décroissante — albums, EPs, singles
 - Filtres par type de sortie (Tout / Albums / EP / Singles)
@@ -33,10 +34,31 @@ Primaire vert `#22c55e`
 - Note d'album = moyenne automatique des titres notés
 - Barre de progression par sortie dans la discographie
 - Page "Mes artistes" avec progression globale par artiste
+
+### Dashboard — Onglet Accueil
+- Bannière avec stats globales (artistes, albums, tracks, note moyenne)
+- Classement des artistes les mieux notés (min. 5 tracks notées)
+- Classement des albums préférés
+- Tracks favorites (notées 5/5)
+- Activité récente (dernières écoutes)
+
+### Dashboard — Onglet Collection
+- Vue globale de la collection avec progression totale
+- Exploration par artiste avec niveau de complétion
+- Activité récente avec panel "voir plus"
+- Collection par décennie et par genre (MusicBrainz)
+
+### Dashboard — Onglet Profil
+- Concentration d'écoute, type d'auditeur, profondeur d'exploration
+- Genres musicaux (MusicBrainz CC BY 4.0)
+- Distribution des notes, écart notes tracks/albums
+- Décennies favorites
+
+### Compte & Auth
+- Inscription (email + pseudo), connexion, déconnexion
+- Mot de passe oublié avec email et page de réinitialisation dédiée
 - Thème sombre/clair (dark par défaut)
-- Compte utilisateur (inscription email + pseudo, connexion, déconnexion)
 - Transitions de pages fluides (View Transitions API)
-- Skeleton loaders sur toutes les pages
 
 ## Variables d'environnement
 
