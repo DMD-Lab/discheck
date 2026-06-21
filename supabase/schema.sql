@@ -48,6 +48,7 @@ CREATE TABLE listened_tracks (
   user_id           uuid REFERENCES profiles ON DELETE CASCADE,
   track_deezer_id   bigint NOT NULL,
   listened_at       timestamptz DEFAULT now(),
+  listened_at_user  timestamptz,
   album_deezer_id   bigint,
   artist_deezer_id  bigint,
   duration_seconds  integer,
@@ -138,10 +139,11 @@ CREATE TRIGGER on_auth_user_created
 
   -- Notations d'albums (indépendant des notes de titres)
 CREATE TABLE album_ratings (
-  user_id         uuid REFERENCES profiles ON DELETE CASCADE,
-  album_deezer_id bigint NOT NULL,
-  rating          smallint NOT NULL CHECK (rating BETWEEN 1 AND 5),
-  rated_at        timestamptz DEFAULT now(),
+  user_id          uuid REFERENCES profiles ON DELETE CASCADE,
+  album_deezer_id  bigint NOT NULL,
+  rating           smallint CHECK (rating BETWEEN 1 AND 5),
+  rated_at         timestamptz DEFAULT now(),
+  listened_at_user timestamptz,
   PRIMARY KEY (user_id, album_deezer_id)
 );
 

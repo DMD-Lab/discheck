@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import Image from 'next/image'
-import { Check, CheckCheck, Music2, Headphones, Star } from 'lucide-react'
+import { CheckCheck, Headphones, Star, Calendar } from 'lucide-react'
 import MarqueeText from '@/components/ui/marquee-text'
 import type { DeezerAlbumResult, DeezerTrackResult } from '@/lib/deezer/types'
 import TrackRow from '@/components/track/TrackRow'
-import StatCard from '@/components/ui/StatCard'
 import AlbumRatingModal from '@/components/ui/AlbumRatingModal'
+import DatePopover from '@/components/ui/date-popover'
 import { textStyles } from '@/components/ui/text-styles'
 
 const RATING_COLORS: Record<number, string> = {
@@ -18,24 +18,43 @@ const RATING_COLORS: Record<number, string> = {
   5: '#22c55e',
 }
 
+function formatDateBadge(isoStr: string): string {
+  const d = new Date(isoStr)
+  const day = String(d.getDate()).padStart(2, '0')
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  return `${day}/${month}/${d.getFullYear()}`
+}
+
+function formatDateBadgeShort(isoStr: string): string {
+  const d = new Date(isoStr)
+  const day = String(d.getDate()).padStart(2, '0')
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  return `${day}/${month}/${String(d.getFullYear()).slice(2)}`
+}
+
 interface AlbumDetailProps {
   album: DeezerAlbumResult
   artistName?: string
   listenedIds: Set<number>
   ratingMap: Map<number, number>
   albumRating?: number
+  albumListenedAtUser?: string | null
+  listenedDateMap: Map<number, { userDate: string | null; checkDate: string }>
   onToggleTrack: (trackId: number) => void
   onRateTrack: (trackId: number, rating: number) => void
   onRateAlbum: (rating: number) => void
   onTracksLoaded: (albumId: number, trackIds: number[]) => void
   onCheckAll: (trackIds: number[]) => void
   onUncheckAll: (trackIds: number[]) => void
+  onSetTrackDate: (trackId: number, date: string | null) => void
+  onSetAlbumDate: (date: string | null) => void
 }
 
-export default function AlbumDetail({ album, artistName, listenedIds, ratingMap, albumRating, onToggleTrack, onRateTrack, onRateAlbum, onTracksLoaded, onCheckAll, onUncheckAll }: AlbumDetailProps) {
+export default function AlbumDetail({ album, artistName, listenedIds, ratingMap, albumRating, albumListenedAtUser, listenedDateMap, onToggleTrack, onRateTrack, onRateAlbum, onTracksLoaded, onCheckAll, onUncheckAll, onSetTrackDate, onSetAlbumDate }: AlbumDetailProps) {
   const [tracks, setTracks] = useState<DeezerTrackResult[]>([])
   const [loadedAlbumId, setLoadedAlbumId] = useState<number | null>(null)
   const [showRatingModal, setShowRatingModal] = useState(false)
+  const [showAlbumDatePopover, setShowAlbumDatePopover] = useState(false)
   const wasAllListened = useRef<boolean | null>(null)
   const loading = loadedAlbumId !== album.id
 
@@ -50,10 +69,21 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
       })
   }, [album.id, onTracksLoaded])
 
-  const year = album.original_release_year ?? album.release_date?.slice(0, 4) ?? '—'
+  const releaseDate = (() => {
+    if (album.release_date) {
+      const [y, m, d] = album.release_date.split('-')
+      return d && m && y ? `${d}/${m}/${y}` : album.release_date
+    }
+    return album.original_release_year?.toString() ?? '—'
+  })()
   const listenedCount = tracks.filter(t => listenedIds.has(t.id)).length
-  const remaining = tracks.length - listenedCount
   const allListened = tracks.length > 0 && listenedCount === tracks.length
+  const singleMainTrack = album.record_type === 'single'
+    ? (tracks.find(t => t.track_position === 1) ?? tracks[0])
+    : undefined
+  const singleTrackRating = singleMainTrack ? ratingMap.get(singleMainTrack.id) : undefined
+  const singleTrackDateEntry = singleMainTrack ? listenedDateMap.get(singleMainTrack.id) : undefined
+  const singleEffectiveDate = singleTrackDateEntry ? (singleTrackDateEntry.userDate ?? singleTrackDateEntry.checkDate) : null
 
   useEffect(() => {
     if (loading) return
@@ -75,10 +105,29 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
     return Math.round((sum / tracks.length) * 10) / 10
   }, [tracks, listenedIds, ratingMap])
 
+  const albumUserDate = useMemo(() => {
+    if (!allListened) return null
+    if (albumListenedAtUser) return albumListenedAtUser
+    const dates = tracks
+      .filter(t => listenedIds.has(t.id))
+      .map(t => {
+        const entry = listenedDateMap.get(t.id)
+        return entry ? (entry.userDate ?? entry.checkDate) : null
+      })
+      .filter((d): d is string => !!d)
+    return dates.length > 0 ? dates.sort().pop()! : null
+  }, [albumListenedAtUser, allListened, tracks, listenedIds, listenedDateMap])
+
   function handleRateInModal(rating: number) {
-    onRateAlbum(rating)
+    if (album.record_type === 'single' && singleMainTrack) {
+      if (!listenedIds.has(singleMainTrack.id)) onToggleTrack(singleMainTrack.id)
+      onRateTrack(singleMainTrack.id, rating)
+    } else {
+      onRateAlbum(rating)
+    }
     setShowRatingModal(false)
   }
+
 
   return (
     <>
@@ -112,84 +161,164 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
             {artistName && (
               <p className={`${textStyles.body} text-white/70 mt-1 truncate`}>{artistName}</p>
             )}
-            <p className={`${textStyles.caption} text-white/40 mt-0.5`}>{year}</p>
-            {albumRating && (
-              <button
-                onClick={() => setShowRatingModal(true)}
-                className={`${textStyles.caption} font-bold mt-2 w-fit px-2 py-0.5 rounded transition-opacity hover:opacity-80`}
-                style={{
-                  color: RATING_COLORS[albumRating],
-                  backgroundColor: `${RATING_COLORS[albumRating]}33`,
-                }}
-              >
-                Note album : {albumRating}/5
-              </button>
-            )}
+            <p className={`${textStyles.caption} text-white/40 mt-0.5`}>Sortie le {releaseDate}</p>
           </div>
         </div>
       </div>
 
-      {/* 3 widgets */}
+      {/* Stats area */}
       {!loading && tracks.length > 0 && (
-        <div className="px-4 py-3 border-b border-border flex-shrink-0">
-          <div className="grid grid-cols-3 gap-2">
-            <StatCard
-              icon={<Music2 size={15} className="text-text-secondary" />}
-              value={`${tracks.length}`}
-              label="titres"
-            />
-            <StatCard
-              icon={<Headphones size={15} style={{ color: 'var(--primary)' }} />}
-              value={`${listenedCount}`}
-              label="écoutés"
-            />
-            {!allListened ? (
-              <StatCard
-                icon={<Music2 size={15} className="text-text-disabled" />}
-                value={`${remaining}`}
-                label="restants"
-              />
-            ) : avgRating !== null ? (
-              <StatCard
-                icon={<Star size={15} style={{ color: 'var(--primary)' }} />}
-                value={avgRating % 1 === 0 ? avgRating.toFixed(0) : avgRating.toFixed(1)}
-                label="note moy."
-              />
-            ) : (
-              <StatCard
-                icon={<Star size={15} className="text-text-disabled" />}
-                value="—"
-                label="note moy."
-                tooltip="Notez tous les titres pour obtenir une note"
-              />
-            )}
-          </div>
+        <div className="px-4 py-3 border-b border-border flex-shrink-0 flex flex-col gap-2">
+
+          {album.record_type === 'single' ? (
+
+            /* 3 widgets pour les singles */
+            <div className="grid grid-cols-3 gap-2">
+
+              {/* Écouté */}
+              <div
+                className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 transition-colors"
+                style={allListened ? { borderColor: 'var(--primary)' } : undefined}
+              >
+                <div className="flex items-center gap-1 max-sm:justify-center">
+                  <Headphones size={13} className={`max-sm:w-3 max-sm:h-3 ${listenedCount > 0 ? '' : 'text-text-disabled'}`} style={listenedCount > 0 ? { color: 'var(--primary)' } : undefined} />
+                  <span className="text-xs text-text-secondary leading-none max-sm:text-center">Écouté</span>
+                </div>
+                <span className={`${textStyles.statSm} ${listenedCount > 0 ? 'text-text-primary' : 'text-text-disabled'}`}>
+                  {listenedCount}/{tracks.length}
+                </span>
+              </div>
+
+              {/* Note attribuée — lecture seule sur single, modifiable via la ligne du track */}
+              <div className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3">
+                <div className="flex items-center gap-1 max-sm:justify-center">
+                  <Star size={13} className={`max-sm:w-3 max-sm:h-3 ${singleTrackRating ? '' : 'text-text-disabled'}`} style={singleTrackRating ? { color: RATING_COLORS[singleTrackRating], fill: RATING_COLORS[singleTrackRating] } : undefined} />
+                  <span className="text-xs text-text-secondary leading-none max-sm:hidden">Note attribuée</span>
+                  <span className="text-xs text-text-secondary leading-none hidden max-sm:block">Ma note</span>
+                </div>
+                <span className={`${textStyles.statSm} ${singleTrackRating ? 'text-text-primary' : 'text-text-disabled'}`}>
+                  {singleTrackRating ? `${singleTrackRating},0` : '—'}
+                </span>
+              </div>
+
+              {/* Date — lecture seule sur single, modifiable via la ligne du track */}
+              <div className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3">
+                <div className="flex items-center gap-1 max-sm:justify-center">
+                  <Calendar size={13} className={`max-sm:w-3 max-sm:h-3 ${singleEffectiveDate ? 'text-text-green' : 'text-text-disabled'}`} />
+                  <span className="text-xs text-text-secondary leading-none max-sm:hidden">Date d'écoute</span>
+                  <span className="text-xs text-text-secondary leading-none hidden max-sm:block">Écouté le</span>
+                </div>
+                <span className={`${textStyles.statSm} ${singleEffectiveDate ? 'text-text-primary' : 'text-text-disabled'}`}>
+                  {singleEffectiveDate ? (
+                    <>
+                      <span className="max-sm:hidden">{formatDateBadge(singleEffectiveDate)}</span>
+                      <span className="hidden max-sm:block">{formatDateBadgeShort(singleEffectiveDate)}</span>
+                    </>
+                  ) : '—'}
+                </span>
+              </div>
+            </div>
+
+          ) : (
+
+            /* 4 widgets pour albums et EPs */
+            <div className="grid grid-cols-4 gap-2">
+
+              {/* Écoutés X/X */}
+              <div
+                className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 transition-colors"
+                style={allListened ? { borderColor: 'var(--primary)' } : undefined}
+              >
+                <div className="flex items-center gap-1 max-sm:justify-center">
+                  <Headphones size={13} className={`max-sm:w-3 max-sm:h-3 ${listenedCount > 0 ? '' : 'text-text-disabled'}`} style={listenedCount > 0 ? { color: 'var(--primary)' } : undefined} />
+                  <span className="text-xs text-text-secondary leading-none">Écoutés</span>
+                </div>
+                <span className={`${textStyles.statSm} ${listenedCount > 0 ? 'text-text-primary' : 'text-text-disabled'}`}>{listenedCount}/{tracks.length}</span>
+              </div>
+
+              {/* Note moy. tracks */}
+              <div className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3">
+                <div className="flex items-center gap-1 max-sm:justify-center">
+                  <Star size={13} className={`max-sm:w-3 max-sm:h-3 ${avgRating !== null ? '' : 'text-text-disabled'}`} style={avgRating !== null ? { color: RATING_COLORS[Math.floor(avgRating)], fill: RATING_COLORS[Math.floor(avgRating)] } : undefined} />
+                  <span className="text-xs text-text-secondary leading-none">Note moy.</span>
+                </div>
+                <span className={`${textStyles.statSm} ${avgRating !== null ? 'text-text-primary' : 'text-text-disabled'}`}>
+                  {avgRating !== null ? avgRating.toFixed(1).replace('.', ',') : '—'}
+                </span>
+              </div>
+
+              {/* Note attribuée — clicable uniquement si tous les tracks sont cochés */}
+              <button
+                onClick={() => setShowRatingModal(true)}
+                className={`flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 transition-colors w-full ${allListened ? 'hover:bg-bg-tertiary' : 'pointer-events-none'}`}
+              >
+                <div className="flex items-center gap-1 max-sm:justify-center">
+                  <Star size={13} className={`max-sm:w-3 max-sm:h-3 ${allListened && albumRating ? '' : 'text-text-disabled'}`} style={allListened && albumRating ? { color: RATING_COLORS[albumRating], fill: RATING_COLORS[albumRating] } : undefined} />
+                  <span className="text-xs text-text-secondary leading-none max-sm:hidden">Note attribuée</span>
+                  <span className="text-xs text-text-secondary leading-none hidden max-sm:block">Ma note</span>
+                </div>
+                <span className={`${textStyles.statSm} ${allListened && albumRating ? 'text-text-primary' : 'text-text-disabled'}`}>
+                  {allListened && albumRating ? `${albumRating},0` : '—'}
+                </span>
+              </button>
+
+              {/* Date — widget cliquable */}
+              <div className="relative">
+                <button
+                  onClick={() => { if (allListened) setShowAlbumDatePopover(prev => !prev) }}
+                  className={`flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 transition-colors w-full ${allListened ? 'hover:bg-bg-tertiary' : 'pointer-events-none'}`}
+                >
+                  <div className="flex items-center gap-1 max-sm:justify-center">
+                    <Calendar size={13} className={`max-sm:w-3 max-sm:h-3 ${albumUserDate ? 'text-text-green' : 'text-text-disabled'}`} />
+                    <span className="text-xs text-text-secondary leading-none max-sm:hidden">Date d'écoute</span>
+                    <span className="text-xs text-text-secondary leading-none hidden max-sm:block">Écouté le</span>
+                  </div>
+                  <span className={`${textStyles.statSm} ${albumUserDate ? 'text-text-primary' : 'text-text-disabled'}`}>
+                    {albumUserDate ? (
+                      <>
+                        <span className="max-sm:hidden">{formatDateBadge(albumUserDate)}</span>
+                        <span className="hidden max-sm:block">{formatDateBadgeShort(albumUserDate)}</span>
+                      </>
+                    ) : '—'}
+                  </span>
+                </button>
+                {showAlbumDatePopover && (
+                  <DatePopover
+                    currentDate={albumUserDate}
+                    hasUserDate={!!albumListenedAtUser}
+                    onSetDate={date => { onSetAlbumDate(date); setShowAlbumDatePopover(false) }}
+                    onClose={() => setShowAlbumDatePopover(false)}
+                  />
+                )}
+              </div>
+            </div>
+
+          )}
+
         </div>
       )}
 
       {/* Track list */}
       <div className="flex-1 overflow-y-auto py-2">
-        {!loading && tracks.length > 0 && (
-          <button
-            onClick={() => allListened
-              ? onUncheckAll(tracks.map(t => t.id))
-              : onCheckAll(tracks.map(t => t.id))
-            }
-            className="flex items-center gap-3 px-4 py-2.5 w-full hover:bg-bg-tertiary transition-colors group"
-          >
-            <span
-              className="flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center transition-colors"
+        {!loading && tracks.length > 1 && (
+          <div className="flex items-center px-4 py-2.5">
+            <button
+              onClick={() => allListened
+                ? onUncheckAll(tracks.map(t => t.id))
+                : onCheckAll(tracks.map(t => t.id))
+              }
+              className="group flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center transition-colors hover:border-primary"
               style={allListened
                 ? { backgroundColor: 'var(--primary)', borderColor: 'var(--primary)' }
                 : undefined
               }
             >
               {allListened
-                ? <Check size={10} strokeWidth={3} className="text-white" />
-                : <CheckCheck size={9} className="text-text-disabled group-hover:text-primary transition-colors" />
+                ? <CheckCheck size={9} className="text-white" />
+                : <CheckCheck size={9} className="opacity-0 group-hover:opacity-100 group-hover:text-primary transition-all" />
               }
-            </span>
-          </button>
+            </button>
+          </div>
         )}
         {loading && (
           <p className={`${textStyles.body} text-text-secondary px-5 py-4`}>Chargement...</p>
@@ -202,15 +331,18 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
             duration={track.duration}
             listened={listenedIds.has(track.id)}
             rating={listenedIds.has(track.id) ? ratingMap.get(track.id) : undefined}
+            listenedAt={(() => { const e = listenedDateMap.get(track.id); return e ? (e.userDate ?? e.checkDate) : undefined })()}
+            listenedAtUser={listenedIds.has(track.id) ? (listenedDateMap.get(track.id)?.userDate ?? null) : undefined}
             onToggle={() => onToggleTrack(track.id)}
             onRate={(r) => onRateTrack(track.id, r)}
+            onSetDate={(date) => onSetTrackDate(track.id, date)}
           />
         ))}
       </div>
 
       {showRatingModal && (
         <AlbumRatingModal
-          currentRating={albumRating}
+          currentRating={album.record_type === 'single' ? singleTrackRating : albumRating}
           onRate={handleRateInModal}
           onSkip={() => setShowRatingModal(false)}
         />

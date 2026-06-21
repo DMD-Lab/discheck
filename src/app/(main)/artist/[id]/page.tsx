@@ -24,8 +24,10 @@ export default function ArtistPage() {
   const [listenedIds, setListenedIds] = useState<Set<number>>(new Set())
   const [ratingMap, setRatingMap] = useState<Map<number, number>>(new Map())
   const [albumRatingMap, setAlbumRatingMap] = useState<Map<number, number>>(new Map())
+  const [albumUserDateMap, setAlbumUserDateMap] = useState<Map<number, string>>(new Map())
   const [albumTracksMap, setAlbumTracksMap] = useState<Map<number, number[]>>(new Map())
   const [activeFilter, setActiveFilter] = useState<Filter>('all')
+  const [listenedDateMap, setListenedDateMap] = useState<Map<number, { userDate: string | null; checkDate: string }>>(new Map())
 
   useEffect(() => {
     Promise.all([
@@ -50,14 +52,24 @@ export default function ArtistPage() {
       if (!user) return
       const albumIds = albums.map(a => a.id)
       Promise.all([
-        supabase.from('listened_tracks').select('track_deezer_id').eq('user_id', user.id),
+        supabase.from('listened_tracks').select('track_deezer_id, listened_at, listened_at_user').eq('user_id', user.id),
         supabase.from('track_ratings').select('track_deezer_id, rating').eq('user_id', user.id),
-        supabase.from('album_ratings').select('album_deezer_id, rating').eq('user_id', user.id).in('album_deezer_id', albumIds),
+        supabase.from('album_ratings').select('album_deezer_id, rating, listened_at_user').eq('user_id', user.id).in('album_deezer_id', albumIds),
         supabase.from('cached_tracks').select('track_deezer_id, album_deezer_id').in('album_deezer_id', albumIds),
       ]).then(([listens, trackRatings, albumRatings, tracks]) => {
-        if (listens.data) setListenedIds(new Set(listens.data.map(r => r.track_deezer_id)))
+        if (listens.data) {
+          setListenedIds(new Set(listens.data.map(r => r.track_deezer_id)))
+          setListenedDateMap(new Map(listens.data.map(r => {
+            const row = r as { track_deezer_id: number; listened_at: string; listened_at_user: string | null }
+            return [row.track_deezer_id, { userDate: row.listened_at_user ?? null, checkDate: row.listened_at }]
+          })))
+        }
         if (trackRatings.data) setRatingMap(new Map(trackRatings.data.map(r => [r.track_deezer_id, r.rating])))
-        if (albumRatings.data) setAlbumRatingMap(new Map(albumRatings.data.map(r => [r.album_deezer_id, r.rating])))
+        if (albumRatings.data) {
+          const rows = albumRatings.data as Array<{ album_deezer_id: number; rating: number | null; listened_at_user: string | null }>
+          setAlbumRatingMap(new Map(rows.filter(r => r.rating != null).map(r => [r.album_deezer_id, r.rating!])))
+          setAlbumUserDateMap(new Map(rows.filter(r => r.listened_at_user != null).map(r => [r.album_deezer_id, r.listened_at_user!])))
+        }
         if (tracks.data) {
           const map = new Map<number, number[]>()
           tracks.data.forEach(r => {
@@ -80,9 +92,12 @@ export default function ArtistPage() {
     if (isListened) {
       await supabase.from('listened_tracks').delete().eq('user_id', user.id).eq('track_deezer_id', trackId)
       setListenedIds(prev => { const next = new Set(prev); next.delete(trackId); return next })
+      setListenedDateMap(prev => { const next = new Map(prev); next.delete(trackId); return next })
     } else {
+      const now = new Date().toISOString()
       await supabase.from('listened_tracks').insert({ user_id: user.id, track_deezer_id: trackId, album_deezer_id: trackAlbumMap.get(trackId) ?? selectedAlbum?.id ?? null })
       setListenedIds(prev => new Set(prev).add(trackId))
+      setListenedDateMap(prev => new Map(prev).set(trackId, { userDate: null, checkDate: now }))
     }
   }
 
@@ -120,10 +135,16 @@ export default function ArtistPage() {
     if (!user) return
     const unlistened = trackIds.filter(id => !listenedIds.has(id))
     if (unlistened.length === 0) return
+    const now = new Date().toISOString()
     await supabase.from('listened_tracks').insert(
       unlistened.map(id => ({ user_id: user.id, track_deezer_id: id, album_deezer_id: trackAlbumMap.get(id) ?? selectedAlbum?.id ?? null }))
     )
     setListenedIds(prev => new Set([...prev, ...unlistened]))
+    setListenedDateMap(prev => {
+      const next = new Map(prev)
+      unlistened.forEach(id => next.set(id, { userDate: null, checkDate: now }))
+      return next
+    })
   }
 
   async function handleUncheckAll(trackIds: number[]) {
@@ -139,6 +160,86 @@ export default function ArtistPage() {
       trackIds.forEach(id => next.delete(id))
       return next
     })
+    setListenedDateMap(prev => {
+      const next = new Map(prev)
+      trackIds.forEach(id => next.delete(id))
+      return next
+    })
+  }
+
+  async function handleSetTrackDate(trackId: number, date: string | null) {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    await supabase.from('listened_tracks')
+      .update({ listened_at_user: date } as never)
+      .eq('user_id', user.id)
+      .eq('track_deezer_id', trackId)
+
+    // Si on retire la date du track, il hérite de la date album si elle existe
+    if (date === null) {
+      const albumId = [...albumTracksMap.entries()].find(([, ids]) => ids.includes(trackId))?.[0]
+      const albumDate = albumId ? albumUserDateMap.get(albumId) : undefined
+      if (albumDate) {
+        await supabase.from('listened_tracks')
+          .update({ listened_at: albumDate } as never)
+          .eq('user_id', user.id)
+          .eq('track_deezer_id', trackId)
+        setListenedDateMap(prev => {
+          const next = new Map(prev)
+          const existing = next.get(trackId)
+          if (existing) next.set(trackId, { ...existing, userDate: null, checkDate: albumDate })
+          return next
+        })
+        return
+      }
+    }
+
+    setListenedDateMap(prev => {
+      const next = new Map(prev)
+      const existing = next.get(trackId)
+      if (existing) next.set(trackId, { ...existing, userDate: date })
+      return next
+    })
+  }
+
+  async function handleSetAlbumDate(albumId: number, date: string | null) {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    // Upsert album_ratings.listened_at_user
+    await supabase.from('album_ratings').upsert(
+      { user_id: user.id, album_deezer_id: albumId, listened_at_user: date } as never,
+      { onConflict: 'user_id,album_deezer_id' }
+    )
+    setAlbumUserDateMap(prev => {
+      const next = new Map(prev)
+      if (date) next.set(albumId, date)
+      else next.delete(albumId)
+      return next
+    })
+
+    // Propagate to unprotected tracks (listened_at_user IS NULL) → update listened_at
+    if (date) {
+      const trackIds = albumTracksMap.get(albumId) ?? []
+      const unprotected = trackIds.filter(id => listenedIds.has(id) && !listenedDateMap.get(id)?.userDate)
+      if (unprotected.length > 0) {
+        await supabase.from('listened_tracks')
+          .update({ listened_at: date } as never)
+          .eq('user_id', user.id)
+          .in('track_deezer_id', unprotected)
+        setListenedDateMap(prev => {
+          const next = new Map(prev)
+          unprotected.forEach(id => {
+            const existing = next.get(id)
+            if (existing) next.set(id, { ...existing, checkDate: date })
+          })
+          return next
+        })
+      }
+    }
   }
 
   let terminées = 0
@@ -344,12 +445,16 @@ export default function ArtistPage() {
             listenedIds={listenedIds}
             ratingMap={ratingMap}
             albumRating={albumRatingMap.get(selectedAlbum.id)}
+            albumListenedAtUser={albumUserDateMap.get(selectedAlbum.id) ?? null}
+            listenedDateMap={listenedDateMap}
             onToggleTrack={handleToggleTrack}
             onRateTrack={handleRateTrack}
             onRateAlbum={(rating) => handleRateAlbum(selectedAlbum.id, rating)}
             onTracksLoaded={handleTracksLoaded}
             onCheckAll={handleCheckAll}
             onUncheckAll={handleUncheckAll}
+            onSetTrackDate={handleSetTrackDate}
+            onSetAlbumDate={(date) => handleSetAlbumDate(selectedAlbum.id, date)}
           />
         )}
       </Panel>

@@ -63,23 +63,33 @@ export default async function CollectionPage({
 
   const { data: allListened } = await supabase
     .from('listened_tracks')
-    .select('track_deezer_id, album_deezer_id, listened_at, duration_seconds')
+    .select('track_deezer_id, album_deezer_id, listened_at, listened_at_user, duration_seconds')
     .eq('user_id', user.id)
 
-  const listened = allListened ?? []
+  const listened = (allListened ?? []) as Array<{
+    track_deezer_id: number
+    album_deezer_id: number
+    listened_at: string
+    listened_at_user: string | null
+    duration_seconds: number | null
+  }>
+
+  const eff = (t: { listened_at: string; listened_at_user: string | null }) =>
+    t.listened_at_user ?? t.listened_at
 
   const current = start
-    ? listened.filter(t => t.listened_at >= start && t.listened_at < end!)
+    ? listened.filter(t => eff(t) >= start && eff(t) < end!)
     : listened
   const prev = prevStart
-    ? listened.filter(t => t.listened_at >= prevStart && t.listened_at < prevEnd!)
+    ? listened.filter(t => eff(t) >= prevStart && eff(t) < prevEnd!)
     : null
 
   const albumAgg = new Map<number, { totalListened: number; maxDate: string }>()
   for (const t of listened) {
     const entry = albumAgg.get(t.album_deezer_id) ?? { totalListened: 0, maxDate: '' }
     entry.totalListened++
-    if (!entry.maxDate || t.listened_at > entry.maxDate) entry.maxDate = t.listened_at
+    const d = eff(t)
+    if (!entry.maxDate || d > entry.maxDate) entry.maxDate = d
     albumAgg.set(t.album_deezer_id, entry)
   }
 
@@ -261,7 +271,7 @@ export default async function CollectionPage({
         .sort((a, b) => b.pct - a.pct || b.listened - a.listened)
     }
 
-    const sortedByDate = [...current].sort((a, b) => b.listened_at.localeCompare(a.listened_at))
+    const sortedByDate = [...current].sort((a, b) => eff(b).localeCompare(eff(a)))
     recentTracks = sortedByDate
       .filter(t => t.track_deezer_id != null && trackInfoMap.has(t.track_deezer_id))
       .map(t => ({
@@ -269,12 +279,13 @@ export default async function CollectionPage({
         title: trackInfoMap.get(t.track_deezer_id!)!,
         artistName: albumArtistNameMap.get(t.album_deezer_id) ?? '',
         coverXl: albumCoverMap.get(t.album_deezer_id) ?? '',
-        listenedAt: t.listened_at,
+        listenedAt: eff(t),
       }))
     const currentAlbumMaxDate = new Map<number, string>()
     for (const t of current) {
       const existing = currentAlbumMaxDate.get(t.album_deezer_id)
-      if (!existing || t.listened_at > existing) currentAlbumMaxDate.set(t.album_deezer_id, t.listened_at)
+      const d = eff(t)
+      if (!existing || d > existing) currentAlbumMaxDate.set(t.album_deezer_id, d)
     }
     recentAlbums = [...currentAlbumMaxDate.entries()]
       .sort((a, b) => b[1].localeCompare(a[1]))

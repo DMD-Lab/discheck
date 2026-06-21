@@ -1,8 +1,10 @@
+'use client'
 import { useState, useRef } from 'react'
-import { Check, X } from 'lucide-react'
+import { Check, X, Calendar } from 'lucide-react'
 import { textStyles } from '@/components/ui/text-styles'
 import MarqueeText from '@/components/ui/marquee-text'
 import { RATING_COLORS } from '@/lib/rating-colors'
+import DatePopover from '@/components/ui/date-popover'
 
 interface TrackRowProps {
   position: number
@@ -10,10 +12,12 @@ interface TrackRowProps {
   duration: number
   listened: boolean
   rating?: number
+  listenedAt?: string
+  listenedAtUser?: string | null
   onToggle: () => void
   onRate: (rating: number) => void
+  onSetDate?: (date: string | null) => void
 }
-
 
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60)
@@ -21,17 +25,32 @@ function formatDuration(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
-export default function TrackRow({ position, title, duration, listened, rating, onToggle, onRate }: TrackRowProps) {
+function formatDateShort(iso: string): string {
+  const d = iso.slice(0, 10).split('-')
+  return `${d[2]}/${d[1]}/${d[0].slice(2)}`
+}
+
+export default function TrackRow({ position, title, duration, listened, rating, listenedAt, listenedAtUser, onToggle, onRate, onSetDate }: TrackRowProps) {
   const [showRating, setShowRating] = useState(false)
+  const [showDatePopover, setShowDatePopover] = useState(false)
   const [popoverUp, setPopoverUp] = useState(false)
   const rowRef = useRef<HTMLDivElement>(null)
 
-  function openRating() {
+  function detectDirection() {
     if (rowRef.current) {
       const rect = rowRef.current.getBoundingClientRect()
       setPopoverUp(window.innerHeight - rect.bottom < 90)
     }
+  }
+
+  function openRating() {
+    detectDirection()
     setShowRating(prev => !prev)
+  }
+
+  function openDatePopover() {
+    detectDirection()
+    setShowDatePopover(prev => !prev)
   }
 
   function handleRate(n: number) {
@@ -44,10 +63,13 @@ export default function TrackRow({ position, title, duration, listened, rating, 
     <div ref={rowRef} className="relative flex items-center gap-3 px-4 py-2.5 hover:bg-bg-tertiary transition-colors group">
       <button
         onClick={onToggle}
-        className="flex-shrink-0 w-5 h-5 rounded-full border border-border flex items-center justify-center transition-colors hover:border-primary"
+        className="group/toggle flex-shrink-0 w-5 h-5 rounded-full border border-border flex items-center justify-center transition-colors hover:border-primary"
         style={listened ? { backgroundColor: 'var(--primary)', borderColor: 'var(--primary)' } : {}}
       >
-        {listened && <Check size={10} strokeWidth={3} className="text-white" />}
+        {listened
+          ? <Check size={10} strokeWidth={3} className="text-white" />
+          : <Check size={10} strokeWidth={3} className="opacity-0 group-hover/toggle:opacity-100 text-primary transition-opacity" />
+        }
       </button>
 
       <span className={`${textStyles.caption} text-text-disabled w-5 text-right flex-shrink-0`}>
@@ -55,12 +77,36 @@ export default function TrackRow({ position, title, duration, listened, rating, 
       </span>
 
       <div className="flex-1 min-w-0">
-        <MarqueeText className={`${textStyles.body} ${listened ? 'text-text-secondary' : 'text-text-primary'}`} fromColor="from-bg-secondary">{title}</MarqueeText>
+        <MarqueeText className={`${textStyles.body} text-text-primary`} fromColor="from-bg-secondary">{title}</MarqueeText>
       </div>
 
       <span className={`${textStyles.caption} text-text-disabled flex-shrink-0`}>
         {formatDuration(duration)}
       </span>
+
+      {/* Date zone */}
+      <div className="relative flex-shrink-0 flex items-center">
+        {listened && onSetDate ? (
+          <button
+            onClick={openDatePopover}
+            className={`flex items-center gap-1 transition-colors hover:text-text-primary ${
+              listenedAt ? 'text-text-disabled' : 'opacity-0 group-hover:opacity-100 text-text-disabled'
+            }`}
+          >
+            <Calendar size={12} />
+            {listenedAt && <span className={textStyles.caption}>{formatDateShort(listenedAt)}</span>}
+          </button>
+        ) : null}
+        {showDatePopover && onSetDate && (
+          <DatePopover
+            currentDate={listenedAt}
+            hasUserDate={!!listenedAtUser}
+            popoverUp={popoverUp}
+            onSetDate={onSetDate}
+            onClose={() => setShowDatePopover(false)}
+          />
+        )}
+      </div>
 
       <div className="flex-shrink-0 w-12 h-6 flex justify-center items-center">
         {!rating && (
@@ -117,6 +163,7 @@ export default function TrackRow({ position, title, duration, listened, rating, 
           </div>
         </>
       )}
+
     </div>
   )
 }
