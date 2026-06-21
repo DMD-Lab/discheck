@@ -23,6 +23,19 @@ function DeltaBadge({ pctChange }: { pctChange: number | null }) {
 export const COLLECTION_DECADES = [2020, 2010, 2000, 1990, 1980, 1970, 1960]
 
 export default function CollectionDecadeSection({ data }: { data: CollectionDecadeStat[] }) {
+  const isEmpty = data.every(d => d.count === 0)
+
+  if (isEmpty) {
+    return (
+      <section className="border border-bg-secondary rounded-lg p-5 flex flex-col gap-4 h-full">
+        <h2 className={`${textStyles.cardTitle} text-text-green`}>Collection par décennie</h2>
+        <div className="flex-1 flex items-center justify-center">
+          <p className={`${textStyles.caption} text-text-secondary`}>Écoute de la musique pour voir ta répartition par décennie</p>
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section className="border border-bg-secondary rounded-lg p-5 flex flex-col gap-4 h-full">
       <h2 className={`${textStyles.cardTitle} text-text-green flex-shrink-0`}>Collection par décennie</h2>

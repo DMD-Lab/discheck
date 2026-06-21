@@ -28,7 +28,7 @@ export default function TracksFavoritesSection({ tracks }: { tracks: TopTrack[] 
           <div className="flex flex-col items-center gap-3 text-center p-6">
             <Star size={28} className="text-text-disabled" />
             <p className={`${textStyles.caption} text-text-secondary max-w-[200px]`}>
-              Notez vos tracks 5/5 pour les retrouver ici
+              Note tes tracks 5/5 pour les retrouver ici
             </p>
           </div>
         </div>

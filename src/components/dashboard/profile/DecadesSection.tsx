@@ -24,7 +24,7 @@ export default function DecadesSection({
           <div className="flex flex-col items-center gap-3 text-center p-6">
             <Music size={45} className="text-text-disabled w-7 h-7 md:w-[45px] md:h-[45px]" />
             <p className={`${textStyles.caption} text-text-secondary max-w-[200px]`}>
-              Vos décennies favorites s&apos;afficheront ici après vos premières écoutes
+              Tes décennies favorites s&apos;afficheront ici après tes premières écoutes
             </p>
           </div>
         </div>

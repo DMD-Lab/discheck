@@ -27,13 +27,13 @@ export default function TopAlbumsSection({ albums }: { albums: TopAlbum[] }) {
     return (
       <section className="mb-6">
         <div className="flex items-center mb-4">
-          <h2 className={`${textStyles.cardTitle} text-text-green`}>Vos albums préférés</h2>
+          <h2 className={`${textStyles.cardTitle} text-text-green`}>Tes albums préférés</h2>
         </div>
         <div className="md:min-h-[484px] lg:min-h-[532px] 2xl:min-h-[282px] flex items-center justify-center">
           <div className="flex flex-col items-center gap-3 text-center p-6">
             <Disc size={28} className="text-text-disabled" />
             <p className={`${textStyles.caption} text-text-secondary max-w-[200px]`}>
-              Notez des albums pour les voir dans votre classement
+              Note des albums pour les voir dans ton classement
             </p>
           </div>
         </div>
@@ -48,7 +48,7 @@ export default function TopAlbumsSection({ albums }: { albums: TopAlbum[] }) {
     <section className="mb-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className={`${textStyles.cardTitle} text-text-green`}>
-          Vos albums préférés
+          Tes albums préférés
         </h2>
         <button
           onClick={() => setIsPanelOpen(true)}

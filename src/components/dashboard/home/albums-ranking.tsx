@@ -89,7 +89,7 @@ export default function AlbumsRanking() {
   return (
     <div className="flex flex-col h-full">
       <div className="p-5 pr-12 flex-shrink-0 border-b border-border">
-        <h2 className={`${textStyles.sectionTitle} text-text-green`}>Vos albums préférés</h2>
+        <h2 className={`${textStyles.sectionTitle} text-text-green`}>Tes albums préférés</h2>
         {!loading && (
           <p className={`${textStyles.caption} text-text-secondary mt-1`}>
             {albums.length} album{albums.length > 1 ? 's' : ''} noté{albums.length > 1 ? 's' : ''}

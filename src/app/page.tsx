@@ -91,6 +91,23 @@ export default function LandingPage() {
         </div>
 
       </main>
+
+      <footer className="relative px-4 py-4 md:px-14 flex items-center justify-between" style={{ zIndex: 2 }}>
+        <p className={`${textStyles.caption} text-text-disabled`}>
+          Données musicales :{' '}
+          <a href="https://developers.deezer.com" target="_blank" rel="noopener noreferrer" className="hover:text-text-secondary transition-colors">
+            Deezer
+          </a>
+          {' '}·{' '}
+          <a href="https://musicbrainz.org" target="_blank" rel="noopener noreferrer" className="hover:text-text-secondary transition-colors">
+            MusicBrainz
+          </a>
+        </p>
+        <Link href="/legal" className={`${textStyles.caption} text-text-disabled hover:text-text-secondary transition-colors`}>
+          Mentions légales
+        </Link>
+      </footer>
+
     </div>
   )
 }

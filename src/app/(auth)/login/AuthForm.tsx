@@ -69,10 +69,15 @@ export default function AuthForm({ initialView }: { initialView: View }) {
     setLoading(true)
     const supabase = createClient()
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/login`,
+      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
     })
     setLoading(false)
-    if (error) { setError(error.message); return }
+    if (error) {
+      setError(error.message.includes('security purposes')
+        ? 'Veuillez patienter quelques secondes avant de réessayer.'
+        : 'Une erreur est survenue. Veuillez réessayer.')
+      return
+    }
     setForgotSent(true)
   }
 

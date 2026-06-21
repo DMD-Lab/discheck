@@ -82,6 +82,17 @@ export default function CollectionRecentActivitySection({
   const [mode, setMode] = useState<Mode>('tracks')
   const [isPanelOpen, setIsPanelOpen] = useState(false)
 
+  if (recentTracks.length === 0 && recentAlbums.length === 0) {
+    return (
+      <section className="border border-bg-secondary rounded-lg p-5">
+        <h2 className={`${textStyles.cardTitle} text-text-green mb-3`}>Activité récente</h2>
+        <div className="h-40 flex items-center justify-center">
+          <p className={`${textStyles.caption} text-text-secondary`}>Aucune écoute enregistrée</p>
+        </div>
+      </section>
+    )
+  }
+
   return (
     <>
       <section className="border border-bg-secondary rounded-lg p-5 flex flex-col gap-4">
@@ -103,13 +114,8 @@ export default function CollectionRecentActivitySection({
         </div>
 
         <div className="flex flex-col">
-          {mode === 'tracks'
-            ? recentTracks.map(t => (
-                <TrackRow key={t.trackDeezerId} {...t} />
-              ))
-            : recentAlbums.map(a => (
-                <AlbumRow key={a.albumDeezerId} {...a} />
-              ))}
+          {mode === 'tracks' && recentTracks.map(t => <TrackRow key={t.trackDeezerId} {...t} />)}
+          {mode === 'albums' && recentAlbums.map(a => <AlbumRow key={a.albumDeezerId} {...a} />)}
         </div>
 
         <button

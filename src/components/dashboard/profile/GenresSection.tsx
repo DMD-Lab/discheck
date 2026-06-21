@@ -27,7 +27,7 @@ export default function GenresSection({
           <div className="flex flex-col items-center gap-3 text-center p-6">
             <Music size={45} className="text-text-disabled w-7 h-7 md:w-[45px] md:h-[45px]" />
             <p className={`${textStyles.caption} text-text-secondary max-w-[200px]`}>
-              Vos genres s&apos;afficheront ici après vos premières notes
+              Tes genres s&apos;afficheront ici après tes premières notes
             </p>
           </div>
         </div>

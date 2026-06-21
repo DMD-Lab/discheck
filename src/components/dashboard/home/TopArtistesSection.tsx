@@ -30,7 +30,7 @@ export default function TopArtistesSection({ artists }: { artists: TopArtist[] }
           <div className="flex flex-col items-center gap-3 text-center p-6">
             <Mic2 size={28} className="text-text-disabled" />
             <p className={`${textStyles.caption} text-text-secondary max-w-[200px]`}>
-              Notez au moins 5 tracks d&apos;un artiste pour le voir ici
+              Note au moins 5 tracks d&apos;un artiste pour le voir ici
             </p>
           </div>
         </div>
