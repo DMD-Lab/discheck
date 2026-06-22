@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import { textStyles } from '@/components/ui/text-styles'
 import DischecLogo from '@/components/ui/DischecLogo'
@@ -18,7 +19,7 @@ export default function LegalPage() {
           </Link>
         </div>
 
-        <h1 className={`${textStyles.pageTitle} text-text-primary mb-10`}>Mentions légales</h1>
+        <h1 className={`${textStyles.pageTitle} text-text-green mb-10`}>Mentions légales</h1>
 
         <div className="flex flex-col gap-10">
 
@@ -106,8 +107,9 @@ export default function LegalPage() {
 
         </div>
 
-        <div className="mt-12 pt-6 border-t border-border">
-          <p className={`${textStyles.caption} text-text-disabled`}>Discheck v0.1.0 — Une app DMD Lab</p>
+        <div className="mt-12 pt-6 border-t border-border flex flex-col items-center gap-1.5">
+          <p className={`${textStyles.caption} text-text-disabled`}>Discheck v1.0.0</p>
+          <Image src="/dmdlab_logo_white.png" alt="DMD Lab" width={1024} height={1024} style={{ width: '80px', height: 'auto' }} className="opacity-40 invert dark:invert-0" />
         </div>
 
       </div>
