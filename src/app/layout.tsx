@@ -17,6 +17,7 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://discheck.dmdlab.app'),
   title: {
     default: 'Discheck',
     template: '%s · Discheck',
