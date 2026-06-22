@@ -7,6 +7,8 @@
 
 Tracker de discographie musicale. Explorez, cochez et notez chaque sortie de vos artistes préférés — inspiré de Letterboxd, mais pour la musique. Sans pub, sans abonnement.
 
+## [→ discheck.dmdlab.app](https://discheck.dmdlab.app)
+
 [Voir la roadmap →](ROADMAP.md)
 
 ## Pourquoi cette app
