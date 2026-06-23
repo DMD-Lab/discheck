@@ -99,7 +99,7 @@ export default function CollectionRecentActivitySection({
 
   return (
     <>
-      <section className="border border-bg-secondary rounded-lg p-5 flex flex-col gap-4">
+      <section className="border border-bg-secondary rounded-lg p-5 flex flex-col gap-4 h-full">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h2 className={`${textStyles.cardTitle} text-text-green`}>Activité récente</h2>

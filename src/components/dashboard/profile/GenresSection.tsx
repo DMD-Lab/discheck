@@ -70,28 +70,32 @@ export default function GenresSection({
               <GenreCard genre={genre} priority={i < 2} rank={i + 1} />
             </div>
           ))}
-          <div className="aspect-square sm:aspect-[3/2]">
-            <AutresCard
-              count={othersCount > 0 ? othersCount : 0}
-              percentage={othersPercentage > 0 ? othersPercentage : 100 - displayed.reduce((s, g) => s + g.percentage, 0)}
-              onClick={() => setIsPanelOpen(true)}
-            />
-          </div>
+          {othersCount > 0 && (
+            <div className="aspect-square sm:aspect-[3/2]">
+              <AutresCard
+                count={othersCount}
+                percentage={othersPercentage}
+                onClick={() => setIsPanelOpen(true)}
+              />
+            </div>
+          )}
         </div>
 
         {/* desktop */}
         <div
           className="hidden lg:grid gap-4 h-52"
-          style={{ gridTemplateColumns: '1fr 1fr 1fr 0.6fr' }}
+          style={{ gridTemplateColumns: genres.length > 3 ? '1fr 1fr 1fr 0.6fr' : `repeat(${displayed.length}, 1fr)` }}
         >
           {displayed.map((genre, i) => (
             <GenreCard key={genre.genreId} genre={genre} priority={i < 2} rank={i + 1} />
           ))}
-          <AutresCard
-            count={othersCount > 0 ? othersCount : 0}
-            percentage={othersPercentage > 0 ? othersPercentage : 100 - displayed.reduce((s, g) => s + g.percentage, 0)}
-            onClick={() => setIsPanelOpen(true)}
-          />
+          {othersCount > 0 && (
+            <AutresCard
+              count={othersCount}
+              percentage={othersPercentage}
+              onClick={() => setIsPanelOpen(true)}
+            />
+          )}
         </div>
       </section>
 

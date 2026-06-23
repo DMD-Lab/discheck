@@ -20,7 +20,7 @@ export default function ConcentrationSection({
 }) {
   const [showTooltip, setShowTooltip] = useState(false)
 
-  if (stats.totalTracks === 0) {
+  if (stats.totalTracks === 0 || stats.totalArtists < 4) {
     return (
       <section className="border border-bg-secondary rounded-lg p-5">
         <div className="mb-3">

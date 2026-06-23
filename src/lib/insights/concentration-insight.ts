@@ -18,31 +18,6 @@ export function getConcentrationInsight(stats: ConcentrationStats): string {
 
   if (totalTracks === 0 || totalArtists === 0) return ''
 
-  if (totalTracks < 20) {
-    return "Encore trop peu d'écoutes pour établir un profil de concentration."
-  }
-
-  if (totalArtists === 1) {
-    return pick([
-      "Tu as consacré toute ton écoute à un seul artiste. C'est du dévouement.",
-      "Un artiste, toute ton attention. Tu sais exactement ce que tu veux.",
-    ], totalTracks)
-  }
-
-  if (totalArtists === 2) {
-    return pick([
-      "Deux artistes se partagent intégralement ton écoute pour l'instant.",
-      "Ton univers musical tourne autour de deux noms, un duo très serré.",
-    ], totalTracks)
-  }
-
-  if (totalArtists === 3) {
-    return pick([
-      "Ton écoute tourne autour de 3 artistes, un trio bien ancré.",
-      "3 artistes, tout ton espace musical. Tu es resté fidèle à un cercle restreint.",
-    ], totalTracks)
-  }
-
   const top1Pct = top3Artists[0]?.pct ?? 0
   const seed = top3Pct * 31 + totalTracks % 17
 

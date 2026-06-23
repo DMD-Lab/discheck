@@ -75,7 +75,7 @@ export default async function ProfilePage() {
   const decadeStats: DecadeStats[] = []
   let listenerStats: ListenerStats = { albumFull: 0, albumPartial: 0, albumFullPct: 0, albumPartialPct: 0 }
   let concentrationStats: ConcentrationStats = { top3Pct: 0, totalTracks: 0, totalArtists: 0, top3Artists: [] }
-  let ecartItems: EcartItem[] = []
+  const ecartItems: EcartItem[] = []
   let depthItems: DepthItem[] = []
 
   const uniqueAlbumIds = [
@@ -258,7 +258,7 @@ export default async function ProfilePage() {
       }
 
       for (const r of albumRatingsData ?? []) {
-        if (!r.album_deezer_id) continue
+        if (!r.album_deezer_id || r.rating == null) continue
         const trackIds = cachedTracksByAlbum.get(r.album_deezer_id)
         if (!trackIds || trackIds.length === 0) continue
 

@@ -123,7 +123,7 @@ export default function CollectionArtistExplorationSection({ items }: { items: D
 
   return (
     <>
-      <section className="border border-bg-secondary rounded-lg p-5 flex flex-col gap-4">
+      <section className="border border-bg-secondary rounded-lg p-5 flex flex-col gap-4 h-full">
         <div className="flex items-center gap-2">
           <h2 className={`${textStyles.cardTitle} text-text-green`}>Exploration des artistes</h2>
           <InfoTooltip text="Tes artistes divisés entre ceux que tu as entièrement explorés et ceux en cours. Le pourcentage correspond aux sorties cochées sur l'ensemble de leur discographie." />
