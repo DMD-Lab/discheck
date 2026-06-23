@@ -1,15 +1,29 @@
 'use client'
-import { useState, useRef } from 'react'
-import { Check, X, Calendar } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Check, X, Calendar, Play, Pause } from 'lucide-react'
 import { textStyles } from '@/components/ui/text-styles'
 import MarqueeText from '@/components/ui/marquee-text'
 import { RATING_COLORS } from '@/lib/rating-colors'
 import DatePopover from '@/components/ui/date-popover'
 
+// one active audio at a time
+let _stopCurrent: (() => void) | null = null
+
+function playPreview(url: string, onStop: () => void): () => void {
+  if (_stopCurrent) _stopCurrent()
+  const audio = new Audio(url)
+  _stopCurrent = () => { audio.pause(); onStop() }
+  audio.addEventListener('ended', () => { _stopCurrent = null; onStop() })
+  audio.play().catch(() => onStop())
+  return () => { audio.pause(); _stopCurrent = null; onStop() }
+}
+
 interface TrackRowProps {
   position: number
   title: string
   duration: number
+  trackId: number
+  hasPreview: boolean
   listened: boolean
   rating?: number
   listenedAt?: string
@@ -30,11 +44,18 @@ function formatDateShort(iso: string): string {
   return `${d[2]}/${d[1]}/${d[0].slice(2)}`
 }
 
-export default function TrackRow({ position, title, duration, listened, rating, listenedAt, listenedAtUser, onToggle, onRate, onSetDate }: TrackRowProps) {
+export default function TrackRow({ position, title, duration, trackId, hasPreview, listened, rating, listenedAt, listenedAtUser, onToggle, onRate, onSetDate }: TrackRowProps) {
   const [showRating, setShowRating] = useState(false)
   const [showDatePopover, setShowDatePopover] = useState(false)
   const [popoverUp, setPopoverUp] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const [loadingPreview, setLoadingPreview] = useState(false)
+  const stopRef = useRef<(() => void) | null>(null)
   const rowRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    return () => { stopRef.current?.() }
+  }, [])
 
   function detectDirection() {
     if (rowRef.current) {
@@ -59,6 +80,24 @@ export default function TrackRow({ position, title, duration, listened, rating, 
     setShowRating(false)
   }
 
+  async function handlePlay() {
+    if (isPlaying) {
+      stopRef.current?.()
+      stopRef.current = null
+      setIsPlaying(false)
+      return
+    }
+    setLoadingPreview(true)
+    const res = await fetch(`/api/deezer/track/${trackId}`)
+    setLoadingPreview(false)
+    if (!res.ok) return
+    const { preview } = await res.json()
+    if (!preview) return
+    setIsPlaying(true)
+    const stop = playPreview(preview, () => setIsPlaying(false))
+    stopRef.current = stop
+  }
+
   return (
     <div ref={rowRef} className="relative flex items-center gap-3 px-4 py-2.5 hover:bg-bg-tertiary transition-colors group">
       <button
@@ -72,9 +111,20 @@ export default function TrackRow({ position, title, duration, listened, rating, 
         }
       </button>
 
-      <span className={`${textStyles.caption} text-text-disabled w-5 text-right flex-shrink-0`}>
-        {position}
-      </span>
+      <div className="flex-shrink-0 w-5 flex items-center justify-center">
+        {hasPreview ? (
+          <button onClick={handlePlay} disabled={loadingPreview} className="relative w-5 h-5 flex items-center justify-center">
+            <span className={`${textStyles.caption} text-text-disabled transition-opacity ${isPlaying || loadingPreview ? 'opacity-0' : 'group-hover:opacity-0'}`}>
+              {position}
+            </span>
+            <span className={`absolute inset-0 flex items-center justify-center transition-opacity ${isPlaying ? 'opacity-100 text-primary' : loadingPreview ? 'opacity-100 text-text-disabled animate-pulse' : 'opacity-0 group-hover:opacity-100 text-text-secondary'}`}>
+              {isPlaying ? <Pause size={11} fill="currentColor" /> : <Play size={11} fill="currentColor" />}
+            </span>
+          </button>
+        ) : (
+          <span className={`${textStyles.caption} text-text-disabled`}>{position}</span>
+        )}
+      </div>
 
       <div className="flex-1 min-w-0">
         <MarqueeText className={`${textStyles.body} text-text-primary`} fromColor="from-bg-secondary">{title}</MarqueeText>
@@ -84,7 +134,6 @@ export default function TrackRow({ position, title, duration, listened, rating, 
         {formatDuration(duration)}
       </span>
 
-      {/* Date zone */}
       <div className="relative flex-shrink-0 flex items-center">
         {listened && onSetDate ? (
           <button

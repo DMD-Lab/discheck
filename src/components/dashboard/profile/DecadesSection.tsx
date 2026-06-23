@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Music } from 'lucide-react'
+import InfoTooltip from '@/components/ui/InfoTooltip'
 import { textStyles } from '@/components/ui/text-styles'
 import type { DecadeStats } from '@/lib/insights/decade-insight'
 
@@ -18,7 +19,10 @@ export default function DecadesSection({
     return (
       <section className="border border-bg-secondary rounded-lg p-5">
         <div className="mb-3">
-          <h2 className={`${textStyles.cardTitle} text-text-green`}>Décennies favorites</h2>
+          <div className="flex items-center gap-2">
+            <h2 className={`${textStyles.cardTitle} text-text-green`}>Décennies favorites</h2>
+            <InfoTooltip text="Tes écoutes réparties par décennie de sortie. La hauteur des barres correspond au volume de titres écoutés par période." />
+          </div>
         </div>
         <div className="min-h-[160px] flex items-center justify-center">
           <div className="flex flex-col items-center gap-3 text-center p-6">
@@ -37,7 +41,10 @@ export default function DecadesSection({
   return (
     <section className="border border-bg-secondary rounded-lg p-5 flex flex-col">
       <div className="mb-3 flex-shrink-0">
-        <h2 className={`${textStyles.cardTitle} text-text-green`}>Décennies favorites</h2>
+        <div className="flex items-center gap-2">
+          <h2 className={`${textStyles.cardTitle} text-text-green`}>Décennies favorites</h2>
+          <InfoTooltip text="Tes écoutes réparties par décennie de sortie. La hauteur des barres correspond au volume de titres écoutés par période." />
+        </div>
         {insight && (
           <p className={`${textStyles.caption} text-text-secondary mt-1`}>{insight}</p>
         )}

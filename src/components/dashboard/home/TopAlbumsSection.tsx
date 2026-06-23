@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ArrowRight, Disc } from "lucide-react";
 import { textStyles } from "@/components/ui/text-styles";
+import InfoTooltip from "@/components/ui/InfoTooltip";
 import AlbumFeaturedCard from "./AlbumFeaturedCard";
 import AlbumSmallCard from "./AlbumSmallCard";
 import Panel from "@/components/ui/panel";
@@ -26,8 +27,9 @@ export default function TopAlbumsSection({ albums }: { albums: TopAlbum[] }) {
   if (albums.length === 0) {
     return (
       <section className="mb-6">
-        <div className="flex items-center mb-4">
+        <div className="flex items-center gap-2 mb-4">
           <h2 className={`${textStyles.cardTitle} text-text-green`}>Tes albums préférés</h2>
+          <InfoTooltip text="Tes albums triés par ta note attribuée, puis par la note moyenne des titres en cas d'égalité." />
         </div>
         <div className="md:min-h-[484px] lg:min-h-[532px] 2xl:min-h-[282px] flex items-center justify-center">
           <div className="flex flex-col items-center gap-3 text-center p-6">
@@ -47,9 +49,10 @@ export default function TopAlbumsSection({ albums }: { albums: TopAlbum[] }) {
     <>
     <section className="mb-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className={`${textStyles.cardTitle} text-text-green`}>
-          Tes albums préférés
-        </h2>
+        <div className="flex items-center gap-2">
+          <h2 className={`${textStyles.cardTitle} text-text-green`}>Tes albums préférés</h2>
+          <InfoTooltip text="Tes albums triés par ta note attribuée, puis par la note moyenne des titres en cas d'égalité." />
+        </div>
         <button
           onClick={() => setIsPanelOpen(true)}
           className={`${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1`}

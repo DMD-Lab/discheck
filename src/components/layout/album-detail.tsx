@@ -329,6 +329,8 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
             position={track.track_position}
             title={track.title}
             duration={track.duration}
+            trackId={track.id}
+            hasPreview={!!track.preview}
             listened={listenedIds.has(track.id)}
             rating={listenedIds.has(track.id) ? ratingMap.get(track.id) : undefined}
             listenedAt={(() => { const e = listenedDateMap.get(track.id); return e ? (e.userDate ?? e.checkDate) : undefined })()}

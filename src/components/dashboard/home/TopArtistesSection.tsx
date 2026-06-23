@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ArrowRight, Mic2 } from "lucide-react";
 import { textStyles } from "@/components/ui/text-styles";
+import InfoTooltip from "@/components/ui/InfoTooltip";
 import ArtistFeaturedCard from "./ArtistFeaturedCard";
 import ArtistSmallCard from "./ArtistSmallCard";
 import Panel from "@/components/ui/panel";
@@ -23,8 +24,9 @@ export default function TopArtistesSection({ artists }: { artists: TopArtist[] }
   if (artists.length === 0) {
     return (
       <section className="2xl:pr-6 2xl:border-r 2xl:border-border">
-        <div className="flex items-center pb-3 mb-3 border-b border-border">
+        <div className="flex items-center gap-2 pb-3 mb-3 border-b border-border">
           <h2 className={`${textStyles.cardTitle} text-text-green`}>Top Artistes</h2>
+          <InfoTooltip text="Tes artistes classés par note moyenne sur leurs titres. Il faut au moins 5 titres notés pour apparaître." />
         </div>
         <div className="md:min-h-[243px] flex items-center justify-center">
           <div className="flex flex-col items-center gap-3 text-center p-6">
@@ -44,9 +46,10 @@ export default function TopArtistesSection({ artists }: { artists: TopArtist[] }
     <>
       <section className="2xl:pr-6 2xl:border-r 2xl:border-border">
         <div className="flex items-center justify-between pb-3 mb-3 border-b border-border">
-          <h2 className={`${textStyles.cardTitle} text-text-green`}>
-            Top Artistes
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2 className={`${textStyles.cardTitle} text-text-green`}>Top Artistes</h2>
+            <InfoTooltip text="Tes artistes classés par note moyenne sur leurs titres. Il faut au moins 5 titres notés pour apparaître." />
+          </div>
           <button
             onClick={() => setIsPanelOpen(true)}
             className={`${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1`}

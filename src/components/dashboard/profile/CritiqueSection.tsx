@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { BarChart2 } from 'lucide-react'
+import InfoTooltip from '@/components/ui/InfoTooltip'
 import { textStyles } from '@/components/ui/text-styles'
 import type { CritiqueStats } from '@/lib/insights/critique-insight'
 import { getCritiqueInsight } from '@/lib/insights/critique-insight'
@@ -21,7 +22,10 @@ export default function CritiqueSection({ stats }: { stats: CritiqueStats }) {
     return (
       <section className="border border-bg-secondary rounded-lg p-5 h-full">
         <div className="mb-3">
-          <h2 className={`${textStyles.cardTitle} text-text-green`}>Profil critique</h2>
+          <div className="flex items-center gap-2">
+            <h2 className={`${textStyles.cardTitle} text-text-green`}>Profil critique</h2>
+            <InfoTooltip text="La répartition de tes notes de 1 à 5, pour tes albums ou tes titres. Bascule d'un mode à l'autre pour comparer." />
+          </div>
         </div>
         <div className="min-h-[160px] flex items-center justify-center">
           <div className="flex flex-col items-center gap-3 text-center">
@@ -40,7 +44,10 @@ export default function CritiqueSection({ stats }: { stats: CritiqueStats }) {
   return (
     <section className="border border-bg-secondary rounded-lg p-5 h-full flex flex-col">
       <div className="flex items-center justify-between mb-1">
-        <h2 className={`${textStyles.cardTitle} text-text-green`}>Profil critique</h2>
+        <div className="flex items-center gap-2">
+          <h2 className={`${textStyles.cardTitle} text-text-green`}>Profil critique</h2>
+          <InfoTooltip text="La répartition de tes notes de 1 à 5, pour tes albums ou tes titres. Bascule d'un mode à l'autre pour comparer." />
+        </div>
         <div className="flex items-center gap-0.5 bg-bg-tertiary rounded-full p-0.5">
           {(['albums', 'tracks'] as const).map(m => (
             <button

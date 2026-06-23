@@ -3,6 +3,7 @@
 import { Music } from 'lucide-react'
 import { textStyles } from '@/components/ui/text-styles'
 import type { ListenerStats } from '@/lib/insights/listener-insight'
+import InfoTooltip from '@/components/ui/InfoTooltip'
 
 const SIZE = 120
 const STROKE = 12
@@ -22,7 +23,10 @@ export default function ListenerSection({
     return (
       <section className="border border-bg-secondary rounded-lg p-5">
         <div className="mb-3">
-          <h2 className={`${textStyles.cardTitle} text-text-green`}>Album vs track listener</h2>
+          <div className="flex items-center gap-2">
+            <h2 className={`${textStyles.cardTitle} text-text-green`}>Album vs track listener</h2>
+            <InfoTooltip text="La proportion de tes albums écoutés en entier versus partiellement. Révèle si tu explores les discographies de bout en bout ou titre par titre." />
+          </div>
         </div>
         <div className="min-h-[160px] flex items-center justify-center">
           <div className="flex flex-col items-center gap-3 text-center">
@@ -41,7 +45,10 @@ export default function ListenerSection({
   return (
     <section className="border border-bg-secondary rounded-lg p-5">
       <div className="mb-3 lg:min-h-[128px] xl:min-h-0 2xl:min-h-[64px]">
-        <h2 className={`${textStyles.cardTitle} text-text-green`}>Album vs track listener</h2>
+        <div className="flex items-center gap-2">
+          <h2 className={`${textStyles.cardTitle} text-text-green`}>Album vs track listener</h2>
+          <InfoTooltip text="La proportion de tes albums écoutés en entier versus partiellement. Révèle si tu explores les discographies de bout en bout ou titre par titre." />
+        </div>
         {insight && (
           <p className={`${textStyles.caption} text-text-secondary mt-1`}>{insight}</p>
         )}

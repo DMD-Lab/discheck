@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { ArrowRight, Music } from "lucide-react"
+import InfoTooltip from "@/components/ui/InfoTooltip"
 import { textStyles } from "@/components/ui/text-styles"
 import { GenreCard, AutresCard } from "./GenreCard"
 import type { GenreStats } from "@/lib/insights/genre-insight"
@@ -20,8 +21,9 @@ export default function GenresSection({
   if (genres.length === 0) {
     return (
       <section>
-        <div className="flex items-center pb-3 mb-3 gap-4">
+        <div className="flex items-center pb-3 mb-3 gap-2">
           <h2 className={`${textStyles.cardTitle} text-text-green`}>Genres dominants</h2>
+          <InfoTooltip text="Tes genres les plus présents dans tes écoutes, du plus dominant au moins représenté." />
         </div>
         <div className="h-52 flex items-center justify-center">
           <div className="flex flex-col items-center gap-3 text-center p-6">
@@ -44,7 +46,10 @@ export default function GenresSection({
       <section>
         <div className="flex items-center justify-between pb-3 mb-3 gap-4">
           <div>
-            <h2 className={`${textStyles.cardTitle} text-text-green`}>Genres dominants</h2>
+            <div className="flex items-center gap-2">
+              <h2 className={`${textStyles.cardTitle} text-text-green`}>Genres dominants</h2>
+              <InfoTooltip text="Tes genres les plus présents dans tes écoutes, du plus dominant au moins représenté." />
+            </div>
             {insight && (
               <p className={`${textStyles.caption} text-text-secondary mt-1 max-w-xl`}>{insight}</p>
             )}

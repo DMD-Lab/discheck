@@ -1,5 +1,6 @@
 import { ArrowUp, ArrowDown } from 'lucide-react'
 import { textStyles } from '@/components/ui/text-styles'
+import InfoTooltip from '@/components/ui/InfoTooltip'
 
 export type CollectionDecadeStat = {
   decade: number
@@ -28,7 +29,10 @@ export default function CollectionDecadeSection({ data }: { data: CollectionDeca
   if (isEmpty) {
     return (
       <section className="border border-bg-secondary rounded-lg p-5 flex flex-col gap-4 h-full">
-        <h2 className={`${textStyles.cardTitle} text-text-green`}>Collection par décennie</h2>
+        <div className="flex items-center gap-2">
+          <h2 className={`${textStyles.cardTitle} text-text-green`}>Collection par décennie</h2>
+          <InfoTooltip text="Le nombre de titres écoutés par décennie de sortie. Les flèches indiquent l'évolution par rapport à la période sélectionnée." />
+        </div>
         <div className="flex-1 flex items-center justify-center">
           <p className={`${textStyles.caption} text-text-secondary`}>Écoute de la musique pour voir ta répartition par décennie</p>
         </div>
@@ -38,7 +42,10 @@ export default function CollectionDecadeSection({ data }: { data: CollectionDeca
 
   return (
     <section className="border border-bg-secondary rounded-lg p-5 flex flex-col gap-4 h-full">
-      <h2 className={`${textStyles.cardTitle} text-text-green flex-shrink-0`}>Collection par décennie</h2>
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <h2 className={`${textStyles.cardTitle} text-text-green`}>Collection par décennie</h2>
+        <InfoTooltip text="Le nombre de titres écoutés par décennie de sortie. Les flèches indiquent l'évolution par rapport à la période sélectionnée." />
+      </div>
 
       <div className="relative flex-1 flex flex-col">
         <div

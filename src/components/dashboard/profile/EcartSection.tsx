@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ArrowRight, Scale } from 'lucide-react'
+import InfoTooltip from '@/components/ui/InfoTooltip'
 import Image from 'next/image'
 import { textStyles } from '@/components/ui/text-styles'
 import MarqueeText from '@/components/ui/marquee-text'
@@ -69,7 +70,10 @@ export default function EcartSection({ items }: { items: EcartItem[] }) {
     return (
       <section className="border border-bg-secondary rounded-lg p-5 h-full">
         <div className="mb-3">
-          <h2 className={`${textStyles.cardTitle} text-text-green`}>Écarts de notes</h2>
+          <div className="flex items-center gap-2">
+            <h2 className={`${textStyles.cardTitle} text-text-green`}>Écarts de notes</h2>
+            <InfoTooltip text="Les albums où ta note globale s'éloigne de la moyenne de tes titres. Visible uniquement quand tous les titres d'un album ont été notés." />
+          </div>
         </div>
         <div className="min-h-[160px] flex items-center justify-center">
           <div className="flex flex-col items-center gap-3 text-center">
@@ -87,7 +91,10 @@ export default function EcartSection({ items }: { items: EcartItem[] }) {
     <>
       <section className="border border-bg-secondary rounded-lg p-5 h-full">
         <div className="flex items-center justify-between mb-1">
-          <h2 className={`${textStyles.cardTitle} text-text-green`}>Écarts de notes</h2>
+          <div className="flex items-center gap-2">
+            <h2 className={`${textStyles.cardTitle} text-text-green`}>Écarts de notes</h2>
+            <InfoTooltip text="Les albums où ta note globale s'éloigne de la moyenne de tes titres. Visible uniquement quand tous les titres d'un album ont été notés." />
+          </div>
           {items.length > 3 && (
             <button
               onClick={() => setIsPanelOpen(true)}

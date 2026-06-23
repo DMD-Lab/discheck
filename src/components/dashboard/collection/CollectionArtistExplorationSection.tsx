@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { ArrowRight, Check, Trophy, Clock } from 'lucide-react'
 import { textStyles } from '@/components/ui/text-styles'
+import InfoTooltip from '@/components/ui/InfoTooltip'
 import Panel from '@/components/ui/panel'
 import type { DepthItem } from '@/lib/insights/depth-insight'
 import MarqueeText from '@/components/ui/marquee-text'
@@ -109,7 +110,10 @@ export default function CollectionArtistExplorationSection({ items }: { items: D
   if (completed.length === 0 && inProgress.length === 0) {
     return (
       <section className="border border-bg-secondary rounded-lg p-5">
-        <h2 className={`${textStyles.cardTitle} text-text-green mb-3`}>Exploration des artistes</h2>
+        <div className="flex items-center gap-2 mb-3">
+          <h2 className={`${textStyles.cardTitle} text-text-green`}>Exploration des artistes</h2>
+          <InfoTooltip text="Tes artistes divisés entre ceux que tu as entièrement explorés et ceux en cours. Le pourcentage correspond aux sorties cochées sur l'ensemble de leur discographie." />
+        </div>
         <div className="h-40 flex items-center justify-center">
           <p className={`${textStyles.caption} text-text-secondary`}>Explore des artistes pour voir ta progression</p>
         </div>
@@ -120,7 +124,10 @@ export default function CollectionArtistExplorationSection({ items }: { items: D
   return (
     <>
       <section className="border border-bg-secondary rounded-lg p-5 flex flex-col gap-4">
-        <h2 className={`${textStyles.cardTitle} text-text-green`}>Exploration des artistes</h2>
+        <div className="flex items-center gap-2">
+          <h2 className={`${textStyles.cardTitle} text-text-green`}>Exploration des artistes</h2>
+          <InfoTooltip text="Tes artistes divisés entre ceux que tu as entièrement explorés et ceux en cours. Le pourcentage correspond aux sorties cochées sur l'ensemble de leur discographie." />
+        </div>
 
         <div className="flex flex-col gap-4 lg:flex-row lg:gap-6 lg:flex-1 lg:min-h-0">
           {completedPreview.length > 0 && (

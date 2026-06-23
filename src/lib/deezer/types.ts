@@ -51,6 +51,7 @@ export interface DeezerTrackResult {
   title: string
   duration: number
   track_position: number
+  preview?: string
   contributors: {
     id: number
     name: string

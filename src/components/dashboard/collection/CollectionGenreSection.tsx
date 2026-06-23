@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { ArrowRight, ArrowUp, ArrowDown } from 'lucide-react'
+import InfoTooltip from '@/components/ui/InfoTooltip'
 import { textStyles } from '@/components/ui/text-styles'
 import Panel from '@/components/ui/panel'
 import CollectionGenrePanel from './collection-genre-panel'
@@ -195,7 +196,10 @@ export default function CollectionGenreSection({ data }: { data: CollectionGenre
   if (data.top.length === 0 && !data.others) {
     return (
       <section className="border border-bg-secondary rounded-lg p-5">
-        <h2 className={`${textStyles.cardTitle} text-text-green mb-3`}>Collection par genre</h2>
+        <div className="flex items-center gap-2 mb-3">
+          <h2 className={`${textStyles.cardTitle} text-text-green`}>Collection par genre</h2>
+          <InfoTooltip text="Tes genres classés par nombre de titres écoutés. Les flèches indiquent l'évolution par rapport à la période sélectionnée." />
+        </div>
         <div className="h-48 flex items-center justify-center">
           <p className={`${textStyles.caption} text-text-secondary`}>Aucun genre écouté sur cette période</p>
         </div>
@@ -207,7 +211,10 @@ export default function CollectionGenreSection({ data }: { data: CollectionGenre
     <>
       <section className="border border-bg-secondary rounded-lg p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h2 className={`${textStyles.cardTitle} text-text-green`}>Collection par genre</h2>
+          <div className="flex items-center gap-2">
+            <h2 className={`${textStyles.cardTitle} text-text-green`}>Collection par genre</h2>
+            <InfoTooltip text="Tes genres classés par nombre de titres écoutés. Les flèches indiquent l'évolution par rapport à la période sélectionnée." />
+          </div>
           <button
             onClick={() => setIsPanelOpen(true)}
             className={`${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1`}

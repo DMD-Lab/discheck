@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ArrowRight, Users } from 'lucide-react'
+import InfoTooltip from '@/components/ui/InfoTooltip'
 import Image from 'next/image'
 import { textStyles } from '@/components/ui/text-styles'
 import MarqueeText from '@/components/ui/marquee-text'
@@ -97,7 +98,10 @@ export default function DepthSection({ items }: { items: DepthItem[] }) {
     return (
       <section className="border border-bg-secondary rounded-lg p-5">
         <div className="mb-3">
-          <h2 className={`${textStyles.cardTitle} text-text-green`}>Profondeur d&apos;écoute</h2>
+          <div className="flex items-center gap-2">
+            <h2 className={`${textStyles.cardTitle} text-text-green`}>Profondeur d&apos;écoute</h2>
+            <InfoTooltip text="Le pourcentage de discographie exploré pour chaque artiste. Plus le chiffre est proche de 100%, plus tu as couvert l'intégralité de ses sorties." />
+          </div>
         </div>
         <div className="min-h-[160px] flex items-center justify-center">
           <div className="flex flex-col items-center gap-3 text-center">
@@ -115,7 +119,10 @@ export default function DepthSection({ items }: { items: DepthItem[] }) {
     <>
       <section className="border border-bg-secondary rounded-lg p-5">
         <div className="flex items-center justify-between mb-1">
-          <h2 className={`${textStyles.cardTitle} text-text-green`}>Profondeur d&apos;écoute</h2>
+          <div className="flex items-center gap-2">
+            <h2 className={`${textStyles.cardTitle} text-text-green`}>Profondeur d&apos;écoute</h2>
+            <InfoTooltip text="Le pourcentage de discographie exploré pour chaque artiste. Plus le chiffre est proche de 100%, plus tu as couvert l'intégralité de ses sorties." />
+          </div>
           {items.length > 5 && (
             <button
               onClick={() => setIsPanelOpen(true)}

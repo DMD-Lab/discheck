@@ -42,3 +42,10 @@ export async function getGenres(): Promise<DeezerGenresResponse> {
   if (!res.ok) throw new Error('Deezer genres fetch failed')
   return res.json()
 }
+
+export async function getTrackPreview(trackId: number): Promise<string | null> {
+  const res = await fetch(`${BASE_URL}/track/${trackId}`)
+  if (!res.ok) return null
+  const data = await res.json()
+  return data.preview || null
+}

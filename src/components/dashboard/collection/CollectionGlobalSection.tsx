@@ -1,6 +1,7 @@
 import { Headphones, Disc3, Timer, Mic2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { textStyles } from '@/components/ui/text-styles'
+import InfoTooltip from '@/components/ui/InfoTooltip'
 
 export type StatDelta = {
   value: string
@@ -52,7 +53,10 @@ export default function CollectionGlobalSection({ stats }: { stats: CollectionGl
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className={`${textStyles.cardTitle} text-text-green`}>Collection globale</h2>
+      <div className="flex items-center gap-2">
+        <h2 className={`${textStyles.cardTitle} text-text-green`}>Collection globale</h2>
+        <InfoTooltip text="Tes stats d'écoute en un coup d'œil. Les badges indiquent l'évolution par rapport à la période sélectionnée." />
+      </div>
       <div className="grid grid-cols-2 gap-px bg-border lg:flex lg:bg-transparent lg:gap-0 lg:divide-x lg:divide-border">
         <StatWidget
           icon={Headphones}

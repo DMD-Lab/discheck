@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { ArrowRight } from 'lucide-react'
 import { textStyles } from '@/components/ui/text-styles'
+import InfoTooltip from '@/components/ui/InfoTooltip'
 import Panel from '@/components/ui/panel'
 import MarqueeText from '@/components/ui/marquee-text'
 
@@ -85,7 +86,10 @@ export default function CollectionRecentActivitySection({
   if (recentTracks.length === 0 && recentAlbums.length === 0) {
     return (
       <section className="border border-bg-secondary rounded-lg p-5">
-        <h2 className={`${textStyles.cardTitle} text-text-green mb-3`}>Activité récente</h2>
+        <div className="flex items-center gap-2 mb-3">
+          <h2 className={`${textStyles.cardTitle} text-text-green`}>Activité récente</h2>
+          <InfoTooltip text="Tes dernières écoutes, du plus récent au plus ancien. Bascule entre titres et albums pour filtrer." />
+        </div>
         <div className="h-40 flex items-center justify-center">
           <p className={`${textStyles.caption} text-text-secondary`}>Aucune écoute enregistrée</p>
         </div>
@@ -97,7 +101,10 @@ export default function CollectionRecentActivitySection({
     <>
       <section className="border border-bg-secondary rounded-lg p-5 flex flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h2 className={`${textStyles.cardTitle} text-text-green`}>Activité récente</h2>
+          <div className="flex items-center gap-2">
+            <h2 className={`${textStyles.cardTitle} text-text-green`}>Activité récente</h2>
+            <InfoTooltip text="Tes dernières écoutes, du plus récent au plus ancien. Bascule entre titres et albums pour filtrer." />
+          </div>
           <div className="flex items-center gap-0.5 bg-bg-tertiary rounded-full p-0.5">
             {(['tracks', 'albums'] as const).map(m => (
               <button

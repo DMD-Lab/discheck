@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Users } from 'lucide-react'
 import { textStyles } from '@/components/ui/text-styles'
 import type { ConcentrationStats } from '@/lib/insights/concentration-insight'
+import InfoTooltip from '@/components/ui/InfoTooltip'
 
 const SIZE = 120
 const STROKE = 12
@@ -23,7 +24,10 @@ export default function ConcentrationSection({
     return (
       <section className="border border-bg-secondary rounded-lg p-5">
         <div className="mb-3">
-          <h2 className={`${textStyles.cardTitle} text-text-green`}>Concentration d&apos;écoute</h2>
+          <div className="flex items-center gap-2">
+            <h2 className={`${textStyles.cardTitle} text-text-green`}>Concentration d&apos;écoute</h2>
+            <InfoTooltip text="La part de tes 3 artistes les plus écoutés dans l'ensemble de tes écoutes. Plus le chiffre est élevé, plus tu reviens souvent aux mêmes artistes." />
+          </div>
         </div>
         <div className="min-h-[160px] flex items-center justify-center">
           <div className="flex flex-col items-center gap-3 text-center">
@@ -42,7 +46,10 @@ export default function ConcentrationSection({
   return (
     <section className="border border-bg-secondary rounded-lg p-5">
       <div className="mb-3 lg:min-h-[128px] xl:min-h-0 2xl:min-h-[64px]">
-        <h2 className={`${textStyles.cardTitle} text-text-green`}>Concentration d&apos;écoute</h2>
+        <div className="flex items-center gap-2">
+          <h2 className={`${textStyles.cardTitle} text-text-green`}>Concentration d&apos;écoute</h2>
+          <InfoTooltip text="La part de tes 3 artistes les plus écoutés dans l'ensemble de tes écoutes. Plus le chiffre est élevé, plus tu reviens souvent aux mêmes artistes." />
+        </div>
         {insight && (
           <p className={`${textStyles.caption} text-text-secondary mt-1`}>{insight}</p>
         )}
