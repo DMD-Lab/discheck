@@ -195,7 +195,9 @@ export default function ArtistsPage() {
                     />
                     <div className="min-w-0">
                       <p className={`${textStyles.body} font-medium text-text-primary truncate`}>{artist.name}</p>
-                      <p className={`${textStyles.caption} text-text-secondary whitespace-nowrap`}>{artist.nb_album} sorties</p>
+                      {progress?.total != null && (
+                        <p className={`${textStyles.caption} text-text-secondary whitespace-nowrap`}>{progress.total} sortie{progress.total > 1 ? 's' : ''}</p>
+                      )}
                     </div>
                   </div>
 

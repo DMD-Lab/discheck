@@ -133,7 +133,6 @@ export default function SearchPage() {
                       />
                       <div>
                         <p className={`${textStyles.body} font-medium text-text-primary`}>{artist.name}</p>
-                        <p className={`${textStyles.caption} text-text-secondary`}>{artist.nb_album} sorties</p>
                       </div>
                     </button>
                   ))}

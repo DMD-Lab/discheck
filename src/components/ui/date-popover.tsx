@@ -1,5 +1,5 @@
 'use client'
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
 import { Calendar, X } from 'lucide-react'
 import { textStyles } from '@/components/ui/text-styles'
 
@@ -20,10 +20,34 @@ function formatDateDisplay(iso: string): string {
 
 export default function DatePopover({ currentDate, hasUserDate, popoverUp, onSetDate, onClose }: DatePopoverProps) {
   const dateInputRef = useRef<HTMLInputElement>(null)
+  const pickerOpenRef = useRef(false)
+
+  useEffect(() => {
+    const el = dateInputRef.current
+    if (!el) return
+    const handler = () => {
+      if (el.value) {
+        onSetDate(`${el.value}T00:00:00.000Z`)
+        el.value = ''
+        pickerOpenRef.current = false
+        onClose()
+      }
+    }
+    el.addEventListener('change', handler)
+    return () => el.removeEventListener('change', handler)
+  }, [onSetDate, onClose])
+
+  function openPicker() {
+    pickerOpenRef.current = true
+    dateInputRef.current?.showPicker()
+  }
 
   return (
     <>
-      <div className="fixed inset-0 z-10" onClick={onClose} />
+      <div
+        className="fixed inset-0 z-10"
+        onClick={() => { if (!pickerOpenRef.current) onClose() }}
+      />
       <div className={`absolute right-0 z-20 bg-bg-secondary border border-border rounded-lg p-3 shadow-lg w-44 ${popoverUp ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
         <div className="flex items-center justify-between mb-2.5">
           <p className={`${textStyles.caption} text-text-disabled`}>Date d&apos;écoute</p>
@@ -41,7 +65,7 @@ export default function DatePopover({ currentDate, hasUserDate, popoverUp, onSet
 
         <div className="border-t border-border pt-2 flex flex-col">
           <button
-            onClick={() => dateInputRef.current?.showPicker()}
+            onClick={openPicker}
             className={`${textStyles.caption} text-left px-2 py-1 rounded hover:bg-bg-tertiary transition-colors text-text-secondary hover:text-text-primary`}
           >
             Modifier
@@ -61,13 +85,7 @@ export default function DatePopover({ currentDate, hasUserDate, popoverUp, onSet
           type="date"
           className="sr-only"
           max={new Date().toISOString().slice(0, 10)}
-          onChange={e => {
-            if (e.target.value) {
-              onSetDate(`${e.target.value}T00:00:00.000Z`)
-              e.target.value = ''
-              onClose()
-            }
-          }}
+          onBlur={() => { pickerOpenRef.current = false }}
         />
       </div>
     </>

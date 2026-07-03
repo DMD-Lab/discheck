@@ -21,6 +21,7 @@ export default function AlbumsRanking() {
         .from('album_ratings')
         .select('album_deezer_id, rating, rated_at')
         .eq('user_id', user.id)
+        .not('rating', 'is', null)
         .order('rating', { ascending: false })
 
       if (!ratings || ratings.length === 0) { setLoading(false); return }
@@ -136,7 +137,7 @@ function AlbumRankingRow({ album }: { album: TopAlbum }) {
           <div className="flex items-center gap-1">
             <Star size={11} className="text-text-green fill-text-green" />
             <span className={`${textStyles.caption} font-semibold text-text-primary`}>
-              {album.albumRating.toFixed(1).replace('.', ',')}
+              {album.albumRating != null ? album.albumRating.toFixed(1).replace('.', ',') : '—'}
             </span>
           </div>
         </div>

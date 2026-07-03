@@ -53,6 +53,40 @@
 
 ---
 
+## v1.2 ✅
+
+### Recherche & Discographie
+- Pagination complète de la discographie (tous les albums récupérés, pas seulement les 100 premiers)
+- Correction de la déduplication par titre (suppression du filtre qui masquait des albums légitimes)
+
+### Lecture & Notation
+- Écoute d'un extrait 30s par titre (Deezer preview)
+
+### Dashboard
+- Tooltips d'aide sur toutes les sections du dashboard (Collection, Profil)
+- Correction de la section Concentration d'écoute (seuil minimum 4 artistes)
+- Correction de la card "Autres genres" (masquée si aucun genre supplémentaire)
+- Correction de la hauteur des sections Collection (hauteur uniforme entre sections)
+- Correction des écarts de notes avec des tracks sans notation
+
+### App & Technique
+- Correction du calendrier de date d'écoute sur Brave/Chromium (navigation entre mois)
+
+---
+
+## v1.3 ✅
+
+### Recherche & Discographie
+- Barre de recherche dans la discographie par titre de sortie (desktop inline, mobile via icône)
+- Pagination Deezer complète (boucle sur le champ `next` pour dépasser la limite des 100 premiers résultats)
+- Correction de la déduplication (clé `record_type + titre` — évite la fusion entre un album et un single homonymes)
+- Correction des incohérences de comptage (barre de recherche et page "Mes artistes" affichent désormais le nombre réel depuis le cache, non le `nb_album` brut Deezer)
+
+### Dashboard
+- Correction du crash "Top albums" (panel "voir plus") quand la note d'album est nulle
+
+---
+
 ## v2.0 — Idées
 
 - Feed "Nouveautés" : nouvelles sorties des artistes suivis, triées par date

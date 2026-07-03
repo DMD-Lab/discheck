@@ -1,5 +1,6 @@
 import type {
   DeezerSearchResponse,
+  DeezerAlbumResult,
   DeezerDiscographyResponse,
   DeezerTracksResponse,
   DeezerGenresResponse,
@@ -16,11 +17,18 @@ export async function searchArtists(query: string): Promise<DeezerSearchResponse
 }
 
 export async function getArtistDiscography(artistId: number): Promise<DeezerDiscographyResponse> {
-  const res = await fetch(
-    `${BASE_URL}/artist/${artistId}/albums?limit=100`
-  )
-  if (!res.ok) throw new Error('Deezer discography fetch failed')
-  return res.json()
+  const all: DeezerAlbumResult[] = []
+  let url: string | null = `${BASE_URL}/artist/${artistId}/albums?limit=100`
+
+  while (url) {
+    const res = await fetch(url)
+    if (!res.ok) throw new Error('Deezer discography fetch failed')
+    const page: DeezerDiscographyResponse = await res.json()
+    all.push(...page.data)
+    url = page.next ?? null
+  }
+
+  return { data: all, total: all.length }
 }
 
 export async function getAlbumTracks(albumId: number): Promise<DeezerTracksResponse> {

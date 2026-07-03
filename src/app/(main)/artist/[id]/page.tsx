@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
-import { Music2, CheckCircle2, Activity } from 'lucide-react'
+import { Music2, CheckCircle2, Activity, Search, X } from 'lucide-react'
 import StatCard from '@/components/ui/StatCard'
 import { textStyles } from '@/components/ui/text-styles'
 import type { DeezerArtistResult, DeezerAlbumResult } from '@/lib/deezer/types'
@@ -27,6 +27,8 @@ export default function ArtistPage() {
   const [albumUserDateMap, setAlbumUserDateMap] = useState<Map<number, string>>(new Map())
   const [albumTracksMap, setAlbumTracksMap] = useState<Map<number, number[]>>(new Map())
   const [activeFilter, setActiveFilter] = useState<Filter>('all')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchOpen, setSearchOpen] = useState(false)
   const [listenedDateMap, setListenedDateMap] = useState<Map<number, { userDate: string | null; checkDate: string }>>(new Map())
 
   useEffect(() => {
@@ -177,7 +179,7 @@ export default function ArtistPage() {
       .eq('user_id', user.id)
       .eq('track_deezer_id', trackId)
 
-    // Si on retire la date du track, il hérite de la date album si elle existe
+    // fallback to album date
     if (date === null) {
       const albumId = [...albumTracksMap.entries()].find(([, ids]) => ids.includes(trackId))?.[0]
       const albumDate = albumId ? albumUserDateMap.get(albumId) : undefined
@@ -209,7 +211,6 @@ export default function ArtistPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // Upsert album_ratings.listened_at_user
     await supabase.from('album_ratings').upsert(
       { user_id: user.id, album_deezer_id: albumId, listened_at_user: date } as never,
       { onConflict: 'user_id,album_deezer_id' }
@@ -221,7 +222,7 @@ export default function ArtistPage() {
       return next
     })
 
-    // Propagate to unprotected tracks (listened_at_user IS NULL) → update listened_at
+    // push date to unlocked tracks
     if (date) {
       const trackIds = albumTracksMap.get(albumId) ?? []
       const unprotected = trackIds.filter(id => listenedIds.has(id) && !listenedDateMap.get(id)?.userDate)
@@ -269,7 +270,9 @@ export default function ArtistPage() {
     trackAvgMap.set(album.id, Math.round(avg * 10) / 10)
   })
 
-  const filteredAlbums = activeFilter === 'all' ? albums : albums.filter(a => a.record_type === activeFilter)
+  const filteredAlbums = albums
+    .filter(a => activeFilter === 'all' || a.record_type === activeFilter)
+    .filter(a => !searchQuery.trim() || a.title.toLowerCase().includes(searchQuery.toLowerCase()))
 
   const yearMap = new Map<string, DeezerAlbumResult[]>()
   filteredAlbums.forEach(album => {
@@ -348,7 +351,6 @@ export default function ArtistPage() {
 
   return (
     <div className="max-w-5xl mx-auto w-full px-4 py-6 md:px-8 lg:px-16 lg:py-12">
-      {/* Header */}
       <div className="flex items-start gap-4 md:gap-6 mb-4 md:mb-8">
         <Image
           src={artist.picture_xl}
@@ -371,71 +373,128 @@ export default function ArtistPage() {
         </div>
       </div>
 
-      {/* Stats mobiles */}
       <div className="grid grid-cols-3 gap-2 mb-6 lg:hidden">
         <StatCard compact icon={<Music2 size={14} className="text-text-secondary" />} value={albums.length} label="sorties" />
         <StatCard compact icon={<CheckCircle2 size={14} style={{ color: 'var(--primary)' }} />} value={stats.terminées} label="terminées" />
         <StatCard compact icon={<Activity size={14} style={{ color: 'var(--primary)' }} />} value={stats.enCours} label="en cours" />
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex gap-1 mb-6">
-        {(['all', 'album', 'ep', 'single'] as const).map(f => (
-          <button
-            key={f}
-            onClick={() => setActiveFilter(f)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              activeFilter === f
-                ? 'bg-bg-tertiary text-text-primary'
-                : 'text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            {f === 'all' ? 'Tout' : f === 'album' ? 'Albums' : f === 'ep' ? 'EP' : 'Singles'}
-          </button>
-        ))}
-      </div>
+      <div className="flex items-center justify-between gap-3 mb-6 h-9">
 
-      {/* Timeline */}
-      <div className="relative">
-        <div
-          className="absolute top-0 bottom-0 w-px left-[44px] lg:left-[82px]"
-          style={{ backgroundColor: 'var(--border-color)' }}
-        />
-
-        <div className="flex flex-col gap-4">
-          {groupedByYear.map(({ year, releases }) => (
-            <div key={year} className="flex items-start">
-              <span
-                className={`flex-shrink-0 w-8 lg:w-16 ${textStyles.body} font-semibold text-text-disabled pt-3.5 text-right`}
-              >
-                {year}
-              </span>
-
-              <div className="flex-shrink-0 flex justify-center pt-4 w-6 lg:w-9">
-                <div className="w-2.5 h-2.5 rounded-full border border-border bg-bg-primary relative z-10" />
-              </div>
-
-              <div className="flex-1 min-w-0 flex flex-col">
-                {releases.map((album, i) => (
-                  <ReleaseRow
-                    key={album.id}
-                    album={album}
-                    total={albumTracksMap.get(album.id)?.length}
-                    listenedCount={
-                      albumTracksMap.has(album.id)
-                        ? (albumTracksMap.get(album.id) ?? []).filter(tid => listenedIds.has(tid)).length
-                        : undefined
-                    }
-                    rating={albumRatingMap.get(album.id) ?? trackAvgMap.get(album.id)}
-                    onClick={() => setSelectedAlbum(album)}
-                    showDivider={i < releases.length - 1}
-                  />
-                ))}
-              </div>
-            </div>
+        <div className={`flex gap-1 ${searchOpen ? 'hidden lg:flex' : 'flex'}`}>
+          {(['all', 'album', 'ep', 'single'] as const).map(f => (
+            <button
+              key={f}
+              onClick={() => setActiveFilter(f)}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                activeFilter === f
+                  ? 'bg-bg-tertiary text-text-primary'
+                  : 'text-text-secondary hover:text-text-primary'
+              }`}
+            >
+              {f === 'all' ? 'Tout' : f === 'album' ? 'Albums' : f === 'ep' ? 'EP' : 'Singles'}
+            </button>
           ))}
         </div>
+
+        <div className="relative hidden lg:block w-52 flex-shrink-0">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Rechercher..."
+            className="w-full bg-bg-secondary border border-border rounded-lg pl-8 pr-7 py-1.5 text-text-primary text-sm outline-none focus:border-primary transition-colors placeholder:text-text-disabled"
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-disabled hover:text-text-secondary transition-colors">
+              <X size={12} />
+            </button>
+          )}
+        </div>
+
+        {!searchOpen && (
+          <button onClick={() => setSearchOpen(true)} className="lg:hidden p-1 flex-shrink-0 text-text-secondary hover:text-text-primary transition-colors">
+            <Search size={16} />
+          </button>
+        )}
+
+        {searchOpen && (
+          <div className="lg:hidden flex flex-1 min-w-0 items-center gap-2">
+            <div className="relative flex-1 min-w-0">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Rechercher une sortie..."
+                autoFocus
+                onKeyDown={e => { if (e.key === 'Escape') { setSearchOpen(false); setSearchQuery('') } }}
+                className="w-full bg-bg-secondary border border-border rounded-lg pl-8 pr-3 py-1.5 text-text-primary text-sm outline-none focus:border-primary transition-colors placeholder:text-text-disabled"
+              />
+            </div>
+            <button
+              onClick={() => { setSearchOpen(false); setSearchQuery('') }}
+              className="flex-shrink-0 text-text-disabled hover:text-text-secondary transition-colors"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
+
       </div>
+
+      {groupedByYear.length === 0 && (
+        <p className={`${textStyles.body} text-text-secondary py-4`}>
+          {searchQuery
+            ? <>Aucune sortie pour &laquo;&nbsp;{searchQuery}&nbsp;&raquo;</>
+            : 'Aucune sortie dans cette catégorie.'
+          }
+        </p>
+      )}
+
+      {groupedByYear.length > 0 && (
+        <div className="relative">
+          <div
+            className="absolute top-0 bottom-0 w-px left-[44px] lg:left-[82px]"
+            style={{ backgroundColor: 'var(--border-color)' }}
+          />
+
+          <div className="flex flex-col gap-4">
+            {groupedByYear.map(({ year, releases }) => (
+              <div key={year} className="flex items-start">
+                <span
+                  className={`flex-shrink-0 w-8 lg:w-16 ${textStyles.body} font-semibold text-text-disabled pt-3.5 text-right`}
+                >
+                  {year}
+                </span>
+
+                <div className="flex-shrink-0 flex justify-center pt-4 w-6 lg:w-9">
+                  <div className="w-2.5 h-2.5 rounded-full border border-border bg-bg-primary relative z-10" />
+                </div>
+
+                <div className="flex-1 min-w-0 flex flex-col">
+                  {releases.map((album, i) => (
+                    <ReleaseRow
+                      key={album.id}
+                      album={album}
+                      total={albumTracksMap.get(album.id)?.length}
+                      listenedCount={
+                        albumTracksMap.has(album.id)
+                          ? (albumTracksMap.get(album.id) ?? []).filter(tid => listenedIds.has(tid)).length
+                          : undefined
+                      }
+                      rating={albumRatingMap.get(album.id) ?? trackAvgMap.get(album.id)}
+                      onClick={() => setSelectedAlbum(album)}
+                      showDivider={i < releases.length - 1}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <Panel isOpen={!!selectedAlbum} onClose={() => setSelectedAlbum(null)}>
         {selectedAlbum && (

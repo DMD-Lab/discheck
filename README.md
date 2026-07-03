@@ -29,6 +29,7 @@ Primaire vert `#22c55e`
 - Recherche d'artiste en temps réel (Deezer API, debounce 350ms)
 - Discographie complète triée par date décroissante — albums, EPs, singles
 - Filtres par type de sortie (Tout / Albums / EP / Singles)
+- Barre de recherche dans la discographie par titre de sortie (desktop inline, mobile via icône)
 - Timeline par année avec indicateurs de progression
 - Panel slide-in pour explorer les titres d'une sortie
 - Cocher un titre comme écouté (ou tout cocher d'un coup)

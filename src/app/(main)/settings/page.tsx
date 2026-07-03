@@ -58,7 +58,7 @@ export default function SettingsPage() {
       </div>
 
       <div className="mt-12 pt-6 border-t border-border">
-        <p className={`${textStyles.caption} text-text-disabled`}>Discheck v0.1.0</p>
+        <p className={`${textStyles.caption} text-text-disabled`}>Discheck v1.3.0</p>
         <p className={`${textStyles.caption} text-text-disabled mt-1`}>Une app <span className="text-text-secondary">DMD Lab</span></p>
       </div>
     </div>

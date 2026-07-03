@@ -45,7 +45,7 @@ export async function GET(
   if (fresh.data) {
     const seen = new Map<string, typeof fresh.data[0]>()
     fresh.data.forEach(album => {
-      const key = album.title.toLowerCase().trim()
+      const key = `${album.record_type}::${album.title.toLowerCase().trim()}`
       const existing = seen.get(key)
       if (!existing || album.release_date < existing.release_date) {
         seen.set(key, album)
