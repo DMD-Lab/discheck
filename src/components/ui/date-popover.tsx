@@ -1,12 +1,13 @@
 'use client'
 import { useRef, useEffect } from 'react'
-import { Calendar, X } from 'lucide-react'
+import { Calendar, CalendarClock, X } from 'lucide-react'
 import { textStyles } from '@/components/ui/text-styles'
 
 interface DatePopoverProps {
   currentDate?: string | null
   hasUserDate: boolean
   popoverUp?: boolean
+  releaseDate?: string
   onSetDate: (date: string | null) => void
   onClose: () => void
 }
@@ -18,7 +19,7 @@ function formatDateDisplay(iso: string): string {
   return `${day}/${month}/${d.getFullYear()}`
 }
 
-export default function DatePopover({ currentDate, hasUserDate, popoverUp, onSetDate, onClose }: DatePopoverProps) {
+export default function DatePopover({ currentDate, hasUserDate, popoverUp, releaseDate, onSetDate, onClose }: DatePopoverProps) {
   const dateInputRef = useRef<HTMLInputElement>(null)
   const pickerOpenRef = useRef(false)
 
@@ -51,9 +52,20 @@ export default function DatePopover({ currentDate, hasUserDate, popoverUp, onSet
       <div className={`absolute right-0 z-20 bg-bg-secondary border border-border rounded-lg p-3 shadow-lg w-44 ${popoverUp ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
         <div className="flex items-center justify-between mb-2.5">
           <p className={`${textStyles.caption} text-text-disabled`}>Date d&apos;écoute</p>
-          <button onClick={onClose} className="text-text-disabled hover:text-text-primary transition-colors">
-            <X size={12} />
-          </button>
+          <div className="flex items-center gap-1.5">
+            {releaseDate && (
+              <button
+                onClick={() => { onSetDate(releaseDate); onClose() }}
+                title="Définir à la date de sortie"
+                className="text-text-disabled hover:text-text-primary transition-colors"
+              >
+                <CalendarClock size={12} />
+              </button>
+            )}
+            <button onClick={onClose} className="text-text-disabled hover:text-text-primary transition-colors">
+              <X size={12} />
+            </button>
+          </div>
         </div>
 
         <div className="flex items-center gap-1.5 mb-3">
@@ -87,6 +99,7 @@ export default function DatePopover({ currentDate, hasUserDate, popoverUp, onSet
           max={new Date().toISOString().slice(0, 10)}
           onBlur={() => { pickerOpenRef.current = false }}
         />
+
       </div>
     </>
   )

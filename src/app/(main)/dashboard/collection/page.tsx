@@ -368,8 +368,8 @@ export default async function CollectionPage({
           <CollectionRecentActivitySection
             recentTracks={recentTracks.slice(0, 5)}
             recentAlbums={recentAlbums.slice(0, 5)}
-            allTracks={recentTracks}
-            allAlbums={recentAlbums}
+            allTracks={recentTracks.slice(0, 100)}
+            allAlbums={recentAlbums.slice(0, 100)}
           />
         </div>
       </div>

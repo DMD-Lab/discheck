@@ -39,14 +39,14 @@ function timeAgo(dateStr: string): string {
   return months === 1 ? 'il y a 1 mois' : `il y a ${months} mois`
 }
 
-function TrackRow({ title, artistName, coverXl, listenedAt }: { title: string; artistName: string; coverXl: string; listenedAt: string }) {
+function TrackRow({ title, artistName, coverXl, listenedAt, fromColor }: { title: string; artistName: string; coverXl: string; listenedAt: string; fromColor?: string }) {
   return (
     <div className="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
       <div className="relative w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
         <Image src={coverXl} alt={title} fill sizes="40px" className="object-cover" />
       </div>
       <div className="flex-1 min-w-0">
-        <MarqueeText className={`${textStyles.body} font-medium text-text-primary`}>{title}</MarqueeText>
+        <MarqueeText className={`${textStyles.body} font-medium text-text-primary`} fromColor={fromColor}>{title}</MarqueeText>
         <p className={`${textStyles.caption} text-text-secondary truncate`}>{artistName}</p>
       </div>
       <span className={`${textStyles.caption} text-text-disabled flex-shrink-0`}>{timeAgo(listenedAt)}</span>
@@ -54,14 +54,14 @@ function TrackRow({ title, artistName, coverXl, listenedAt }: { title: string; a
   )
 }
 
-function AlbumRow({ title, artistName, coverXl, lastListenedAt }: { title: string; artistName: string; coverXl: string; lastListenedAt: string }) {
+function AlbumRow({ title, artistName, coverXl, lastListenedAt, fromColor }: { title: string; artistName: string; coverXl: string; lastListenedAt: string; fromColor?: string }) {
   return (
     <div className="flex items-center gap-3 py-2.5 border-b border-border last:border-0">
       <div className="relative w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
         <Image src={coverXl} alt={title} fill sizes="40px" className="object-cover" />
       </div>
       <div className="flex-1 min-w-0">
-        <MarqueeText className={`${textStyles.body} font-medium text-text-primary`}>{title}</MarqueeText>
+        <MarqueeText className={`${textStyles.body} font-medium text-text-primary`} fromColor={fromColor}>{title}</MarqueeText>
         <p className={`${textStyles.caption} text-text-secondary truncate`}>{artistName}</p>
       </div>
       <span className={`${textStyles.caption} text-text-disabled flex-shrink-0`}>{timeAgo(lastListenedAt)}</span>
@@ -88,7 +88,7 @@ export default function CollectionRecentActivitySection({
       <section className="border border-bg-secondary rounded-lg p-5">
         <div className="flex items-center gap-2 mb-3">
           <h2 className={`${textStyles.cardTitle} text-text-green`}>Activité récente</h2>
-          <InfoTooltip text="Tes dernières écoutes, du plus récent au plus ancien. Bascule entre titres et albums pour filtrer." />
+          <InfoTooltip text="Tes 100 dernières écoutes, du plus récent au plus ancien. Bascule entre titres et albums pour filtrer." />
         </div>
         <div className="h-40 flex items-center justify-center">
           <p className={`${textStyles.caption} text-text-secondary`}>Aucune écoute enregistrée</p>
@@ -103,7 +103,7 @@ export default function CollectionRecentActivitySection({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h2 className={`${textStyles.cardTitle} text-text-green`}>Activité récente</h2>
-            <InfoTooltip text="Tes dernières écoutes, du plus récent au plus ancien. Bascule entre titres et albums pour filtrer." />
+            <InfoTooltip text="Tes 100 dernières écoutes, du plus récent au plus ancien. Bascule entre titres et albums pour filtrer." />
           </div>
           <div className="flex items-center gap-0.5 bg-bg-tertiary rounded-full p-0.5">
             {(['tracks', 'albums'] as const).map(m => (
@@ -140,13 +140,15 @@ export default function CollectionRecentActivitySection({
               {mode === 'tracks' ? 'Tracks écoutés' : 'Albums écoutés'}
             </h2>
             <p className={`${textStyles.caption} text-text-secondary mt-1`}>
-              {mode === 'tracks' ? allTracks.length : allAlbums.length} au total
+              {mode === 'tracks'
+                ? `${allTracks.length} dernier${allTracks.length > 1 ? 's' : ''} tracks écoutés`
+                : `${allAlbums.length} dernier${allAlbums.length > 1 ? 's' : ''} albums écoutés`}
             </p>
           </div>
           <div className="flex-1 overflow-y-auto px-5 pt-4">
             {mode === 'tracks'
-              ? allTracks.map(t => <TrackRow key={t.trackDeezerId} {...t} />)
-              : allAlbums.map(a => <AlbumRow key={a.albumDeezerId} {...a} />)}
+              ? allTracks.map(t => <TrackRow key={t.trackDeezerId} {...t} fromColor="from-bg-secondary" />)
+              : allAlbums.map(a => <AlbumRow key={a.albumDeezerId} {...a} fromColor="from-bg-secondary" />)}
           </div>
         </div>
       </Panel>

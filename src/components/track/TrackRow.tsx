@@ -28,6 +28,7 @@ interface TrackRowProps {
   rating?: number
   listenedAt?: string
   listenedAtUser?: string | null
+  releaseDate?: string
   onToggle: () => void
   onRate: (rating: number) => void
   onSetDate?: (date: string | null) => void
@@ -44,7 +45,7 @@ function formatDateShort(iso: string): string {
   return `${d[2]}/${d[1]}/${d[0].slice(2)}`
 }
 
-export default function TrackRow({ position, title, duration, trackId, hasPreview, listened, rating, listenedAt, listenedAtUser, onToggle, onRate, onSetDate }: TrackRowProps) {
+export default function TrackRow({ position, title, duration, trackId, hasPreview, listened, rating, listenedAt, listenedAtUser, releaseDate, onToggle, onRate, onSetDate }: TrackRowProps) {
   const [showRating, setShowRating] = useState(false)
   const [showDatePopover, setShowDatePopover] = useState(false)
   const [popoverUp, setPopoverUp] = useState(false)
@@ -150,6 +151,7 @@ export default function TrackRow({ position, title, duration, trackId, hasPrevie
           <DatePopover
             currentDate={listenedAt}
             hasUserDate={!!listenedAtUser}
+            releaseDate={releaseDate}
             popoverUp={popoverUp}
             onSetDate={onSetDate}
             onClose={() => setShowDatePopover(false)}

@@ -66,7 +66,7 @@ function ArtistPanelRow({ item }: { item: DepthItem }) {
         <div className="relative w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
           <Image src={item.pictureXl} alt={item.name} fill sizes="36px" className="object-cover" />
         </div>
-        <MarqueeText className={`${textStyles.body} text-text-primary`}>{item.name}</MarqueeText>
+        <MarqueeText className={`${textStyles.body} text-text-primary`} fromColor="from-bg-secondary">{item.name}</MarqueeText>
       </div>
       <div className="flex-1 hidden sm:block">
         <div className="h-1.5 bg-bg-tertiary rounded-full overflow-hidden">
