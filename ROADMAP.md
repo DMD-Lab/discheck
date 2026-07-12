@@ -87,6 +87,29 @@
 
 ---
 
+## v1.4 ✅
+
+### Mes artistes
+- Artistes triés par date de dernière écoute (le plus récent en premier)
+
+### Recherche & Discographie
+- Badge coloré sur la note d'une sortie (couleur sémantique selon la valeur)
+- Skeleton sur les pochettes d'albums pendant le chargement
+- Image de l'artiste chargée en priorité (preload LCP)
+
+### Lecture & Notation
+- Raccourci "date de sortie" dans le calendrier d'écoute (icône CalendarClock)
+- Correction des couleurs de notes (4 → lime, 5 → vert vif)
+
+### Dashboard
+- Activité récente limitée aux 100 dernières tracks et albums
+- Correction du gradient MarqueeText dans les panels (Profondeur, Écart, Activité récente)
+- Correction de l'espacement "Top Artistes" avec peu d'artistes (badge "1" collé au séparateur)
+- Correction de la hauteur "Collection globale" quand le delta de période est indisponible
+- Mise à jour des tooltips et libellés des panels d'activité
+
+---
+
 ## v2.0 — Idées
 
 - Feed "Nouveautés" : nouvelles sorties des artistes suivis, triées par date

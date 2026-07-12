@@ -71,7 +71,7 @@ export default function TopArtistesSection({ artists }: { artists: TopArtist[] }
           <div className="flex-shrink-0 w-[200px] lg:w-[220px]">
             <ArtistFeaturedCard artist={featured} />
           </div>
-          <div className="flex-1 flex flex-col divide-y divide-border min-w-0">
+          <div className="flex-1 flex flex-col divide-y divide-border min-w-0 min-h-[260px]">
             {rest.map((artist) => (
               <ArtistSmallCard key={artist.rank} artist={artist} />
             ))}

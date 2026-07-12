@@ -16,7 +16,7 @@ export type CollectionGlobalStats = {
 }
 
 function DeltaBadge({ pctChange }: { pctChange: number | null }) {
-  if (pctChange === null) return <span className={`${textStyles.body} text-text-disabled`}>—</span>
+  if (pctChange === null) return <span className="text-xs font-semibold lg:text-sm px-1.5 py-0.5 rounded-full text-text-disabled">—</span>
   const positive = pctChange >= 0
   return (
     <span className={`text-xs font-semibold lg:text-sm px-1.5 py-0.5 rounded-full ${
