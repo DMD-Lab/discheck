@@ -358,7 +358,7 @@ export default function ArtistPage() {
           width={112}
           height={112}
           className="rounded-lg object-cover flex-shrink-0 w-20 h-20 md:w-28 md:h-28"
-          loading="eager"
+          priority
         />
         <div className="flex-1 min-w-0 pt-1">
           <h1 className={`${textStyles.display} text-text-primary`}>{artist.name}</h1>

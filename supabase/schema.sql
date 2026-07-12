@@ -103,14 +103,16 @@ LANGUAGE sql
 SECURITY DEFINER
 SET search_path = public
 AS $$
-  SELECT DISTINCT
+  SELECT
     car.artist_deezer_id,
     car.artist_data
   FROM listened_tracks lt
-  JOIN cached_tracks  ct  ON ct.track_deezer_id   = lt.track_deezer_id
-  JOIN cached_albums  ca  ON ca.album_deezer_id   = ct.album_deezer_id
+  JOIN cached_tracks  ct  ON ct.track_deezer_id  = lt.track_deezer_id
+  JOIN cached_albums  ca  ON ca.album_deezer_id  = ct.album_deezer_id
   JOIN cached_artists car ON car.artist_deezer_id = ca.artist_deezer_id
   WHERE lt.user_id = p_user_id
+  GROUP BY car.artist_deezer_id, car.artist_data
+  ORDER BY MAX(lt.listened_at) DESC
 $$;
 
 -- Artistes favoris (max 5 par utilisateur, accès rapide sidebar)

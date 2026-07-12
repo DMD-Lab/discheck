@@ -9,14 +9,7 @@ import TrackRow from '@/components/track/TrackRow'
 import AlbumRatingModal from '@/components/ui/AlbumRatingModal'
 import DatePopover from '@/components/ui/date-popover'
 import { textStyles } from '@/components/ui/text-styles'
-
-const RATING_COLORS: Record<number, string> = {
-  1: '#ef4444',
-  2: '#f97316',
-  3: '#eab308',
-  4: '#84cc16',
-  5: '#22c55e',
-}
+import { RATING_COLORS } from '@/lib/rating-colors'
 
 function formatDateBadge(isoStr: string): string {
   const d = new Date(isoStr)
@@ -205,7 +198,7 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
               <div className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3">
                 <div className="flex items-center gap-1 max-sm:justify-center">
                   <Calendar size={13} className={`max-sm:w-3 max-sm:h-3 ${singleEffectiveDate ? 'text-text-green' : 'text-text-disabled'}`} />
-                  <span className="text-xs text-text-secondary leading-none max-sm:hidden">Date d'écoute</span>
+                  <span className="text-xs text-text-secondary leading-none max-sm:hidden">Date d&apos;écoute</span>
                   <span className="text-xs text-text-secondary leading-none hidden max-sm:block">Écouté le</span>
                 </div>
                 <span className={`${textStyles.statSm} ${singleEffectiveDate ? 'text-text-primary' : 'text-text-disabled'}`}>
@@ -270,7 +263,7 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
                 >
                   <div className="flex items-center gap-1 max-sm:justify-center">
                     <Calendar size={13} className={`max-sm:w-3 max-sm:h-3 ${albumUserDate ? 'text-text-green' : 'text-text-disabled'}`} />
-                    <span className="text-xs text-text-secondary leading-none max-sm:hidden">Date d'écoute</span>
+                    <span className="text-xs text-text-secondary leading-none max-sm:hidden">Date d&apos;écoute</span>
                     <span className="text-xs text-text-secondary leading-none hidden max-sm:block">Écouté le</span>
                   </div>
                   <span className={`${textStyles.statSm} ${albumUserDate ? 'text-text-primary' : 'text-text-disabled'}`}>
