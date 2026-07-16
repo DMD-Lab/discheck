@@ -19,6 +19,7 @@ export default function ArtistsPage() {
   const router = useTransitionRouter()
   const [artists, setArtists] = useState<DeezerArtistResult[]>([])
   const [progressMap, setProgressMap] = useState<Map<number, ArtistProgress>>(new Map())
+  const [artistDbIdMap, setArtistDbIdMap] = useState<Map<number, number>>(new Map())
   const [loading, setLoading] = useState(true)
   const { favoriteIds, toggleFavorite } = useFavorites()
 
@@ -29,15 +30,16 @@ export default function ArtistsPage() {
 
       const { data: rpcData } = await supabase
         .rpc('get_listened_artists', { p_user_id: user.id })
-      const fetchedArtists: DeezerArtistResult[] = (rpcData ?? []).map(
-        (r: { artist_data: DeezerArtistResult }) => r.artist_data
-      )
+      type RpcRow = { artist_deezer_id: number; artist_data: DeezerArtistResult }
+      const rpcRows = (rpcData ?? []) as RpcRow[]
+      const fetchedArtists = rpcRows.map(r => r.artist_data)
       setArtists(fetchedArtists)
+      setArtistDbIdMap(new Map(rpcRows.map(r => [r.artist_data.id, r.artist_deezer_id])))
       setLoading(false)
 
       if (fetchedArtists.length === 0) return
 
-      const artistIds = fetchedArtists.map(a => a.id)
+      const artistIds = rpcRows.map(r => r.artist_deezer_id)
 
       const [{ data: cachedAlbums }, { data: allListened }] = await Promise.all([
         supabase
@@ -162,7 +164,7 @@ export default function ArtistsPage() {
             </div>
 
             {artists.map(artist => {
-              const progress = progressMap.get(artist.id)
+              const progress = progressMap.get(artistDbIdMap.get(artist.id) ?? artist.id)
               const pct = progress && progress.total > 0
                 ? Math.round((progress.listened / progress.total) * 100)
                 : null
