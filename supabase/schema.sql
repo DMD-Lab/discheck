@@ -115,6 +115,34 @@ AS $$
   ORDER BY MAX(lt.listened_at) DESC
 $$;
 
+-- Fonction : progression discographie par artiste pour un utilisateur
+CREATE OR REPLACE FUNCTION get_artist_progress(p_user_id uuid)
+RETURNS TABLE(artist_deezer_id bigint, total_albums integer, listened_albums integer)
+LANGUAGE sql STABLE AS $$
+  WITH
+  listened_album_ids AS (
+    SELECT DISTINCT album_deezer_id
+    FROM listened_tracks
+    WHERE user_id = p_user_id
+      AND album_deezer_id IS NOT NULL
+  ),
+  listened_artist_ids AS (
+    SELECT DISTINCT ca.artist_deezer_id
+    FROM listened_tracks lt
+    JOIN cached_tracks ct ON ct.track_deezer_id = lt.track_deezer_id
+    JOIN cached_albums ca ON ca.album_deezer_id = ct.album_deezer_id
+    WHERE lt.user_id = p_user_id
+  )
+  SELECT
+    ca.artist_deezer_id,
+    COUNT(DISTINCT ca.album_deezer_id)::integer AS total_albums,
+    COUNT(DISTINCT la.album_deezer_id)::integer  AS listened_albums
+  FROM cached_albums ca
+  JOIN listened_artist_ids lai ON lai.artist_deezer_id = ca.artist_deezer_id
+  LEFT JOIN listened_album_ids la ON la.album_deezer_id = ca.album_deezer_id
+  GROUP BY ca.artist_deezer_id
+$$;
+
 -- Artistes favoris (max 5 par utilisateur, accès rapide sidebar)
 CREATE TABLE favorite_artists (
   user_id          uuid REFERENCES profiles ON DELETE CASCADE,

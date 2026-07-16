@@ -39,47 +39,13 @@ export default function ArtistsPage() {
 
       if (fetchedArtists.length === 0) return
 
-      const artistIds = rpcRows.map(r => r.artist_deezer_id)
+      const { data: progressData } = await supabase
+        .rpc('get_artist_progress', { p_user_id: user.id })
 
-      const [{ data: cachedAlbums }, { data: allListened }] = await Promise.all([
-        supabase
-          .from('cached_albums')
-          .select('album_deezer_id, artist_deezer_id')
-          .in('artist_deezer_id', artistIds),
-        supabase
-          .from('listened_tracks')
-          .select('track_deezer_id')
-          .eq('user_id', user.id),
-      ])
-
-      if (!cachedAlbums?.length) return
-
-      const albumIds = cachedAlbums.map(a => a.album_deezer_id)
-      const { data: cachedTracks } = await supabase
-        .from('cached_tracks')
-        .select('track_deezer_id, album_deezer_id')
-        .in('album_deezer_id', albumIds)
-
-      if (!cachedTracks) return
-
-      const listenedSet = new Set((allListened ?? []).map(t => t.track_deezer_id))
-
-      const albumTracksMap = new Map<number, number[]>()
-      cachedTracks.forEach(t => {
-        const list = albumTracksMap.get(t.album_deezer_id) ?? []
-        list.push(t.track_deezer_id)
-        albumTracksMap.set(t.album_deezer_id, list)
-      })
-
+      type ProgressRow = { artist_deezer_id: number; total_albums: number; listened_albums: number }
       const map = new Map<number, ArtistProgress>()
-      cachedAlbums.forEach(ca => {
-        const tracks = albumTracksMap.get(ca.album_deezer_id) ?? []
-        const hasListened = tracks.some(id => listenedSet.has(id))
-        const current = map.get(ca.artist_deezer_id) ?? { total: 0, listened: 0 }
-        map.set(ca.artist_deezer_id, {
-          total: current.total + 1,
-          listened: current.listened + (hasListened ? 1 : 0),
-        })
+      ;(progressData ?? [] as ProgressRow[]).forEach((row: ProgressRow) => {
+        map.set(row.artist_deezer_id, { total: row.total_albums, listened: row.listened_albums })
       })
 
       setProgressMap(map)

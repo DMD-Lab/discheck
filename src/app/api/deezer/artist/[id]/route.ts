@@ -12,10 +12,9 @@ export async function GET(
   try {
     const data = await getArtist(artistId)
 
-    supabaseAdmin
+    await supabaseAdmin
       .from('cached_artists')
       .upsert({ artist_deezer_id: artistId, artist_data: data }, { onConflict: 'artist_deezer_id' })
-      .then()
 
     return Response.json(data)
   } catch {

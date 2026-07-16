@@ -66,9 +66,9 @@ export default async function ProfilePage() {
     { data: albumRatingsData },
     { data: trackRatingsData },
   ] = await Promise.all([
-    supabase.from("listened_tracks").select("album_deezer_id").eq("user_id", user.id),
-    supabase.from("album_ratings").select("rating, album_deezer_id").eq("user_id", user.id),
-    supabase.from("track_ratings").select("rating, track_deezer_id").eq("user_id", user.id),
+    supabase.from("listened_tracks").select("album_deezer_id").eq("user_id", user.id).limit(10000),
+    supabase.from("album_ratings").select("rating, album_deezer_id").eq("user_id", user.id).limit(10000),
+    supabase.from("track_ratings").select("rating, track_deezer_id").eq("user_id", user.id).limit(10000),
   ])
 
   let genreStats: GenreStats[] = []
@@ -90,6 +90,7 @@ export default async function ProfilePage() {
       .from("cached_albums")
       .select("album_deezer_id, genre_id, original_release_year, track_count, record_type, artist_deezer_id, artist_name, title, cover_xl")
       .in("album_deezer_id", uniqueAlbumIds)
+      .limit(10000)
 
     // genres
     const albumGenreMap = new Map<number, number>()
@@ -174,6 +175,7 @@ export default async function ProfilePage() {
         .from("cached_tracks")
         .select("album_deezer_id")
         .in("album_deezer_id", [...albumEpSet])
+        .limit(10000)
 
       const cachedTrackCountMap = new Map<number, number>()
       for (const t of cachedTracksData ?? []) {
@@ -244,6 +246,7 @@ export default async function ProfilePage() {
         .from("cached_tracks")
         .select("track_deezer_id, album_deezer_id")
         .in("album_deezer_id", ratedAlbumIds)
+        .limit(10000)
 
       const trackRatingMap = new Map<number, number>()
       for (const r of trackRatingsData ?? []) {
@@ -289,8 +292,8 @@ export default async function ProfilePage() {
     const artistDeezerIds = [...new Set((albumData ?? []).map(a => a.artist_deezer_id).filter((id): id is number => !!id))]
     if (artistDeezerIds.length > 0) {
       const [{ data: allArtistAlbums }, { data: cachedArtistsData }] = await Promise.all([
-        supabase.from('cached_albums').select('album_deezer_id, artist_deezer_id').in('artist_deezer_id', artistDeezerIds),
-        supabase.from('cached_artists').select('artist_deezer_id, artist_data').in('artist_deezer_id', artistDeezerIds),
+        supabase.from('cached_albums').select('album_deezer_id, artist_deezer_id').in('artist_deezer_id', artistDeezerIds).limit(10000),
+        supabase.from('cached_artists').select('artist_deezer_id, artist_data').in('artist_deezer_id', artistDeezerIds).limit(1000),
       ])
 
       const listenedAlbumSet = new Set((listenedAlbums ?? []).map(t => t.album_deezer_id).filter(Boolean))
