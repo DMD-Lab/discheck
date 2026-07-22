@@ -44,7 +44,8 @@ export default async function HomePage() {
     supabase
       .from("listened_tracks")
       .select("album_deezer_id, duration_seconds")
-      .eq("user_id", user.id),
+      .eq("user_id", user.id)
+      .limit(10000),
     supabase
       .from("album_ratings")
       .select("*", { count: "exact", head: true })
@@ -72,11 +73,13 @@ export default async function HomePage() {
         supabase
           .from("cached_albums")
           .select("album_deezer_id, title, artist_name, cover_xl, album_data")
-          .in("album_deezer_id", albumIds),
+          .in("album_deezer_id", albumIds)
+          .limit(10000),
         supabase
           .from("cached_tracks")
           .select("track_deezer_id, album_deezer_id")
-          .in("album_deezer_id", albumIds),
+          .in("album_deezer_id", albumIds)
+          .limit(10000),
       ]);
 
     const trackIds = (cachedTracksData ?? []).map((t) => t.track_deezer_id);
@@ -139,14 +142,16 @@ export default async function HomePage() {
   const { data: allTrackRatings } = await supabase
     .from("track_ratings")
     .select("track_deezer_id, rating")
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .limit(10000);
 
   if (allTrackRatings && allTrackRatings.length > 0) {
     const trackIds = allTrackRatings.map((r) => r.track_deezer_id);
     const { data: tracksForArtist } = await supabase
       .from("cached_tracks")
       .select("track_deezer_id, album_deezer_id")
-      .in("track_deezer_id", trackIds);
+      .in("track_deezer_id", trackIds)
+      .limit(10000);
 
     if (tracksForArtist && tracksForArtist.length > 0) {
       const albumIdsForArtist = [...new Set(tracksForArtist.map((t) => t.album_deezer_id))];
@@ -192,7 +197,7 @@ export default async function HomePage() {
             artistDeezerId: artistId,
             name: data.name,
             pictureXl: data.pictureXl,
-            avgRating: Math.round((data.totalRating / data.count) * 100) / 100,
+            avgRating: Math.round((data.totalRating / data.count) * 10) / 10,
             tracksRated: data.count,
           }))
           .filter((a) => a.tracksRated >= 5)

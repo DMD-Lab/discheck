@@ -21,6 +21,7 @@ export default function ArtistsRanking() {
         .from('track_ratings')
         .select('track_deezer_id, rating')
         .eq('user_id', user.id)
+        .limit(10000)
 
       if (!trackRatings || trackRatings.length === 0) { setLoading(false); return }
 
@@ -29,6 +30,7 @@ export default function ArtistsRanking() {
         .from('cached_tracks')
         .select('track_deezer_id, album_deezer_id')
         .in('track_deezer_id', trackIds)
+        .limit(10000)
 
       if (!tracksData || tracksData.length === 0) { setLoading(false); return }
 
@@ -76,7 +78,7 @@ export default function ArtistsRanking() {
           artistDeezerId: artistId,
           name: data.name,
           pictureXl: data.pictureXl,
-          avgRating: Math.round((data.totalRating / data.count) * 100) / 100,
+          avgRating: Math.round((data.totalRating / data.count) * 10) / 10,
           tracksRated: data.count,
         }))
         .filter((a) => a.tracksRated >= 5)

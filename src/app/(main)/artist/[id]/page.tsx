@@ -54,8 +54,8 @@ export default function ArtistPage() {
       if (!user) return
       const albumIds = albums.map(a => a.id)
       Promise.all([
-        supabase.from('listened_tracks').select('track_deezer_id, listened_at, listened_at_user').eq('user_id', user.id),
-        supabase.from('track_ratings').select('track_deezer_id, rating').eq('user_id', user.id),
+        supabase.from('listened_tracks').select('track_deezer_id, listened_at, listened_at_user').eq('user_id', user.id).limit(10000),
+        supabase.from('track_ratings').select('track_deezer_id, rating').eq('user_id', user.id).limit(10000),
         supabase.from('album_ratings').select('album_deezer_id, rating, listened_at_user').eq('user_id', user.id).in('album_deezer_id', albumIds),
         supabase.from('cached_tracks').select('track_deezer_id, album_deezer_id').in('album_deezer_id', albumIds),
       ]).then(([listens, trackRatings, albumRatings, tracks]) => {

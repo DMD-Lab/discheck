@@ -65,6 +65,7 @@ export default async function CollectionPage({
     .from('listened_tracks')
     .select('track_deezer_id, album_deezer_id, listened_at, listened_at_user, duration_seconds')
     .eq('user_id', user.id)
+    .limit(10000)
 
   const listened = (allListened ?? []) as Array<{
     track_deezer_id: number
@@ -127,11 +128,13 @@ export default async function CollectionPage({
       supabase
         .from('cached_tracks')
         .select('track_deezer_id, album_deezer_id, track_data')
-        .in('album_deezer_id', allAlbumIds),
+        .in('album_deezer_id', allAlbumIds)
+        .limit(10000),
       supabase
         .from('cached_albums')
         .select('album_deezer_id, artist_deezer_id, artist_name, title, cover_xl, genre_id, original_release_year')
-        .in('album_deezer_id', allAlbumIds),
+        .in('album_deezer_id', allAlbumIds)
+        .limit(10000),
       supabase.from('cached_genres').select('deezer_id, name'),
     ])
 
@@ -229,8 +232,8 @@ export default async function CollectionPage({
     const artistDeezerIds = [...new Set((albumMeta ?? []).map(a => a.artist_deezer_id).filter((id): id is number => !!id))]
     if (artistDeezerIds.length > 0) {
       const [{ data: allArtistAlbums }, { data: cachedArtistsData }] = await Promise.all([
-        supabase.from('cached_albums').select('album_deezer_id, artist_deezer_id').in('artist_deezer_id', artistDeezerIds),
-        supabase.from('cached_artists').select('artist_deezer_id, artist_data').in('artist_deezer_id', artistDeezerIds),
+        supabase.from('cached_albums').select('album_deezer_id, artist_deezer_id').in('artist_deezer_id', artistDeezerIds).limit(10000),
+        supabase.from('cached_artists').select('artist_deezer_id, artist_data').in('artist_deezer_id', artistDeezerIds).limit(1000),
       ])
 
       const listenedAlbumSet = new Set(allAlbumIds)
