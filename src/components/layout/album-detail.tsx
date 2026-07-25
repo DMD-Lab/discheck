@@ -41,9 +41,10 @@ interface AlbumDetailProps {
   onUncheckAll: (trackIds: number[]) => void
   onSetTrackDate: (trackId: number, date: string | null) => void
   onSetAlbumDate: (date: string | null) => void
+  onSetSingleDate: (mainTrackId: number, date: string | null) => void
 }
 
-export default function AlbumDetail({ album, artistName, listenedIds, ratingMap, albumRating, albumListenedAtUser, listenedDateMap, onToggleTrack, onRateTrack, onRateAlbum, onTracksLoaded, onCheckAll, onUncheckAll, onSetTrackDate, onSetAlbumDate }: AlbumDetailProps) {
+export default function AlbumDetail({ album, artistName, listenedIds, ratingMap, albumRating, albumListenedAtUser, listenedDateMap, onToggleTrack, onRateTrack, onRateAlbum, onTracksLoaded, onCheckAll, onUncheckAll, onSetTrackDate, onSetAlbumDate, onSetSingleDate }: AlbumDetailProps) {
   const [tracks, setTracks] = useState<DeezerTrackResult[]>([])
   const [loadedAlbumId, setLoadedAlbumId] = useState<number | null>(null)
   const [showRatingModal, setShowRatingModal] = useState(false)
@@ -75,8 +76,6 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
     ? (tracks.find(t => t.track_position === 1) ?? tracks[0])
     : undefined
   const singleTrackRating = singleMainTrack ? ratingMap.get(singleMainTrack.id) : undefined
-  const singleTrackDateEntry = singleMainTrack ? listenedDateMap.get(singleMainTrack.id) : undefined
-  const singleEffectiveDate = singleTrackDateEntry ? (singleTrackDateEntry.userDate ?? singleTrackDateEntry.checkDate) : null
 
   useEffect(() => {
     if (loading) return
@@ -110,6 +109,21 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
       .filter((d): d is string => !!d)
     return dates.length > 0 ? dates.sort().pop()! : null
   }, [albumListenedAtUser, allListened, tracks, listenedIds, listenedDateMap])
+
+  // pour un single, la date affichée/pilotée par le widget est celle du track principal — pas un champ séparé
+  const singleMainDateEntry = singleMainTrack ? listenedDateMap.get(singleMainTrack.id) : undefined
+  const singleDate = useMemo(() => {
+    if (!allListened) return null
+    if (singleMainDateEntry?.userDate) return singleMainDateEntry.userDate
+    const dates = tracks
+      .filter(t => listenedIds.has(t.id))
+      .map(t => {
+        const entry = listenedDateMap.get(t.id)
+        return entry ? (entry.userDate ?? entry.checkDate) : null
+      })
+      .filter((d): d is string => !!d)
+    return dates.length > 0 ? dates.sort().pop()! : null
+  }, [allListened, singleMainDateEntry, tracks, listenedIds, listenedDateMap])
 
   function handleRateInModal(rating: number) {
     if (album.record_type === 'single' && singleMainTrack) {
@@ -160,6 +174,15 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
       </div>
 
       {/* Stats area */}
+      {loading && (
+        <div className="px-4 py-3 border-b border-border flex-shrink-0">
+          <div className={`grid ${album.record_type === 'single' ? 'grid-cols-3' : 'grid-cols-4'} gap-2`}>
+            {Array.from({ length: album.record_type === 'single' ? 3 : 4 }).map((_, i) => (
+              <div key={i} className="h-[68px] rounded-xl bg-bg-tertiary animate-pulse" />
+            ))}
+          </div>
+        </div>
+      )}
       {!loading && tracks.length > 0 && (
         <div className="px-4 py-3 border-b border-border flex-shrink-0 flex flex-col gap-2">
 
@@ -194,21 +217,35 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
                 </span>
               </div>
 
-              {/* Date — lecture seule sur single, modifiable via la ligne du track */}
-              <div className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3">
-                <div className="flex items-center gap-1 max-sm:justify-center">
-                  <Calendar size={13} className={`max-sm:w-3 max-sm:h-3 ${singleEffectiveDate ? 'text-text-green' : 'text-text-disabled'}`} />
-                  <span className="text-xs text-text-secondary leading-none max-sm:hidden">Date d&apos;écoute</span>
-                  <span className="text-xs text-text-secondary leading-none hidden max-sm:block">Écouté le</span>
-                </div>
-                <span className={`${textStyles.statSm} ${singleEffectiveDate ? 'text-text-primary' : 'text-text-disabled'}`}>
-                  {singleEffectiveDate ? (
-                    <>
-                      <span className="max-sm:hidden">{formatDateBadge(singleEffectiveDate)}</span>
-                      <span className="hidden max-sm:block">{formatDateBadgeShort(singleEffectiveDate)}</span>
-                    </>
-                  ) : '—'}
-                </span>
+              {/* Date — widget cliquable, même logique que album/EP */}
+              <div className="relative">
+                <button
+                  onClick={() => { if (allListened) setShowAlbumDatePopover(prev => !prev) }}
+                  className={`flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 transition-colors w-full ${allListened ? 'hover:bg-bg-tertiary' : 'pointer-events-none'}`}
+                >
+                  <div className="flex items-center gap-1 max-sm:justify-center">
+                    <Calendar size={13} className={`max-sm:w-3 max-sm:h-3 ${singleDate ? 'text-text-green' : 'text-text-disabled'}`} />
+                    <span className="text-xs text-text-secondary leading-none max-sm:hidden">Date d&apos;écoute</span>
+                    <span className="text-xs text-text-secondary leading-none hidden max-sm:block">Écouté le</span>
+                  </div>
+                  <span className={`${textStyles.statSm} ${singleDate ? 'text-text-primary' : 'text-text-disabled'}`}>
+                    {singleDate ? (
+                      <>
+                        <span className="max-sm:hidden">{formatDateBadge(singleDate)}</span>
+                        <span className="hidden max-sm:block">{formatDateBadgeShort(singleDate)}</span>
+                      </>
+                    ) : '—'}
+                  </span>
+                </button>
+                {showAlbumDatePopover && (
+                  <DatePopover
+                    currentDate={singleDate}
+                    hasUserDate={!!singleMainDateEntry?.userDate}
+                    releaseDate={album.release_date ? `${album.release_date}T00:00:00.000Z` : undefined}
+                    onSetDate={date => { if (singleMainTrack) onSetSingleDate(singleMainTrack.id, date); setShowAlbumDatePopover(false) }}
+                    onClose={() => setShowAlbumDatePopover(false)}
+                  />
+                )}
               </div>
             </div>
 
@@ -315,7 +352,17 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
           </div>
         )}
         {loading && (
-          <p className={`${textStyles.body} text-text-secondary px-5 py-4`}>Chargement...</p>
+          <div className="flex flex-col">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 px-4 py-2.5">
+                <div className="w-5 h-5 rounded-full bg-bg-tertiary animate-pulse flex-shrink-0" />
+                <div className="w-5 h-5 flex-shrink-0" />
+                <div className="flex-1 h-3.5 bg-bg-tertiary rounded animate-pulse" style={{ width: `${55 + (i * 13) % 30}%` }} />
+                <div className="w-8 h-3 bg-bg-tertiary rounded animate-pulse flex-shrink-0" />
+                <div className="w-10 h-5 rounded-full bg-bg-tertiary animate-pulse flex-shrink-0" />
+              </div>
+            ))}
+          </div>
         )}
         {!loading && tracks.map(track => (
           <TrackRow

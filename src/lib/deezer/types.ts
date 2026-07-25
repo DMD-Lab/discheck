@@ -22,6 +22,7 @@ export interface DeezerDiscographyResponse {
 export interface DeezerAlbumResult {
   id: number
   title: string
+  cover_small?: string
   cover_medium: string
   cover_xl: string
   release_date: string

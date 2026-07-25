@@ -43,7 +43,7 @@ export default async function HomePage() {
       .single(),
     supabase
       .from("listened_tracks")
-      .select("album_deezer_id, duration_seconds")
+      .select("track_deezer_id, album_deezer_id")
       .eq("user_id", user.id)
       .limit(10000),
     supabase
@@ -252,9 +252,27 @@ export default async function HomePage() {
     listenedData?.map((t) => t.album_deezer_id).filter(Boolean),
   ).size;
 
+  const listenedTrackIds = (listenedData ?? []).map((t) => t.track_deezer_id);
+  const { data: durationTracksData } =
+    listenedTrackIds.length > 0
+      ? await supabase
+          .from("cached_tracks")
+          .select("track_deezer_id, track_data")
+          .in("track_deezer_id", listenedTrackIds)
+          .limit(10000)
+      : { data: [] };
+
+  const trackDurationMap = new Map<number, number>();
+  for (const t of durationTracksData ?? []) {
+    const data = t.track_data as { duration?: number } | null;
+    if (data?.duration) trackDurationMap.set(t.track_deezer_id, data.duration);
+  }
+
   const heures = Math.round(
-    (listenedData?.reduce((sum, t) => sum + (t.duration_seconds ?? 0), 0) ??
-      0) / 3600,
+    (listenedData?.reduce(
+      (sum, t) => sum + (trackDurationMap.get(t.track_deezer_id) ?? 0),
+      0,
+    ) ?? 0) / 3600,
   );
 
   return (

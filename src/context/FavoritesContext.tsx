@@ -28,7 +28,7 @@ export function FavoritesProvider({ userId, children }: { userId: string; childr
       .select('artist_deezer_id, cached_artists(artist_data)')
       .eq('user_id', userId)
       .order('created_at', { ascending: true })
-      .limit(5)
+      .limit(10)
       .then(({ data }) => {
         if (!data) return
         const artists = (data as unknown as FavoriteRow[])
@@ -48,7 +48,7 @@ export function FavoritesProvider({ userId, children }: { userId: string; childr
       setFavorites(prev => prev.filter(a => a.id !== artist.id))
       setFavoriteIds(prev => { const next = new Set(prev); next.delete(artist.id); return next })
     } else {
-      if (favoriteIds.size >= 5) return
+      if (favoriteIds.size >= 10) return
       await supabase.from('favorite_artists').insert({ user_id: userId, artist_deezer_id: artist.id })
       setFavorites(prev => [...prev, artist])
       setFavoriteIds(prev => new Set(prev).add(artist.id))

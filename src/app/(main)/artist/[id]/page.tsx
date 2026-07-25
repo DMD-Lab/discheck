@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
-import { Music2, CheckCircle2, Activity, Search, X } from 'lucide-react'
+import { Music2, CheckCircle2, Headphones, Search, X } from 'lucide-react'
 import StatCard from '@/components/ui/StatCard'
 import { textStyles } from '@/components/ui/text-styles'
 import type { DeezerArtistResult, DeezerAlbumResult } from '@/lib/deezer/types'
@@ -206,6 +206,32 @@ export default function ArtistPage() {
     })
   }
 
+  async function handleSetSingleDate(albumId: number, mainTrackId: number, date: string | null) {
+    await handleSetTrackDate(mainTrackId, date)
+
+    if (!date) return
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const trackIds = (albumTracksMap.get(albumId) ?? []).filter(id => id !== mainTrackId)
+    const unprotected = trackIds.filter(id => listenedIds.has(id) && !listenedDateMap.get(id)?.userDate)
+    if (unprotected.length > 0) {
+      await supabase.from('listened_tracks')
+        .update({ listened_at: date } as never)
+        .eq('user_id', user.id)
+        .in('track_deezer_id', unprotected)
+      setListenedDateMap(prev => {
+        const next = new Map(prev)
+        unprotected.forEach(id => {
+          const existing = next.get(id)
+          if (existing) next.set(id, { ...existing, checkDate: date })
+        })
+        return next
+      })
+    }
+  }
+
   async function handleSetAlbumDate(albumId: number, date: string | null) {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -245,15 +271,19 @@ export default function ArtistPage() {
 
   let terminées = 0
   let enCours = 0
+  let tracksEcoutes = 0
   albums.forEach(album => {
     const tracks = albumTracksMap.get(album.id) ?? []
     const count = tracks.filter(tid => listenedIds.has(tid)).length
+    tracksEcoutes += count
     if (tracks.length > 0) {
       if (count >= tracks.length) terminées++
       else if (count > 0) enCours++
     }
   })
-  const stats = { terminées, enCours, pct: albums.length > 0 ? Math.round((terminées / albums.length) * 100) : 0 }
+  const progressed = terminées + enCours
+  const rawPct = albums.length > 0 ? Math.round((progressed / albums.length) * 100) : 0
+  const stats = { terminées, enCours, tracksEcoutes, pct: progressed > 0 ? Math.max(1, rawPct) : 0 }
 
   const trackAlbumMap = new Map<number, number>()
   for (const [albumId, tracks] of albumTracksMap.entries()) {
@@ -369,14 +399,14 @@ export default function ArtistPage() {
         <div className="hidden lg:grid grid-cols-3 gap-3 shrink-0 mt-1">
           <StatCard icon={<Music2 size={16} className="text-text-secondary" />} value={albums.length} label="sorties" />
           <StatCard icon={<CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />} value={stats.terminées} label="terminées" />
-          <StatCard icon={<Activity size={16} style={{ color: 'var(--primary)' }} />} value={stats.enCours} label="en cours" />
+          <StatCard icon={<Headphones size={16} style={{ color: 'var(--primary)' }} />} value={stats.tracksEcoutes} label="tracks écoutés" />
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-2 mb-6 lg:hidden">
         <StatCard compact icon={<Music2 size={14} className="text-text-secondary" />} value={albums.length} label="sorties" />
         <StatCard compact icon={<CheckCircle2 size={14} style={{ color: 'var(--primary)' }} />} value={stats.terminées} label="terminées" />
-        <StatCard compact icon={<Activity size={14} style={{ color: 'var(--primary)' }} />} value={stats.enCours} label="en cours" />
+        <StatCard compact icon={<Headphones size={14} style={{ color: 'var(--primary)' }} />} value={stats.tracksEcoutes} label="tracks écoutés" />
       </div>
 
       <div className="flex items-center justify-between gap-3 mb-6 h-9">
@@ -514,6 +544,7 @@ export default function ArtistPage() {
             onUncheckAll={handleUncheckAll}
             onSetTrackDate={handleSetTrackDate}
             onSetAlbumDate={(date) => handleSetAlbumDate(selectedAlbum.id, date)}
+            onSetSingleDate={(mainTrackId, date) => handleSetSingleDate(selectedAlbum.id, mainTrackId, date)}
           />
         )}
       </Panel>

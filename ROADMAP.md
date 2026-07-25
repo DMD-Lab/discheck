@@ -110,6 +110,27 @@
 
 ---
 
+## v1.5 ✅
+
+### Mes artistes
+- Tri alphabétique (remplace le tri par dernière écoute, plus stable et prévisible)
+- Plafond de favoris augmenté de 5 à 10 artistes
+- Correction du scroll de la sidebar (n'apparaît que si la liste dépasse réellement l'espace disponible)
+
+### Recherche & Discographie
+- Correction du pourcentage de progression : une sortie commencée compte désormais dans le calcul (plancher à 1%), même logique entre "Mes artistes" et la discographie
+- Widget "tracks écoutés" à la place de "en cours" sur la page discographie
+- Skeleton de chargement dans le panel de détail d'une sortie (stats + liste des titres)
+- Chargement des pochettes optimisé (variante d'image plus légère + cache serveur allongé), pour limiter l'effet de "vague" sur les grosses discographies
+
+### Lecture & Notation
+- Date d'écoute d'un single éditable depuis le widget, liée directement au track principal (fini les incohérences entre le widget et la ligne du titre)
+
+### Dashboard
+- Correction des heures d'écoute bloquées à 0 sur Accueil et Collection (calcul basé sur la durée réelle des titres)
+
+---
+
 ## v2.0 — Idées
 
 - Feed "Nouveautés" : nouvelles sorties des artistes suivis, triées par date

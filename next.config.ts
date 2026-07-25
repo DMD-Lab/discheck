@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
         hostname: '**.dzcdn.net',
       },
     ],
+    minimumCacheTTL: 2678400,
   },
 }
 

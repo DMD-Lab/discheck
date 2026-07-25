@@ -32,7 +32,9 @@ export default function ArtistsPage() {
         .rpc('get_listened_artists', { p_user_id: user.id })
       type RpcRow = { artist_deezer_id: number; artist_data: DeezerArtistResult }
       const rpcRows = (rpcData ?? []) as RpcRow[]
-      const fetchedArtists = rpcRows.map(r => r.artist_data)
+      const fetchedArtists = rpcRows
+        .map(r => r.artist_data)
+        .sort((a, b) => a.name.trim().localeCompare(b.name.trim()))
       setArtists(fetchedArtists)
       setArtistDbIdMap(new Map(rpcRows.map(r => [r.artist_data.id, r.artist_deezer_id])))
       setLoading(false)
@@ -79,10 +81,10 @@ export default function ArtistsPage() {
             </div>
             {!loading && (
               <span className={`${textStyles.caption} flex items-center gap-1 flex-shrink-0 ${
-                favoriteIds.size >= 5 ? 'text-primary' : 'text-text-disabled'
+                favoriteIds.size >= 10 ? 'text-primary' : 'text-text-disabled'
               }`}>
                 <Star size={11} fill={favoriteIds.size > 0 ? 'currentColor' : 'none'} />
-                {favoriteIds.size}/5 favoris
+                {favoriteIds.size}/10 favoris
               </span>
             )}
           </div>
@@ -132,7 +134,7 @@ export default function ArtistsPage() {
             {artists.map(artist => {
               const progress = progressMap.get(artistDbIdMap.get(artist.id) ?? artist.id)
               const pct = progress && progress.total > 0
-                ? Math.round((progress.listened / progress.total) * 100)
+                ? (progress.listened > 0 ? Math.max(1, Math.round((progress.listened / progress.total) * 100)) : 0)
                 : null
 
               return (
@@ -147,8 +149,8 @@ export default function ArtistsPage() {
                       favoriteIds.has(artist.id)
                         ? 'text-primary'
                         : 'text-text-disabled hover:text-text-secondary'
-                    } ${!favoriteIds.has(artist.id) && favoriteIds.size >= 5 ? 'opacity-30 cursor-not-allowed' : ''}`}
-                    title={favoriteIds.has(artist.id) ? 'Retirer des favoris' : favoriteIds.size >= 5 ? '5 favoris maximum' : 'Ajouter aux favoris'}
+                    } ${!favoriteIds.has(artist.id) && favoriteIds.size >= 10 ? 'opacity-30 cursor-not-allowed' : ''}`}
+                    title={favoriteIds.has(artist.id) ? 'Retirer des favoris' : favoriteIds.size >= 10 ? '10 favoris maximum' : 'Ajouter aux favoris'}
                   >
                     <Star size={14} fill={favoriteIds.has(artist.id) ? 'currentColor' : 'none'} />
                   </button>

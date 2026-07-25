@@ -40,7 +40,7 @@ export default function ReleaseRow({ album, listenedCount, total, rating, onClic
       <div className="relative w-10 h-10 flex-shrink-0">
         {!imgLoaded && <div className="absolute inset-0 rounded bg-bg-tertiary animate-pulse" />}
         <Image
-          src={album.cover_medium}
+          src={album.cover_small ?? album.cover_medium}
           alt={album.title}
           width={40}
           height={40}

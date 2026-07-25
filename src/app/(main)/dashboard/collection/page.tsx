@@ -63,7 +63,7 @@ export default async function CollectionPage({
 
   const { data: allListened } = await supabase
     .from('listened_tracks')
-    .select('track_deezer_id, album_deezer_id, listened_at, listened_at_user, duration_seconds')
+    .select('track_deezer_id, album_deezer_id, listened_at, listened_at_user')
     .eq('user_id', user.id)
     .limit(10000)
 
@@ -72,7 +72,6 @@ export default async function CollectionPage({
     album_deezer_id: number
     listened_at: string
     listened_at_user: string | null
-    duration_seconds: number | null
   }>
 
   const eff = (t: { listened_at: string; listened_at_user: string | null }) =>
@@ -108,6 +107,7 @@ export default async function CollectionPage({
   }
 
   const trackCountMap = new Map<number, number>()
+  const trackDurationMap = new Map<number, number>()
   const artistMap = new Map<number, number | null>()
   const albumGenreMap = new Map<number, number>()
   const genreNameMap = new Map<number, string>()
@@ -142,8 +142,9 @@ export default async function CollectionPage({
     for (const t of cachedTracks ?? []) {
       trackCountMap.set(t.album_deezer_id, (trackCountMap.get(t.album_deezer_id) ?? 0) + 1)
       if (t.track_deezer_id) {
-        const data = t.track_data as { title?: string } | null
+        const data = t.track_data as { title?: string; duration?: number } | null
         trackInfoMap.set(t.track_deezer_id, data?.title ?? '')
+        if (data?.duration) trackDurationMap.set(t.track_deezer_id, data.duration)
       }
     }
     for (const g of allGenres ?? []) {
@@ -323,8 +324,8 @@ export default async function CollectionPage({
 
   const tracksCurrentCount = current.length
   const tracksPrevCount = prev?.length ?? null
-  const secondsCurrent = current.reduce((s, t) => s + (t.duration_seconds ?? 0), 0)
-  const secondsPrev = prev !== null ? prev.reduce((s, t) => s + (t.duration_seconds ?? 0), 0) : null
+  const secondsCurrent = current.reduce((s, t) => s + (trackDurationMap.get(t.track_deezer_id) ?? 0), 0)
+  const secondsPrev = prev !== null ? prev.reduce((s, t) => s + (trackDurationMap.get(t.track_deezer_id) ?? 0), 0) : null
   const minutesCurrent = Math.floor(secondsCurrent / 60)
   const minutesPrev = secondsPrev !== null ? Math.floor(secondsPrev / 60) : null
 

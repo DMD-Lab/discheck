@@ -70,7 +70,7 @@ export default function Sidebar({ pseudo }: SidebarProps) {
         <DischecLogo height={32} />
       </div>
 
-      <nav className="flex-1 px-3 pt-3 flex flex-col gap-1">
+      <nav className="flex-1 min-h-0 overflow-y-auto px-3 pt-3 flex flex-col gap-1">
         {navItems.map(({ href, label, icon: Icon }) => {
           const active = pathname.startsWith(href)
           return (
