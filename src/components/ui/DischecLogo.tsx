@@ -1,6 +1,6 @@
 interface DischecLogoProps {
   height?: number
-  variant?: 'auto' | 'white' | 'dark' | 'primary'
+  variant?: 'auto' | 'white' | 'dark' | 'primary' | 'muted'
   showText?: boolean
   className?: string
 }
@@ -15,6 +15,7 @@ export default function DischecLogo({
     variant === 'white' ? '#FFFFFF'
     : variant === 'dark' ? '#0F0F0F'
     : variant === 'primary' ? 'var(--primary)'
+    : variant === 'muted' ? 'var(--text-secondary)'
     : undefined
 
   return (

@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import Image from 'next/image'
-import { CheckCheck, Headphones, Star, Calendar } from 'lucide-react'
+import { CheckCheck, Headphones, Star, Calendar, Share2 } from 'lucide-react'
 import MarqueeText from '@/components/ui/marquee-text'
 import type { DeezerAlbumResult, DeezerTrackResult } from '@/lib/deezer/types'
 import TrackRow from '@/components/track/TrackRow'
 import AlbumRatingModal from '@/components/ui/AlbumRatingModal'
+import ShareModal from '@/components/album/ShareModal'
 import DatePopover from '@/components/ui/date-popover'
 import { textStyles } from '@/components/ui/text-styles'
 import { RATING_COLORS } from '@/lib/rating-colors'
@@ -48,6 +49,7 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
   const [tracks, setTracks] = useState<DeezerTrackResult[]>([])
   const [loadedAlbumId, setLoadedAlbumId] = useState<number | null>(null)
   const [showRatingModal, setShowRatingModal] = useState(false)
+  const [showShareModal, setShowShareModal] = useState(false)
   const [showAlbumDatePopover, setShowAlbumDatePopover] = useState(false)
   const wasAllListened = useRef<boolean | null>(null)
   const loading = loadedAlbumId !== album.id
@@ -96,6 +98,20 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
     const sum = tracks.reduce((acc, t) => acc + (ratingMap.get(t.id) ?? 0), 0)
     return Math.round((sum / tracks.length) * 10) / 10
   }, [tracks, listenedIds, ratingMap])
+
+  const ratedTracks = useMemo(() =>
+    tracks
+      .filter(t => listenedIds.has(t.id) && ratingMap.has(t.id))
+      .sort((a, b) => a.track_position - b.track_position)
+      .map(t => ({ position: t.track_position, title: t.title, rating: ratingMap.get(t.id)! })),
+    [tracks, listenedIds, ratingMap]
+  )
+
+  // singles are rated on their main track, not the release itself
+  const releaseRating = album.record_type === 'single'
+    ? (singleMainTrack && listenedIds.has(singleMainTrack.id) ? singleTrackRating : undefined)
+    : albumRating
+  const canShare = album.record_type === 'single' ? !!releaseRating : allListened && !!albumRating
 
   const albumUserDate = useMemo(() => {
     if (!allListened) return null
@@ -152,6 +168,14 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
         <div className="absolute inset-0 bg-black/50" />
 
         <div className="relative z-10 p-3 md:p-5 flex gap-3 md:gap-4">
+          {canShare && (
+            <button
+              onClick={() => setShowShareModal(true)}
+              className="absolute top-[52px] right-4 z-20 w-7 h-7 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white transition-colors"
+            >
+              <Share2 size={14} />
+            </button>
+          )}
           <Image
             src={album.cover_xl}
             alt={album.title}
@@ -389,6 +413,18 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
           currentRating={album.record_type === 'single' ? singleTrackRating : albumRating}
           onRate={handleRateInModal}
           onSkip={() => setShowRatingModal(false)}
+        />
+      )}
+
+      {showShareModal && canShare && (
+        <ShareModal
+          album={album}
+          artistName={artistName}
+          tracks={tracks}
+          ratedTracks={ratedTracks}
+          releaseRating={releaseRating}
+          avgRating={avgRating}
+          onClose={() => setShowShareModal(false)}
         />
       )}
     </>

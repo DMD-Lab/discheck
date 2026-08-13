@@ -131,6 +131,16 @@
 
 ---
 
+## v1.6 ✅
+
+### Partage
+- Génération d'une image partageable pour une sortie (pochette, note, titres) depuis le panel de détail
+- Trois modes : note seule, titres favoris (jusqu'à 5, ordre libre), ou liste complète des titres notés
+- Partage natif (Web Share API) ou téléchargement de l'image
+- Disponible uniquement pour une sortie entièrement écoutée et notée (note du titre principal pour un single)
+
+---
+
 ## v2.0 — Idées
 
 - Feed "Nouveautés" : nouvelles sorties des artistes suivis, triées par date

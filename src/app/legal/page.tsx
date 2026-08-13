@@ -108,7 +108,7 @@ export default function LegalPage() {
         </div>
 
         <div className="mt-12 pt-6 border-t border-border flex flex-col items-center gap-1.5">
-          <p className={`${textStyles.caption} text-text-disabled`}>Discheck v1.3.0</p>
+          <p className={`${textStyles.caption} text-text-disabled`}>Discheck v1.6.0</p>
           <Image src="/dmdlab_logo_white.png" alt="DMD Lab" width={1024} height={1024} style={{ width: '80px', height: 'auto' }} className="opacity-40 invert dark:invert-0" />
         </div>
 
