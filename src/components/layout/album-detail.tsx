@@ -217,10 +217,10 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
 
               {/* Écouté */}
               <div
-                className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 transition-colors"
+                className="flex flex-col items-center justify-center gap-1 max-sm:gap-0.5 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 max-sm:py-2 transition-colors"
                 style={allListened ? { borderColor: 'var(--primary)' } : undefined}
               >
-                <div className="flex items-center gap-1 max-sm:justify-center">
+                <div className="flex items-center gap-1 max-sm:flex-col max-sm:gap-0.5">
                   <Headphones size={13} className={`max-sm:w-3 max-sm:h-3 ${listenedCount > 0 ? '' : 'text-text-disabled'}`} style={listenedCount > 0 ? { color: 'var(--primary)' } : undefined} />
                   <span className="text-xs text-text-secondary leading-none max-sm:text-center">Écouté</span>
                 </div>
@@ -230,11 +230,11 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
               </div>
 
               {/* Note attribuée — lecture seule sur single, modifiable via la ligne du track */}
-              <div className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3">
-                <div className="flex items-center gap-1 max-sm:justify-center">
+              <div className="flex flex-col items-center justify-center gap-1 max-sm:gap-0.5 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 max-sm:py-2">
+                <div className="flex items-center gap-1 max-sm:flex-col max-sm:gap-0.5">
                   <Star size={13} className={`max-sm:w-3 max-sm:h-3 ${singleTrackRating ? '' : 'text-text-disabled'}`} style={singleTrackRating ? { color: RATING_COLORS[singleTrackRating], fill: RATING_COLORS[singleTrackRating] } : undefined} />
                   <span className="text-xs text-text-secondary leading-none max-sm:hidden">Note attribuée</span>
-                  <span className="text-xs text-text-secondary leading-none hidden max-sm:block">Ma note</span>
+                  <span className="text-xs text-text-secondary leading-none hidden max-sm:block max-sm:text-center">Ma note</span>
                 </div>
                 <span className={`${textStyles.statSm} ${singleTrackRating ? 'text-text-primary' : 'text-text-disabled'}`}>
                   {singleTrackRating ? `${singleTrackRating},0` : '—'}
@@ -245,12 +245,12 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
               <div className="relative">
                 <button
                   onClick={() => { if (allListened) setShowAlbumDatePopover(prev => !prev) }}
-                  className={`flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 transition-colors w-full ${allListened ? 'hover:bg-bg-tertiary' : 'pointer-events-none'}`}
+                  className={`flex flex-col items-center justify-center gap-1 max-sm:gap-0.5 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 max-sm:py-2 transition-colors w-full ${allListened ? 'hover:bg-bg-tertiary' : 'pointer-events-none'}`}
                 >
-                  <div className="flex items-center gap-1 max-sm:justify-center">
+                  <div className="flex items-center gap-1 max-sm:flex-col max-sm:gap-0.5">
                     <Calendar size={13} className={`max-sm:w-3 max-sm:h-3 ${singleDate ? 'text-text-green' : 'text-text-disabled'}`} />
                     <span className="text-xs text-text-secondary leading-none max-sm:hidden">Date d&apos;écoute</span>
-                    <span className="text-xs text-text-secondary leading-none hidden max-sm:block">Écouté le</span>
+                    <span className="text-xs text-text-secondary leading-none hidden max-sm:block max-sm:text-center">Écouté le</span>
                   </div>
                   <span className={`${textStyles.statSm} ${singleDate ? 'text-text-primary' : 'text-text-disabled'}`}>
                     {singleDate ? (
@@ -280,21 +280,21 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
 
               {/* Écoutés X/X */}
               <div
-                className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 transition-colors"
+                className="flex flex-col items-center justify-center gap-1 max-sm:gap-0.5 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 max-sm:py-2 transition-colors"
                 style={allListened ? { borderColor: 'var(--primary)' } : undefined}
               >
-                <div className="flex items-center gap-1 max-sm:justify-center">
+                <div className="flex items-center gap-1 max-sm:flex-col max-sm:gap-0.5">
                   <Headphones size={13} className={`max-sm:w-3 max-sm:h-3 ${listenedCount > 0 ? '' : 'text-text-disabled'}`} style={listenedCount > 0 ? { color: 'var(--primary)' } : undefined} />
-                  <span className="text-xs text-text-secondary leading-none">Écoutés</span>
+                  <span className="text-xs text-text-secondary leading-none max-sm:text-center">Écoutés</span>
                 </div>
                 <span className={`${textStyles.statSm} ${listenedCount > 0 ? 'text-text-primary' : 'text-text-disabled'}`}>{listenedCount}/{tracks.length}</span>
               </div>
 
               {/* Note moy. tracks */}
-              <div className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3">
-                <div className="flex items-center gap-1 max-sm:justify-center">
+              <div className="flex flex-col items-center justify-center gap-1 max-sm:gap-0.5 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 max-sm:py-2">
+                <div className="flex items-center gap-1 max-sm:flex-col max-sm:gap-0.5">
                   <Star size={13} className={`max-sm:w-3 max-sm:h-3 ${avgRating !== null ? '' : 'text-text-disabled'}`} style={avgRating !== null ? { color: RATING_COLORS[Math.floor(avgRating)], fill: RATING_COLORS[Math.floor(avgRating)] } : undefined} />
-                  <span className="text-xs text-text-secondary leading-none">Note moy.</span>
+                  <span className="text-xs text-text-secondary leading-none max-sm:text-center">Note moy.</span>
                 </div>
                 <span className={`${textStyles.statSm} ${avgRating !== null ? 'text-text-primary' : 'text-text-disabled'}`}>
                   {avgRating !== null ? avgRating.toFixed(1).replace('.', ',') : '—'}
@@ -304,12 +304,12 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
               {/* Note attribuée — clicable uniquement si tous les tracks sont cochés */}
               <button
                 onClick={() => setShowRatingModal(true)}
-                className={`flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 transition-colors w-full ${allListened ? 'hover:bg-bg-tertiary' : 'pointer-events-none'}`}
+                className={`flex flex-col items-center justify-center gap-1 max-sm:gap-0.5 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 max-sm:py-2 transition-colors w-full ${allListened ? 'hover:bg-bg-tertiary' : 'pointer-events-none'}`}
               >
-                <div className="flex items-center gap-1 max-sm:justify-center">
+                <div className="flex items-center gap-1 max-sm:flex-col max-sm:gap-0.5">
                   <Star size={13} className={`max-sm:w-3 max-sm:h-3 ${allListened && albumRating ? '' : 'text-text-disabled'}`} style={allListened && albumRating ? { color: RATING_COLORS[albumRating], fill: RATING_COLORS[albumRating] } : undefined} />
                   <span className="text-xs text-text-secondary leading-none max-sm:hidden">Note attribuée</span>
-                  <span className="text-xs text-text-secondary leading-none hidden max-sm:block">Ma note</span>
+                  <span className="text-xs text-text-secondary leading-none hidden max-sm:block max-sm:text-center">Ma note</span>
                 </div>
                 <span className={`${textStyles.statSm} ${allListened && albumRating ? 'text-text-primary' : 'text-text-disabled'}`}>
                   {allListened && albumRating ? `${albumRating},0` : '—'}
@@ -320,12 +320,12 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
               <div className="relative">
                 <button
                   onClick={() => { if (allListened) setShowAlbumDatePopover(prev => !prev) }}
-                  className={`flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 transition-colors w-full ${allListened ? 'hover:bg-bg-tertiary' : 'pointer-events-none'}`}
+                  className={`flex flex-col items-center justify-center gap-1 max-sm:gap-0.5 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 max-sm:py-2 transition-colors w-full ${allListened ? 'hover:bg-bg-tertiary' : 'pointer-events-none'}`}
                 >
-                  <div className="flex items-center gap-1 max-sm:justify-center">
+                  <div className="flex items-center gap-1 max-sm:flex-col max-sm:gap-0.5">
                     <Calendar size={13} className={`max-sm:w-3 max-sm:h-3 ${albumUserDate ? 'text-text-green' : 'text-text-disabled'}`} />
                     <span className="text-xs text-text-secondary leading-none max-sm:hidden">Date d&apos;écoute</span>
-                    <span className="text-xs text-text-secondary leading-none hidden max-sm:block">Écouté le</span>
+                    <span className="text-xs text-text-secondary leading-none hidden max-sm:block max-sm:text-center">Écouté le</span>
                   </div>
                   <span className={`${textStyles.statSm} ${albumUserDate ? 'text-text-primary' : 'text-text-disabled'}`}>
                     {albumUserDate ? (

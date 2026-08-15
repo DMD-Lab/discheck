@@ -397,14 +397,14 @@ export default function ArtistPage() {
           </p>
         </div>
         <div className="hidden lg:grid grid-cols-3 gap-3 shrink-0 mt-1">
-          <StatCard icon={<Music2 size={16} className="text-text-secondary" />} value={albums.length} label="sorties" />
+          <StatCard icon={<Music2 size={16} style={{ color: 'var(--primary)' }} />} value={albums.length} label="sorties" />
           <StatCard icon={<CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />} value={stats.terminées} label="terminées" />
           <StatCard icon={<Headphones size={16} style={{ color: 'var(--primary)' }} />} value={stats.tracksEcoutes} label="tracks écoutés" />
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-2 mb-6 lg:hidden">
-        <StatCard compact icon={<Music2 size={14} className="text-text-secondary" />} value={albums.length} label="sorties" />
+        <StatCard compact icon={<Music2 size={14} style={{ color: 'var(--primary)' }} />} value={albums.length} label="sorties" />
         <StatCard compact icon={<CheckCircle2 size={14} style={{ color: 'var(--primary)' }} />} value={stats.terminées} label="terminées" />
         <StatCard compact icon={<Headphones size={14} style={{ color: 'var(--primary)' }} />} value={stats.tracksEcoutes} label="tracks écoutés" />
       </div>

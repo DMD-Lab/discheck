@@ -37,9 +37,9 @@ export default function SearchPage() {
   const visibleResults = hasQuery ? results : []
 
   return (
-    <>
-      {/* Fond fixe — hors du flux, couvre tout l'espace main */}
-      <div className="fixed top-0 right-0 bottom-0 left-0 md:left-56 -z-10 overflow-hidden">
+    <div className="fixed top-0 left-0 right-0 bottom-16 md:left-56 md:bottom-0 flex flex-col overflow-hidden">
+      {/* Fond */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
         <Image
           src="/vinyl-bg.png"
           alt=""
@@ -57,10 +57,7 @@ export default function SearchPage() {
         />
       </div>
 
-      {/* Contenu — hérite du max-w du layout */}
-      <div className="max-w-5xl mx-auto w-full flex flex-col flex-1 px-4 py-6 md:px-8 lg:px-16 lg:py-12">
-
-        {/* Search bar */}
+      <div className="flex-shrink-0 max-w-5xl mx-auto w-full px-4 pt-6 pb-4 md:px-8 lg:px-16 lg:pt-12">
         <div className="relative w-full">
           <Search
             size={17}
@@ -83,6 +80,9 @@ export default function SearchPage() {
             </button>
           )}
         </div>
+      </div>
+
+      <div className="flex-1 min-h-0 flex flex-col max-w-5xl mx-auto w-full px-4 pb-6 md:px-8 lg:px-16">
 
         {/* Empty state */}
         {!hasQuery && (
@@ -107,47 +107,49 @@ export default function SearchPage() {
 
         {/* Results */}
         {hasQuery && (
-          <div className="mt-4 w-full">
+          <div className="min-h-0 flex flex-col">
             {loading && (
-              <p className={`${textStyles.body} text-text-secondary mt-1`}>Recherche...</p>
+              <p className={`${textStyles.body} text-text-secondary`}>Recherche...</p>
             )}
 
             {!loading && visibleResults.length > 0 && (
-              <>
-                <p className={`${textStyles.caption} text-text-disabled mb-3`}>
+              <div className="min-h-0 flex flex-col">
+                <p className={`${textStyles.caption} text-text-disabled mb-3 flex-shrink-0`}>
                   {visibleResults.length} résultat{visibleResults.length > 1 ? 's' : ''} pour &laquo;&nbsp;{query.trim()}&nbsp;&raquo;
                 </p>
-                <div className="flex flex-col bg-bg-secondary/80 backdrop-blur-sm border border-border rounded-lg overflow-hidden">
-                  {visibleResults.map((artist, i) => (
-                    <button
-                      key={artist.id}
-                      onClick={() => router.push(`/artist/${artist.id}`)}
-                      className={`flex items-center gap-3 px-4 py-3 hover:bg-bg-tertiary transition-colors text-left w-full ${i < visibleResults.length - 1 ? 'border-b border-border' : ''}`}
-                    >
-                      <Image
-                        src={artist.picture_medium}
-                        alt={artist.name}
-                        width={40}
-                        height={40}
-                        className="rounded-full object-cover flex-shrink-0"
-                      />
-                      <div>
-                        <p className={`${textStyles.body} font-medium text-text-primary`}>{artist.name}</p>
-                      </div>
-                    </button>
-                  ))}
+                <div className="min-h-0 rounded-lg border border-border bg-bg-secondary/80 backdrop-blur-sm overflow-hidden">
+                  <div className="h-full min-h-0 overflow-y-auto flex flex-col">
+                    {visibleResults.map((artist, i) => (
+                      <button
+                        key={artist.id}
+                        onClick={() => router.push(`/artist/${artist.id}`)}
+                        className={`flex items-center gap-3 px-4 py-3 hover:bg-bg-tertiary transition-colors text-left w-full flex-shrink-0 ${i < visibleResults.length - 1 ? 'border-b border-border' : ''}`}
+                      >
+                        <Image
+                          src={artist.picture_medium}
+                          alt={artist.name}
+                          width={40}
+                          height={40}
+                          className="rounded-full object-cover flex-shrink-0"
+                        />
+                        <div>
+                          <p className={`${textStyles.body} font-medium text-text-primary`}>{artist.name}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </>
+              </div>
             )}
 
             {!loading && query.trim() && results.length === 0 && (
-              <p className={`${textStyles.body} text-text-secondary mt-1`}>
+              <p className={`${textStyles.body} text-text-secondary`}>
                 Aucun résultat pour « {query} »
               </p>
             )}
           </div>
         )}
       </div>
-    </>
+    </div>
   )
 }

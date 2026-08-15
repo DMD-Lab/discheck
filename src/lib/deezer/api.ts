@@ -10,10 +10,12 @@ const BASE_URL = 'https://api.deezer.com'
 
 export async function searchArtists(query: string): Promise<DeezerSearchResponse> {
   const res = await fetch(
-    `${BASE_URL}/search/artist?q=${encodeURIComponent(query)}&limit=10`
+    `${BASE_URL}/search/artist?q=${encodeURIComponent(query)}&limit=25`
   )
   if (!res.ok) throw new Error('Deezer search failed')
-  return res.json()
+  const data: DeezerSearchResponse = await res.json()
+  data.data.sort((a, b) => b.nb_fan - a.nb_fan)
+  return data
 }
 
 export async function getArtistDiscography(artistId: number): Promise<DeezerDiscographyResponse> {

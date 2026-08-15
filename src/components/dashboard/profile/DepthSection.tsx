@@ -10,7 +10,7 @@ import Panel from '@/components/ui/panel'
 import type { DepthItem } from '@/lib/insights/depth-insight'
 import { getDepthInsight } from '@/lib/insights/depth-insight'
 
-const COL_ARTIST = 'w-36 md:w-48 flex-shrink-0'
+const COL_ARTIST = 'flex-1 sm:flex-none sm:w-36 md:w-48 sm:flex-shrink-0'
 const COL_COMPLETION = 'w-14 flex-shrink-0'
 const COL_SORTIES = 'w-24 flex-shrink-0 ml-3'
 
@@ -21,7 +21,7 @@ function TableHeader() {
         <span className={`${textStyles.overline} text-text-disabled sm:hidden`}>Artistes</span>
         <span className={`${textStyles.overline} text-text-disabled hidden sm:inline`}>Artistes les plus écoutés</span>
       </div>
-      <div className="flex-1" />
+      <div className="flex-1 hidden sm:block" />
       <div className={`${COL_COMPLETION} text-right`}>
         <span className={`${textStyles.overline} text-text-disabled`}>Complétion</span>
       </div>
@@ -35,7 +35,7 @@ function TableHeader() {
 function ArtistRow({ item }: { item: DepthItem }) {
   return (
     <div className="flex items-center gap-3 py-2.5">
-      <div className="flex-1 sm:flex-none sm:w-36 md:w-48 sm:flex-shrink-0 flex items-center gap-2 min-w-0">
+      <div className={`${COL_ARTIST} flex items-center gap-2 min-w-0`}>
         <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
           <Image src={item.pictureXl} alt={item.name} fill sizes="32px" className="object-cover" />
         </div>
@@ -62,7 +62,7 @@ function ArtistRow({ item }: { item: DepthItem }) {
 function ArtistPanelRow({ item }: { item: DepthItem }) {
   return (
     <div className="flex items-center gap-3 py-2.5">
-      <div className="flex-1 sm:flex-none sm:w-36 md:w-48 sm:flex-shrink-0 flex items-center gap-2 min-w-0">
+      <div className={`${COL_ARTIST} flex items-center gap-2 min-w-0`}>
         <div className="relative w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
           <Image src={item.pictureXl} alt={item.name} fill sizes="36px" className="object-cover" />
         </div>
