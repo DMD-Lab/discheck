@@ -32,20 +32,18 @@ export default async function HomePage() {
 
   const [
     { data: profile },
-    { data: listenedData },
     { count: albumsNotes },
     { count: tracksNotees },
+    { data: homeStats },
+    { data: topAlbumsRaw },
+    { data: topArtistsRaw },
+    { data: favoriteTracksRaw },
   ] = await Promise.all([
     supabase
       .from("profiles")
       .select("pseudo, created_at")
       .eq("id", user.id)
       .single(),
-    supabase
-      .from("listened_tracks")
-      .select("track_deezer_id, album_deezer_id")
-      .eq("user_id", user.id)
-      .limit(10000),
     supabase
       .from("album_ratings")
       .select("*", { count: "exact", head: true })
@@ -54,175 +52,91 @@ export default async function HomePage() {
       .from("track_ratings")
       .select("*", { count: "exact", head: true })
       .eq("user_id", user.id),
+    supabase.rpc("get_home_stats", { p_user_id: user.id }).single(),
+    supabase.rpc("get_top_albums", { p_user_id: user.id, p_limit: 5 }),
+    supabase.rpc("get_top_artists", { p_user_id: user.id, p_limit: 5 }),
+    supabase.rpc("get_favorite_tracks", { p_user_id: user.id, p_limit: 5 }),
   ]);
 
-  // top albums
-  const { data: topAlbumRatings } = await supabase
-    .from("album_ratings")
-    .select("album_deezer_id, rating, rated_at")
-    .eq("user_id", user.id)
-    .order("rating", { ascending: false });
+  type TopAlbumRow = {
+    album_deezer_id: number;
+    album_rating: number;
+    rated_at: string;
+    track_avg: number | null;
+    has_any_track_rating: boolean;
+  };
+  const topAlbumRows = (topAlbumsRaw ?? []) as TopAlbumRow[];
 
+  // top albums
   let topAlbums: TopAlbum[] = [];
 
-  if (topAlbumRatings && topAlbumRatings.length > 0) {
-    const albumIds = topAlbumRatings.map((r) => r.album_deezer_id);
+  if (topAlbumRows.length > 0) {
+    const albumIds = topAlbumRows.map((r) => r.album_deezer_id);
+    const { data: albumsData } = await supabase
+      .from("cached_albums")
+      .select("album_deezer_id, title, artist_name, cover_xl, album_data")
+      .in("album_deezer_id", albumIds);
 
-    const [{ data: albumsData }, { data: cachedTracksData }] =
-      await Promise.all([
-        supabase
-          .from("cached_albums")
-          .select("album_deezer_id, title, artist_name, cover_xl, album_data")
-          .in("album_deezer_id", albumIds)
-          .limit(10000),
-        supabase
-          .from("cached_tracks")
-          .select("track_deezer_id, album_deezer_id")
-          .in("album_deezer_id", albumIds)
-          .limit(10000),
-      ]);
-
-    const trackIds = (cachedTracksData ?? []).map((t) => t.track_deezer_id);
-    const { data: trackRatingsData } =
-      trackIds.length > 0
-        ? await supabase
-            .from("track_ratings")
-            .select("track_deezer_id, rating")
-            .eq("user_id", user.id)
-            .in("track_deezer_id", trackIds)
-        : { data: [] };
-
-    topAlbums = topAlbumRatings.map((r, i) => {
+    topAlbums = topAlbumRows.map((r, i) => {
       const album = (albumsData ?? []).find(
         (a) => a.album_deezer_id === r.album_deezer_id,
       );
       const raw = album?.album_data as { title?: string; cover_xl?: string } | null;
-      const tracks = (cachedTracksData ?? []).filter(
-        (t) => t.album_deezer_id === r.album_deezer_id,
-      );
-      const ratings = (trackRatingsData ?? []).filter((tr) =>
-        tracks.some((t) => t.track_deezer_id === tr.track_deezer_id),
-      );
-      const trackAvg =
-        ratings.length > 0 && ratings.length === tracks.length
-          ? Math.round(
-              (ratings.reduce((s, tr) => s + tr.rating, 0) / ratings.length) *
-                10,
-            ) / 10
-          : null;
       return {
         rank: i + 1,
         albumDeezerId: r.album_deezer_id,
         title: album?.title ?? raw?.title ?? "Album inconnu",
         artistName: album?.artist_name ?? "",
         coverXl: album?.cover_xl ?? raw?.cover_xl ?? "",
-        albumRating: r.rating,
-        trackAvg,
-        hasAnyTrackRating: ratings.length > 0,
+        albumRating: r.album_rating,
+        trackAvg: r.track_avg,
+        hasAnyTrackRating: r.has_any_track_rating,
         ratedAt: r.rated_at,
       };
     });
-
-    topAlbums = topAlbums
-      .sort((a, b) => {
-        if (b.albumRating !== a.albumRating) return b.albumRating - a.albumRating;
-        const aHasAvg = a.trackAvg !== null;
-        const bHasAvg = b.trackAvg !== null;
-        if (aHasAvg !== bHasAvg) return bHasAvg ? 1 : -1;
-        if (aHasAvg && bHasAvg && b.trackAvg! !== a.trackAvg!) return b.trackAvg! - a.trackAvg!;
-        if (a.hasAnyTrackRating !== b.hasAnyTrackRating) return b.hasAnyTrackRating ? 1 : -1;
-        return new Date(b.ratedAt).getTime() - new Date(a.ratedAt).getTime();
-      })
-      .slice(0, 5)
-      .map((a, i) => ({ ...a, rank: i + 1 }));
   }
+
+  type TopArtistRow = {
+    artist_deezer_id: number;
+    tracks_rated: number;
+    avg_rating: number;
+  };
+  const topArtistRows = (topArtistsRaw ?? []) as TopArtistRow[];
 
   // top artistes
   let topArtists: TopArtist[] = [];
-  const { data: allTrackRatings } = await supabase
-    .from("track_ratings")
-    .select("track_deezer_id, rating")
-    .eq("user_id", user.id)
-    .limit(10000);
 
-  if (allTrackRatings && allTrackRatings.length > 0) {
-    const trackIds = allTrackRatings.map((r) => r.track_deezer_id);
-    const { data: tracksForArtist } = await supabase
-      .from("cached_tracks")
-      .select("track_deezer_id, album_deezer_id")
-      .in("track_deezer_id", trackIds)
-      .limit(10000);
+  if (topArtistRows.length > 0) {
+    const artistIds = topArtistRows.map((r) => r.artist_deezer_id);
+    const { data: artistsData } = await supabase
+      .from("cached_artists")
+      .select("artist_deezer_id, artist_data")
+      .in("artist_deezer_id", artistIds);
 
-    if (tracksForArtist && tracksForArtist.length > 0) {
-      const albumIdsForArtist = [...new Set(tracksForArtist.map((t) => t.album_deezer_id))];
-      const { data: albumsForArtist } = await supabase
-        .from("cached_albums")
-        .select("album_deezer_id, artist_deezer_id, artist_name")
-        .in("album_deezer_id", albumIdsForArtist);
-
-      if (albumsForArtist && albumsForArtist.length > 0) {
-        const artistIdsForTop = [...new Set(albumsForArtist.map((a) => a.artist_deezer_id).filter(Boolean))];
-        const { data: artistsForTop } = await supabase
-          .from("cached_artists")
-          .select("artist_deezer_id, artist_data")
-          .in("artist_deezer_id", artistIdsForTop);
-
-        const artistMap = new Map<number, { totalRating: number; count: number; name: string; pictureXl: string }>();
-
-        for (const tr of allTrackRatings) {
-          const track = tracksForArtist.find((t) => t.track_deezer_id === tr.track_deezer_id);
-          if (!track) continue;
-          const album = albumsForArtist.find((a) => a.album_deezer_id === track.album_deezer_id);
-          if (!album?.artist_deezer_id) continue;
-          const artistId = album.artist_deezer_id;
-
-          if (!artistMap.has(artistId)) {
-            const artist = (artistsForTop ?? []).find((a) => a.artist_deezer_id === artistId);
-            const raw = artist?.artist_data as { name?: string; picture_xl?: string } | null;
-            artistMap.set(artistId, {
-              name: album.artist_name ?? raw?.name ?? "",
-              pictureXl: raw?.picture_xl ?? "",
-              totalRating: 0,
-              count: 0,
-            });
-          }
-          const entry = artistMap.get(artistId)!;
-          entry.totalRating += tr.rating;
-          entry.count += 1;
-        }
-
-        topArtists = [...artistMap.entries()]
-          .map(([artistId, data]) => ({
-            rank: 0,
-            artistDeezerId: artistId,
-            name: data.name,
-            pictureXl: data.pictureXl,
-            avgRating: Math.round((data.totalRating / data.count) * 10) / 10,
-            tracksRated: data.count,
-          }))
-          .filter((a) => a.tracksRated >= 5)
-          .sort((a, b) => {
-            if (b.avgRating !== a.avgRating) return b.avgRating - a.avgRating;
-            return b.tracksRated - a.tracksRated;
-          })
-          .slice(0, 5)
-          .map((a, i) => ({ ...a, rank: i + 1 }));
-      }
-    }
+    topArtists = topArtistRows.map((r, i) => {
+      const artist = (artistsData ?? []).find(
+        (a) => a.artist_deezer_id === r.artist_deezer_id,
+      );
+      const raw = artist?.artist_data as { name?: string; picture_xl?: string } | null;
+      return {
+        rank: i + 1,
+        artistDeezerId: r.artist_deezer_id,
+        name: raw?.name ?? "",
+        pictureXl: raw?.picture_xl ?? "",
+        avgRating: r.avg_rating,
+        tracksRated: r.tracks_rated,
+      };
+    });
   }
+
+  type FavoriteTrackRow = { track_deezer_id: number; rated_at: string };
+  const favoriteTrackRows = (favoriteTracksRaw ?? []) as FavoriteTrackRow[];
 
   // tracks 5/5
   let topTracks: TopTrack[] = [];
-  const { data: topTrackRatings } = await supabase
-    .from("track_ratings")
-    .select("track_deezer_id, rated_at")
-    .eq("user_id", user.id)
-    .eq("rating", 5)
-    .order("rated_at", { ascending: false })
-    .limit(5);
 
-  if (topTrackRatings && topTrackRatings.length > 0) {
-    const trackIds = topTrackRatings.map((r) => r.track_deezer_id);
+  if (favoriteTrackRows.length > 0) {
+    const trackIds = favoriteTrackRows.map((r) => r.track_deezer_id);
     const { data: tracksForFav } = await supabase
       .from("cached_tracks")
       .select("track_deezer_id, album_deezer_id, track_data")
@@ -234,7 +148,7 @@ export default async function HomePage() {
       .select("album_deezer_id, artist_name, cover_xl")
       .in("album_deezer_id", albumIdsForFav);
 
-    topTracks = topTrackRatings.map((r) => {
+    topTracks = favoriteTrackRows.map((r) => {
       const track = (tracksForFav ?? []).find((t) => t.track_deezer_id === r.track_deezer_id);
       const album = (albumsForFav ?? []).find((a) => a.album_deezer_id === track?.album_deezer_id);
       const raw = track?.track_data as { title?: string } | null;
@@ -248,32 +162,10 @@ export default async function HomePage() {
     });
   }
 
-  const albumsEcoutes = new Set(
-    listenedData?.map((t) => t.album_deezer_id).filter(Boolean),
-  ).size;
-
-  const listenedTrackIds = (listenedData ?? []).map((t) => t.track_deezer_id);
-  const { data: durationTracksData } =
-    listenedTrackIds.length > 0
-      ? await supabase
-          .from("cached_tracks")
-          .select("track_deezer_id, track_data")
-          .in("track_deezer_id", listenedTrackIds)
-          .limit(10000)
-      : { data: [] };
-
-  const trackDurationMap = new Map<number, number>();
-  for (const t of durationTracksData ?? []) {
-    const data = t.track_data as { duration?: number } | null;
-    if (data?.duration) trackDurationMap.set(t.track_deezer_id, data.duration);
-  }
-
-  const heures = Math.round(
-    (listenedData?.reduce(
-      (sum, t) => sum + (trackDurationMap.get(t.track_deezer_id) ?? 0),
-      0,
-    ) ?? 0) / 3600,
-  );
+  type HomeStatsRow = { albums_listened: number; hours_listened: number };
+  const stats = homeStats as HomeStatsRow | null;
+  const albumsEcoutes = stats?.albums_listened ?? 0;
+  const heures = Math.round(stats?.hours_listened ?? 0);
 
   return (
     <>

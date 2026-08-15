@@ -17,78 +17,34 @@ export default function ArtistsRanking() {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { setLoading(false); return }
 
-      const { data: trackRatings } = await supabase
-        .from('track_ratings')
-        .select('track_deezer_id, rating')
-        .eq('user_id', user.id)
-        .limit(10000)
+      const { data: rpcData } = await supabase
+        .rpc('get_top_artists', { p_user_id: user.id, p_limit: null })
 
-      if (!trackRatings || trackRatings.length === 0) { setLoading(false); return }
+      type TopArtistRow = { artist_deezer_id: number; tracks_rated: number; avg_rating: number }
+      const rows = (rpcData ?? []) as TopArtistRow[]
 
-      const trackIds = trackRatings.map(r => r.track_deezer_id)
-      const { data: tracksData } = await supabase
-        .from('cached_tracks')
-        .select('track_deezer_id, album_deezer_id')
-        .in('track_deezer_id', trackIds)
-        .limit(10000)
+      if (rows.length === 0) { setLoading(false); return }
 
-      if (!tracksData || tracksData.length === 0) { setLoading(false); return }
-
-      const albumIds = [...new Set(tracksData.map(t => t.album_deezer_id))]
-      const { data: albumsData } = await supabase
-        .from('cached_albums')
-        .select('album_deezer_id, artist_deezer_id, artist_name')
-        .in('album_deezer_id', albumIds)
-
-      if (!albumsData || albumsData.length === 0) { setLoading(false); return }
-
-      const artistIds = [...new Set(albumsData.map(a => a.artist_deezer_id).filter(Boolean))]
+      const artistIds = rows.map(r => r.artist_deezer_id)
       const { data: artistsData } = await supabase
         .from('cached_artists')
         .select('artist_deezer_id, artist_data')
         .in('artist_deezer_id', artistIds)
 
-      const artistMap = new Map<number, { totalRating: number; count: number; name: string; pictureXl: string }>()
-
-      for (const tr of trackRatings) {
-        const track = tracksData.find(t => t.track_deezer_id === tr.track_deezer_id)
-        if (!track) continue
-        const album = albumsData.find(a => a.album_deezer_id === track.album_deezer_id)
-        if (!album?.artist_deezer_id) continue
-        const artistId = album.artist_deezer_id
-
-        if (!artistMap.has(artistId)) {
-          const artist = (artistsData ?? []).find(a => a.artist_deezer_id === artistId)
-          const raw = artist?.artist_data as { name?: string; picture_xl?: string } | null
-          artistMap.set(artistId, {
-            name: album.artist_name ?? raw?.name ?? '',
-            pictureXl: raw?.picture_xl ?? '',
-            totalRating: 0,
-            count: 0,
-          })
+      const mapped: TopArtist[] = rows.map((r, i) => {
+        const artist = (artistsData ?? []).find(a => a.artist_deezer_id === r.artist_deezer_id)
+        const raw = artist?.artist_data as { name?: string; picture_xl?: string } | null
+        return {
+          rank: i + 1,
+          artistDeezerId: r.artist_deezer_id,
+          name: raw?.name ?? '',
+          pictureXl: raw?.picture_xl ?? '',
+          avgRating: r.avg_rating,
+          tracksRated: r.tracks_rated,
         }
-        const entry = artistMap.get(artistId)!
-        entry.totalRating += tr.rating
-        entry.count += 1
-      }
+      })
 
-      const sorted: TopArtist[] = [...artistMap.entries()]
-        .map(([artistId, data]) => ({
-          rank: 0,
-          artistDeezerId: artistId,
-          name: data.name,
-          pictureXl: data.pictureXl,
-          avgRating: Math.round((data.totalRating / data.count) * 10) / 10,
-          tracksRated: data.count,
-        }))
-        .filter((a) => a.tracksRated >= 5)
-        .sort((a, b) => {
-          if (b.avgRating !== a.avgRating) return b.avgRating - a.avgRating
-          return b.tracksRated - a.tracksRated
-        })
-        .map((a, i) => ({ ...a, rank: i + 1 }))
-
-      setArtists(sorted)
+      setArtists(mapped)
       setLoading(false)
     })
   }, [])

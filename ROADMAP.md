@@ -141,6 +141,15 @@
 
 ---
 
+## v1.7 ✅
+
+### Dashboard
+- Migration des stats des onglets Accueil, Profil et Collection vers des fonctions Postgres (RPC), pour lever le plafond de 1000 lignes qui faussait silencieusement les chiffres des comptes avec beaucoup de données
+- Correction du classement "Top albums" qui pouvait inclure des sorties sans note attribuée
+- Correction du delta "Autres" (Collection par genre) qui pouvait compter des écoutes à genre non résolu
+
+---
+
 ## v2.0 — Idées
 
 - Feed "Nouveautés" : nouvelles sorties des artistes suivis, triées par date

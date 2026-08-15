@@ -15,14 +15,13 @@ export default function TracksRanking() {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) { setLoading(false); return }
 
-      const { data: ratings } = await supabase
-        .from('track_ratings')
-        .select('track_deezer_id, rated_at')
-        .eq('user_id', user.id)
-        .eq('rating', 5)
-        .order('rated_at', { ascending: false })
+      const { data: rpcData } = await supabase
+        .rpc('get_favorite_tracks', { p_user_id: user.id, p_limit: null })
 
-      if (!ratings || ratings.length === 0) { setLoading(false); return }
+      type FavoriteTrackRow = { track_deezer_id: number; rated_at: string }
+      const ratings = (rpcData ?? []) as FavoriteTrackRow[]
+
+      if (ratings.length === 0) { setLoading(false); return }
 
       const trackIds = ratings.map(r => r.track_deezer_id)
       const { data: tracksData } = await supabase

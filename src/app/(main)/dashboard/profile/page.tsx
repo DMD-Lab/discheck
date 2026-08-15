@@ -62,292 +62,111 @@ export default async function ProfilePage() {
   await refreshGenresIfStale()
 
   const [
-    { data: listenedAlbums },
-    { data: albumRatingsData },
-    { data: trackRatingsData },
+    { data: genreStatsRaw },
+    { data: decadeStatsRaw },
+    { data: listenerStatsRaw },
+    { data: concentrationStatsRaw },
+    { data: critiqueStatsRaw },
+    { data: ecartStatsRaw },
+    { data: depthStatsRaw },
   ] = await Promise.all([
-    supabase.from("listened_tracks").select("album_deezer_id").eq("user_id", user.id).limit(10000),
-    supabase.from("album_ratings").select("rating, album_deezer_id").eq("user_id", user.id).limit(10000),
-    supabase.from("track_ratings").select("rating, track_deezer_id").eq("user_id", user.id).limit(10000),
+    supabase.rpc("get_genre_stats", { p_user_id: user.id }),
+    supabase.rpc("get_decade_stats", { p_user_id: user.id }),
+    supabase.rpc("get_listener_stats", { p_user_id: user.id }).single(),
+    supabase.rpc("get_concentration_stats", { p_user_id: user.id }),
+    supabase.rpc("get_critique_stats", { p_user_id: user.id }),
+    supabase.rpc("get_ecart_stats", { p_user_id: user.id }),
+    supabase.rpc("get_depth_stats", { p_user_id: user.id }),
   ])
 
-  let genreStats: GenreStats[] = []
-  const decadeStats: DecadeStats[] = []
-  let listenerStats: ListenerStats = { albumFull: 0, albumPartial: 0, albumFullPct: 0, albumPartialPct: 0 }
-  let concentrationStats: ConcentrationStats = { top3Pct: 0, totalTracks: 0, totalArtists: 0, top3Artists: [] }
-  const ecartItems: EcartItem[] = []
-  let depthItems: DepthItem[] = []
+  type GenreStatsRow = { genre_id: number; name: string; count: number; percentage: number }
+  const genreStats: GenreStats[] = ((genreStatsRaw ?? []) as GenreStatsRow[]).map((r) => ({
+    genreId: r.genre_id,
+    name: r.name,
+    count: r.count,
+    percentage: r.percentage,
+    color: getGenreColor(r.genre_id),
+  }))
 
-  const uniqueAlbumIds = [
-    ...new Set([
-      ...(listenedAlbums ?? []).map(t => t.album_deezer_id).filter(Boolean),
-      ...(albumRatingsData ?? []).map(r => r.album_deezer_id).filter(Boolean),
-    ]),
-  ]
+  type DecadeStatsRow = { decade: number; count: number; percentage: number }
+  const decadeStats: DecadeStats[] = ((decadeStatsRaw ?? []) as DecadeStatsRow[]).map((r) => ({
+    decade: r.decade,
+    label: decadeLabel(r.decade),
+    count: r.count,
+    percentage: r.percentage,
+  }))
 
-  if (uniqueAlbumIds.length > 0) {
-    const { data: albumData } = await supabase
-      .from("cached_albums")
-      .select("album_deezer_id, genre_id, original_release_year, track_count, record_type, artist_deezer_id, artist_name, title, cover_xl")
-      .in("album_deezer_id", uniqueAlbumIds)
-      .limit(10000)
-
-    // genres
-    const albumGenreMap = new Map<number, number>()
-    for (const a of albumData ?? []) {
-      if (a.genre_id && a.genre_id !== -1) albumGenreMap.set(a.album_deezer_id, a.genre_id)
-    }
-
-    const genreCountMap = new Map<number, number>()
-    for (const track of listenedAlbums ?? []) {
-      const genreId = albumGenreMap.get(track.album_deezer_id)
-      if (genreId) genreCountMap.set(genreId, (genreCountMap.get(genreId) ?? 0) + 1)
-    }
-
-    const genreIds = [...genreCountMap.keys()]
-    if (genreIds.length > 0) {
-      const { data: genreNames } = await supabase
-        .from("cached_genres")
-        .select("deezer_id, name")
-        .in("deezer_id", genreIds)
-
-      const total = [...genreCountMap.values()].reduce((a, b) => a + b, 0)
-
-      genreStats = [...genreCountMap.entries()]
-        .filter(([genreId]) => genreNames?.some((g) => g.deezer_id === genreId))
-        .map(([genreId, count]) => {
-          const genre = genreNames?.find((g) => g.deezer_id === genreId)
-          return {
-            genreId,
-            name: genre!.name,
-            count,
-            percentage: Math.round((count / total) * 100),
-            color: getGenreColor(genreId),
-          }
-        })
-        .sort((a, b) => b.count - a.count)
-    }
-
-    // decades
-    const albumYearMap = new Map<number, number>()
-    for (const a of albumData ?? []) {
-      if (a.original_release_year) albumYearMap.set(a.album_deezer_id, a.original_release_year)
-    }
-
-    const decadeCountMap = new Map<number, number>()
-    for (const track of listenedAlbums ?? []) {
-      const year = albumYearMap.get(track.album_deezer_id)
-      if (!year) continue
-      const decade = Math.floor(year / 10) * 10
-      decadeCountMap.set(decade, (decadeCountMap.get(decade) ?? 0) + 1)
-    }
-
-    if (decadeCountMap.size > 0) {
-      const total = [...decadeCountMap.values()].reduce((a, b) => a + b, 0)
-      const minDecade = Math.min(...decadeCountMap.keys())
-      const maxDecade = 2020
-      for (let d = minDecade; d <= maxDecade; d += 10) {
-        const count = decadeCountMap.get(d) ?? 0
-        decadeStats.push({
-          decade: d,
-          label: decadeLabel(d),
-          count,
-          percentage: count > 0 ? Math.round((count / total) * 100) : 0,
-        })
+  type ListenerStatsRow = { album_full: number; album_partial: number; album_full_pct: number; album_partial_pct: number }
+  const listenerRow = listenerStatsRaw as ListenerStatsRow | null
+  const listenerStats: ListenerStats = listenerRow
+    ? {
+        albumFull: listenerRow.album_full,
+        albumPartial: listenerRow.album_partial,
+        albumFullPct: listenerRow.album_full_pct,
+        albumPartialPct: listenerRow.album_partial_pct,
       }
-    }
+    : { albumFull: 0, albumPartial: 0, albumFullPct: 0, albumPartialPct: 0 }
 
-    // listener stats (albums & EPs uniquement)
-    const albumRecordTypeMap = new Map<number, string>()
-    for (const a of albumData ?? []) {
-      if (a.record_type) albumRecordTypeMap.set(a.album_deezer_id, a.record_type)
-    }
-
-    const albumEpSet = new Set(
-      uniqueAlbumIds.filter(id => {
-        const rt = albumRecordTypeMap.get(id)
-        return rt === 'album' || rt === 'ep'
-      })
-    )
-
-    if (albumEpSet.size > 0) {
-      const { data: cachedTracksData } = await supabase
-        .from("cached_tracks")
-        .select("album_deezer_id")
-        .in("album_deezer_id", [...albumEpSet])
-        .limit(10000)
-
-      const cachedTrackCountMap = new Map<number, number>()
-      for (const t of cachedTracksData ?? []) {
-        cachedTrackCountMap.set(t.album_deezer_id, (cachedTrackCountMap.get(t.album_deezer_id) ?? 0) + 1)
+  type ConcentrationRow = { name: string; pct: number; total_tracks: number; total_artists: number; top3_pct: number }
+  const concentrationRows = (concentrationStatsRaw ?? []) as ConcentrationRow[]
+  const concentrationStats: ConcentrationStats = concentrationRows.length > 0
+    ? {
+        top3Pct: concentrationRows[0].top3_pct,
+        totalTracks: concentrationRows[0].total_tracks,
+        totalArtists: concentrationRows[0].total_artists,
+        top3Artists: concentrationRows.map((r) => ({ name: r.name, pct: r.pct })),
       }
+    : { top3Pct: 0, totalTracks: 0, totalArtists: 0, top3Artists: [] }
 
-      const listenedCountPerAlbum = new Map<number, number>()
-      for (const track of listenedAlbums ?? []) {
-        if (!albumEpSet.has(track.album_deezer_id)) continue
-        listenedCountPerAlbum.set(
-          track.album_deezer_id,
-          (listenedCountPerAlbum.get(track.album_deezer_id) ?? 0) + 1
-        )
-      }
-
-      let albumFull = 0
-      let albumPartial = 0
-      for (const [albumId, listenedCount] of listenedCountPerAlbum) {
-        const totalCount = cachedTrackCountMap.get(albumId)
-        if (!totalCount) continue
-        if (listenedCount >= totalCount) albumFull++
-        else albumPartial++
-      }
-
-      const listenerTotal = albumFull + albumPartial
-      if (listenerTotal > 0) {
-        listenerStats = {
-          albumFull,
-          albumPartial,
-          albumFullPct: Math.round((albumFull / listenerTotal) * 100),
-          albumPartialPct: Math.round((albumPartial / listenerTotal) * 100),
-        }
-      }
-    }
-
-    // concentration
-    const albumArtistMap = new Map<number, { id: number; name: string }>()
-    for (const a of albumData ?? []) {
-      if (a.artist_deezer_id) albumArtistMap.set(a.album_deezer_id, { id: a.artist_deezer_id, name: a.artist_name ?? '' })
-    }
-
-    const artistTrackMap = new Map<number, { name: string; count: number }>()
-    for (const track of listenedAlbums ?? []) {
-      const artist = albumArtistMap.get(track.album_deezer_id)
-      if (!artist) continue
-      const entry = artistTrackMap.get(artist.id)
-      if (entry) entry.count++
-      else artistTrackMap.set(artist.id, { name: artist.name, count: 1 })
-    }
-
-    const totalTracks = [...artistTrackMap.values()].reduce((s, a) => s + a.count, 0)
-    if (totalTracks > 0) {
-      const sorted = [...artistTrackMap.values()].sort((a, b) => b.count - a.count)
-      const top3 = sorted.slice(0, 3)
-      const top3Total = top3.reduce((s, a) => s + a.count, 0)
-      concentrationStats = {
-        top3Pct: Math.round((top3Total / totalTracks) * 100),
-        totalTracks,
-        totalArtists: artistTrackMap.size,
-        top3Artists: top3.map(a => ({ name: a.name, pct: Math.round((a.count / totalTracks) * 100) })),
-      }
-    }
-
-    // ecart
-    const ratedAlbumIds = (albumRatingsData ?? []).map(r => r.album_deezer_id).filter((id): id is number => !!id)
-    if (ratedAlbumIds.length > 0) {
-      const { data: ecartTracksData } = await supabase
-        .from("cached_tracks")
-        .select("track_deezer_id, album_deezer_id")
-        .in("album_deezer_id", ratedAlbumIds)
-        .limit(10000)
-
-      const trackRatingMap = new Map<number, number>()
-      for (const r of trackRatingsData ?? []) {
-        if (r.track_deezer_id) trackRatingMap.set(r.track_deezer_id, r.rating)
-      }
-
-      const cachedTracksByAlbum = new Map<number, number[]>()
-      for (const t of ecartTracksData ?? []) {
-        const arr = cachedTracksByAlbum.get(t.album_deezer_id) ?? []
-        arr.push(t.track_deezer_id)
-        cachedTracksByAlbum.set(t.album_deezer_id, arr)
-      }
-
-      for (const r of albumRatingsData ?? []) {
-        if (!r.album_deezer_id || r.rating == null) continue
-        const trackIds = cachedTracksByAlbum.get(r.album_deezer_id)
-        if (!trackIds || trackIds.length === 0) continue
-
-        const ratings = trackIds.map(id => trackRatingMap.get(id)).filter((v): v is number => v !== undefined)
-        if (ratings.length < trackIds.length) continue
-
-        const trackAvg = Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 100) / 100
-        const diff = Math.round((r.rating - trackAvg) * 100) / 100
-
-        const meta = albumData?.find(a => a.album_deezer_id === r.album_deezer_id)
-        if (!meta?.title || !meta?.cover_xl) continue
-
-        ecartItems.push({
-          albumDeezerId: r.album_deezer_id,
-          title: meta.title,
-          artistName: meta.artist_name ?? '',
-          coverXl: meta.cover_xl,
-          albumRating: r.rating,
-          trackAvg,
-          diff,
-        })
-      }
-
-      ecartItems.sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff))
-    }
-
-    // depth
-    const artistDeezerIds = [...new Set((albumData ?? []).map(a => a.artist_deezer_id).filter((id): id is number => !!id))]
-    if (artistDeezerIds.length > 0) {
-      const [{ data: allArtistAlbums }, { data: cachedArtistsData }] = await Promise.all([
-        supabase.from('cached_albums').select('album_deezer_id, artist_deezer_id').in('artist_deezer_id', artistDeezerIds).limit(10000),
-        supabase.from('cached_artists').select('artist_deezer_id, artist_data').in('artist_deezer_id', artistDeezerIds).limit(1000),
-      ])
-
-      const listenedAlbumSet = new Set((listenedAlbums ?? []).map(t => t.album_deezer_id).filter(Boolean))
-
-      const artistPictureMap = new Map<number, string>()
-      for (const a of cachedArtistsData ?? []) {
-        const raw = a.artist_data as { picture_xl?: string } | null
-        if (raw?.picture_xl) artistPictureMap.set(a.artist_deezer_id, raw.picture_xl)
-      }
-
-      const artistNameMap = new Map<number, string>()
-      for (const a of albumData ?? []) {
-        if (a.artist_deezer_id && a.artist_name && !artistNameMap.has(a.artist_deezer_id)) {
-          artistNameMap.set(a.artist_deezer_id, a.artist_name)
-        }
-      }
-
-      const progressMap = new Map<number, { total: number; listened: number }>()
-      for (const ca of allArtistAlbums ?? []) {
-        if (!ca.artist_deezer_id) continue
-        const current = progressMap.get(ca.artist_deezer_id) ?? { total: 0, listened: 0 }
-        progressMap.set(ca.artist_deezer_id, {
-          total: current.total + 1,
-          listened: current.listened + (listenedAlbumSet.has(ca.album_deezer_id) ? 1 : 0),
-        })
-      }
-
-      depthItems = [...progressMap.entries()]
-        .filter(([, p]) => p.listened > 0)
-        .map(([artistId, p]) => ({
-          artistDeezerId: artistId,
-          name: artistNameMap.get(artistId) ?? '',
-          pictureXl: artistPictureMap.get(artistId) ?? '',
-          listened: p.listened,
-          total: p.total,
-          pct: Math.round((p.listened / p.total) * 100),
-        }))
-        .sort((a, b) => b.pct - a.pct || b.listened - a.listened)
-    }
+  type EcartRow = {
+    album_deezer_id: number
+    title: string
+    artist_name: string
+    cover_xl: string
+    album_rating: number
+    track_avg: number
+    diff: number
   }
+  const ecartItems: EcartItem[] = ((ecartStatsRaw ?? []) as EcartRow[]).map((r) => ({
+    albumDeezerId: r.album_deezer_id,
+    title: r.title,
+    artistName: r.artist_name,
+    coverXl: r.cover_xl,
+    albumRating: r.album_rating,
+    trackAvg: r.track_avg,
+    diff: r.diff,
+  }))
 
-  function computeCritiqueMode(ratings: number[]): CritiqueModeStats {
-    const dist = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } as Record<1 | 2 | 3 | 4 | 5, number>
-    let sum = 0
-    for (const r of ratings) {
-      if (r >= 1 && r <= 5) { dist[r as 1 | 2 | 3 | 4 | 5]++; sum += r }
+  type DepthRow = { artist_deezer_id: number; name: string; picture_xl: string; listened: number; total: number; pct: number }
+  const depthItems: DepthItem[] = ((depthStatsRaw ?? []) as DepthRow[]).map((r) => ({
+    artistDeezerId: r.artist_deezer_id,
+    name: r.name,
+    pictureXl: r.picture_xl,
+    listened: r.listened,
+    total: r.total,
+    pct: r.pct,
+  }))
+
+  type CritiqueRow = {
+    mode: 'albums' | 'tracks'
+    cnt_1: number; cnt_2: number; cnt_3: number; cnt_4: number; cnt_5: number
+    average: number
+    total: number
+  }
+  const critiqueRows = (critiqueStatsRaw ?? []) as CritiqueRow[]
+  function toModeStats(mode: 'albums' | 'tracks'): CritiqueModeStats {
+    const r = critiqueRows.find((row) => row.mode === mode)
+    if (!r) return emptyCritiqueModeStats()
+    return {
+      distribution: { 1: r.cnt_1, 2: r.cnt_2, 3: r.cnt_3, 4: r.cnt_4, 5: r.cnt_5 },
+      average: r.average,
+      total: r.total,
     }
-    const total = dist[1] + dist[2] + dist[3] + dist[4] + dist[5]
-    return { distribution: dist, average: total > 0 ? Math.round((sum / total) * 100) / 100 : 0, total }
   }
 
   const critiqueStats: CritiqueStats = {
-    albums: albumRatingsData?.length ? computeCritiqueMode(albumRatingsData.map(r => r.rating)) : emptyCritiqueModeStats(),
-    tracks: trackRatingsData?.length ? computeCritiqueMode(trackRatingsData.map(r => r.rating)) : emptyCritiqueModeStats(),
+    albums: toModeStats('albums'),
+    tracks: toModeStats('tracks'),
   }
 
   return (

@@ -21,6 +21,7 @@ function EcartCard({ item }: { item: EcartItem }) {
           fill
           sizes="(min-width: 1280px) 20vw, 30vw"
           className="object-cover"
+          priority
         />
       </div>
       <div className="p-3 flex flex-col gap-2">
