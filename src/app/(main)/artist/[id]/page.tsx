@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
-import { Music2, CheckCircle2, Headphones, Search, X } from 'lucide-react'
+import { Music2, CheckCircle2, Headphones, Percent, Search, X } from 'lucide-react'
 import StatCard from '@/components/ui/StatCard'
 import { textStyles } from '@/components/ui/text-styles'
 import type { DeezerArtistResult, DeezerAlbumResult } from '@/lib/deezer/types'
@@ -381,7 +381,7 @@ export default function ArtistPage() {
 
   return (
     <div className="max-w-5xl mx-auto w-full px-4 py-6 md:px-8 lg:px-16 lg:py-12">
-      <div className="flex items-start gap-4 md:gap-6 mb-4 md:mb-8">
+      <div className="flex items-center gap-4 md:gap-6 mb-6">
         <Image
           src={artist.picture_xl}
           alt={artist.name}
@@ -390,23 +390,16 @@ export default function ArtistPage() {
           className="rounded-lg object-cover flex-shrink-0 w-20 h-20 md:w-28 md:h-28"
           priority
         />
-        <div className="flex-1 min-w-0 pt-1">
-          <h1 className={`${textStyles.display} text-text-primary`}>{artist.name}</h1>
-          <p className={`${textStyles.body} text-text-secondary mt-2`}>
-            {albums.length} sortie{albums.length > 1 ? 's' : ''} · {stats.pct}% écouté
-          </p>
-        </div>
-        <div className="hidden lg:grid grid-cols-3 gap-3 shrink-0 mt-1">
-          <StatCard icon={<Music2 size={16} style={{ color: 'var(--primary)' }} />} value={albums.length} label="sorties" />
-          <StatCard icon={<CheckCircle2 size={16} style={{ color: 'var(--primary)' }} />} value={stats.terminées} label="terminées" />
-          <StatCard icon={<Headphones size={16} style={{ color: 'var(--primary)' }} />} value={stats.tracksEcoutes} label="tracks écoutés" />
+        <div className="flex-1 min-w-0 flex flex-col justify-center min-h-[75px] md:min-h-[120px]">
+          <h1 className={`${textStyles.display} text-text-primary break-words`}>{artist.name}</h1>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 mb-6 lg:hidden">
-        <StatCard compact icon={<Music2 size={14} style={{ color: 'var(--primary)' }} />} value={albums.length} label="sorties" />
-        <StatCard compact icon={<CheckCircle2 size={14} style={{ color: 'var(--primary)' }} />} value={stats.terminées} label="terminées" />
-        <StatCard compact icon={<Headphones size={14} style={{ color: 'var(--primary)' }} />} value={stats.tracksEcoutes} label="tracks écoutés" />
+      <div className="grid grid-cols-2 gap-px bg-border rounded-xl overflow-hidden border border-border mb-6 lg:flex lg:gap-0 lg:bg-bg-secondary/50 lg:divide-x lg:divide-border">
+        <StatCard icon={<Music2 size={20} style={{ color: 'var(--primary)' }} />} value={albums.length} label="sorties" />
+        <StatCard icon={<CheckCircle2 size={20} style={{ color: 'var(--primary)' }} />} value={stats.terminées} label="terminées" />
+        <StatCard icon={<Percent size={20} style={{ color: 'var(--primary)' }} />} value={`${stats.pct}%`} label="écouté" />
+        <StatCard icon={<Headphones size={20} style={{ color: 'var(--primary)' }} />} value={stats.tracksEcoutes} label="tracks écoutés" />
       </div>
 
       <div className="flex items-center justify-between gap-3 mb-6 h-9">

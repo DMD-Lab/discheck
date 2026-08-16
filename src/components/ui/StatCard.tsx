@@ -5,24 +5,16 @@ interface StatCardProps {
   icon: ReactNode
   value: string | number
   label: string
-  tooltip?: string
-  compact?: boolean
-  className?: string
 }
 
-export default function StatCard({ icon, value, label, tooltip, compact, className = '' }: StatCardProps) {
+export default function StatCard({ icon, value, label }: StatCardProps) {
   return (
-    <div className={`relative group flex items-center rounded-xl border border-border bg-bg-secondary/50 ${compact ? 'gap-1.5 px-2.5 py-2' : 'gap-3 px-4 py-3'} ${className}`}>
+    <div className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-2 bg-bg-secondary lg:bg-transparent">
       {icon}
-      <div className="min-w-0">
-        <p className="text-text-primary text-base font-bold leading-none">{value}</p>
-        <p className={`${textStyles.caption} text-text-disabled mt-0.5 truncate`}>{label}</p>
+      <div className="flex flex-col items-center w-24 flex-shrink-0">
+        <span className={`${textStyles.statMd} text-text-primary tabular-nums leading-none`}>{value}</span>
+        <span className={`${textStyles.caption} text-text-disabled leading-none mt-0.5`}>{label}</span>
       </div>
-      {tooltip && (
-        <div className={`absolute bottom-full right-0 mb-2 px-2.5 py-1.5 bg-bg-tertiary border border-border rounded-lg ${textStyles.caption} text-text-secondary whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10`}>
-          {tooltip}
-        </div>
-      )}
     </div>
   )
 }

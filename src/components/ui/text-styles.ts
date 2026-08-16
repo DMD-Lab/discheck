@@ -28,6 +28,8 @@ export const textStyles = {
   branding:     'text-xl font-bold tracking-tight',
   /** Chiffre mis en avant — grande taille responsive */
   statLg:       'text-xl font-bold md:text-2xl',
+  /** Chiffre intermédiaire — entre statLg et statSm, widgets compacts */
+  statMd:       'text-base font-bold md:text-lg',
   /** Chiffre secondaire — taille modérée */
   statSm:       'text-sm font-semibold',
 } as const
