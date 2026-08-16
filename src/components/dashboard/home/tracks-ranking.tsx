@@ -16,7 +16,7 @@ export default function TracksRanking() {
       if (!user) { setLoading(false); return }
 
       const { data: rpcData } = await supabase
-        .rpc('get_favorite_tracks', { p_user_id: user.id, p_limit: null })
+        .rpc('get_favorite_tracks', { p_user_id: user.id, p_limit: 100 })
 
       type FavoriteTrackRow = { track_deezer_id: number; rated_at: string }
       const ratings = (rpcData ?? []) as FavoriteTrackRow[]
@@ -59,7 +59,9 @@ export default function TracksRanking() {
         <h2 className={`${textStyles.sectionTitle} text-text-green`}>Tracks Favorites</h2>
         {!loading && (
           <p className={`${textStyles.caption} text-text-secondary mt-1`}>
-            {tracks.length} track{tracks.length > 1 ? 's' : ''} notée{tracks.length > 1 ? 's' : ''} 5/5
+            {tracks.length >= 100
+              ? 'Top 100 tracks notées 5/5'
+              : `${tracks.length} track${tracks.length > 1 ? 's' : ''} notée${tracks.length > 1 ? 's' : ''} 5/5`}
           </p>
         )}
       </div>

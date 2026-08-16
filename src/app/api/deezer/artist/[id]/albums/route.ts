@@ -41,6 +41,12 @@ export async function GET(
 
   const yearMap = new Map<number, number | null>()
 
+  // exclude unreleased albums (deezer pre-release placeholders)
+  if (fresh.data) {
+    const todayStr = today.toISOString().slice(0, 10)
+    fresh.data = fresh.data.filter(album => album.release_date <= todayStr)
+  }
+
   // Dédupliquer par titre — garder l'entrée avec la date la plus ancienne
   if (fresh.data) {
     const seen = new Map<string, typeof fresh.data[0]>()

@@ -18,7 +18,7 @@ export default function ArtistsRanking() {
       if (!user) { setLoading(false); return }
 
       const { data: rpcData } = await supabase
-        .rpc('get_top_artists', { p_user_id: user.id, p_limit: null })
+        .rpc('get_top_artists', { p_user_id: user.id, p_limit: 100 })
 
       type TopArtistRow = { artist_deezer_id: number; tracks_rated: number; avg_rating: number }
       const rows = (rpcData ?? []) as TopArtistRow[]
@@ -55,7 +55,9 @@ export default function ArtistsRanking() {
         <h2 className={`${textStyles.sectionTitle} text-text-green`}>Top Artistes</h2>
         {!loading && (
           <p className={`${textStyles.caption} text-text-secondary mt-1`}>
-            {artists.length} artiste{artists.length > 1 ? 's' : ''} noté{artists.length > 1 ? 's' : ''}
+            {artists.length >= 100
+              ? 'Top 100 artistes notés'
+              : `${artists.length} artiste${artists.length > 1 ? 's' : ''} noté${artists.length > 1 ? 's' : ''}`}
           </p>
         )}
       </div>

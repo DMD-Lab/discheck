@@ -169,6 +169,17 @@
 
 ---
 
+## v1.8.1 ✅
+
+### Recherche & Discographie
+- Filtrage des sorties pas encore officiellement disponibles (albums en pré-sortie chez Deezer, pochette et tracklist incomplètes) — n'apparaissent qu'à leur date de sortie réelle
+
+### App & Technique
+- Correction d'un bug de troncature sur la page artiste (plafond de 1000 lignes Supabase) qui pouvait afficher une note sans coche "écouté" sur les comptes avec beaucoup d'historique
+- Plafond de 100 entrées sur les classements "voir plus" (Top Albums, Top Artistes, Tracks Favorites), pour prévenir la même classe de bug à l'avenir
+
+---
+
 ## v2.0 — Idées
 
 - Feed "Nouveautés" : nouvelles sorties des artistes suivis, triées par date

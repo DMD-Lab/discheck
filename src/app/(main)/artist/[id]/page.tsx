@@ -50,38 +50,46 @@ export default function ArtistPage() {
   useEffect(() => {
     if (albums.length === 0) return
     const supabase = createClient()
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (!user) return
       const albumIds = albums.map(a => a.id)
-      Promise.all([
-        supabase.from('listened_tracks').select('track_deezer_id, listened_at, listened_at_user').eq('user_id', user.id).limit(10000),
-        supabase.from('track_ratings').select('track_deezer_id, rating').eq('user_id', user.id).limit(10000),
+
+      // fetch this artist's track ids first, then scope user-data queries to
+      // them — an unscoped account-wide query risks postgrest's 1000-row cap
+      const { data: tracks } = await supabase
+        .from('cached_tracks')
+        .select('track_deezer_id, album_deezer_id')
+        .in('album_deezer_id', albumIds)
+      const trackIds = tracks && tracks.length > 0 ? tracks.map(t => t.track_deezer_id) : [-1]
+
+      const [listens, trackRatings, albumRatings] = await Promise.all([
+        supabase.from('listened_tracks').select('track_deezer_id, listened_at, listened_at_user').eq('user_id', user.id).in('track_deezer_id', trackIds),
+        supabase.from('track_ratings').select('track_deezer_id, rating').eq('user_id', user.id).in('track_deezer_id', trackIds),
         supabase.from('album_ratings').select('album_deezer_id, rating, listened_at_user').eq('user_id', user.id).in('album_deezer_id', albumIds),
-        supabase.from('cached_tracks').select('track_deezer_id, album_deezer_id').in('album_deezer_id', albumIds),
-      ]).then(([listens, trackRatings, albumRatings, tracks]) => {
-        if (listens.data) {
-          setListenedIds(new Set(listens.data.map(r => r.track_deezer_id)))
-          setListenedDateMap(new Map(listens.data.map(r => {
-            const row = r as { track_deezer_id: number; listened_at: string; listened_at_user: string | null }
-            return [row.track_deezer_id, { userDate: row.listened_at_user ?? null, checkDate: row.listened_at }]
-          })))
-        }
-        if (trackRatings.data) setRatingMap(new Map(trackRatings.data.map(r => [r.track_deezer_id, r.rating])))
-        if (albumRatings.data) {
-          const rows = albumRatings.data as Array<{ album_deezer_id: number; rating: number | null; listened_at_user: string | null }>
-          setAlbumRatingMap(new Map(rows.filter(r => r.rating != null).map(r => [r.album_deezer_id, r.rating!])))
-          setAlbumUserDateMap(new Map(rows.filter(r => r.listened_at_user != null).map(r => [r.album_deezer_id, r.listened_at_user!])))
-        }
-        if (tracks.data) {
-          const map = new Map<number, number[]>()
-          tracks.data.forEach(r => {
-            const list = map.get(r.album_deezer_id) ?? []
-            list.push(r.track_deezer_id)
-            map.set(r.album_deezer_id, list)
-          })
-          setAlbumTracksMap(map)
-        }
-      })
+      ])
+
+      if (listens.data) {
+        setListenedIds(new Set(listens.data.map(r => r.track_deezer_id)))
+        setListenedDateMap(new Map(listens.data.map(r => {
+          const row = r as { track_deezer_id: number; listened_at: string; listened_at_user: string | null }
+          return [row.track_deezer_id, { userDate: row.listened_at_user ?? null, checkDate: row.listened_at }]
+        })))
+      }
+      if (trackRatings.data) setRatingMap(new Map(trackRatings.data.map(r => [r.track_deezer_id, r.rating])))
+      if (albumRatings.data) {
+        const rows = albumRatings.data as Array<{ album_deezer_id: number; rating: number | null; listened_at_user: string | null }>
+        setAlbumRatingMap(new Map(rows.filter(r => r.rating != null).map(r => [r.album_deezer_id, r.rating!])))
+        setAlbumUserDateMap(new Map(rows.filter(r => r.listened_at_user != null).map(r => [r.album_deezer_id, r.listened_at_user!])))
+      }
+      if (tracks) {
+        const map = new Map<number, number[]>()
+        tracks.forEach(r => {
+          const list = map.get(r.album_deezer_id) ?? []
+          list.push(r.track_deezer_id)
+          map.set(r.album_deezer_id, list)
+        })
+        setAlbumTracksMap(map)
+      }
     })
   }, [albums])
 

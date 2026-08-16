@@ -18,7 +18,7 @@ export default function AlbumsRanking() {
       if (!user) { setLoading(false); return }
 
       const { data: rpcData } = await supabase
-        .rpc('get_top_albums', { p_user_id: user.id, p_limit: null })
+        .rpc('get_top_albums', { p_user_id: user.id, p_limit: 100 })
 
       type TopAlbumRow = {
         album_deezer_id: number
@@ -64,7 +64,9 @@ export default function AlbumsRanking() {
         <h2 className={`${textStyles.sectionTitle} text-text-green`}>Tes albums préférés</h2>
         {!loading && (
           <p className={`${textStyles.caption} text-text-secondary mt-1`}>
-            {albums.length} album{albums.length > 1 ? 's' : ''} noté{albums.length > 1 ? 's' : ''}
+            {albums.length >= 100
+              ? 'Top 100 albums notés'
+              : `${albums.length} album${albums.length > 1 ? 's' : ''} noté${albums.length > 1 ? 's' : ''}`}
           </p>
         )}
       </div>
