@@ -317,21 +317,21 @@ export default function ArtistPage() {
     return (
       <div className="relative">
       <div className="max-w-5xl mx-auto w-full px-4 py-6 md:px-8 lg:px-16 lg:py-12">
-        <div className="flex items-start gap-4 md:gap-6 mb-4 md:mb-8">
+        <div className="flex items-center gap-4 md:gap-6 mb-6">
           <div className="w-20 h-20 md:w-28 md:h-28 rounded-lg bg-bg-tertiary animate-pulse flex-shrink-0" />
-          <div className="flex-1 pt-1 space-y-3">
-            <div className="h-8 md:h-10 w-48 md:w-56 bg-bg-tertiary rounded-lg animate-pulse" />
-            <div className="h-3.5 w-36 bg-bg-tertiary rounded animate-pulse" />
-          </div>
-          <div className="hidden lg:flex gap-3 mt-1">
-            {[0, 1, 2].map(i => (
-              <div key={i} className="w-24 h-14 rounded-xl bg-bg-tertiary animate-pulse" />
-            ))}
+          <div className="flex-1 min-h-[75px] md:min-h-[120px] flex flex-col justify-center">
+            <div className="h-8 md:h-12 w-48 md:w-64 bg-bg-tertiary rounded-lg animate-pulse" />
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-2 mb-6 lg:hidden">
-          {[0, 1, 2].map(i => (
-            <div key={i} className="h-10 rounded-xl bg-bg-tertiary animate-pulse" />
+        <div className="grid grid-cols-2 gap-px bg-border rounded-xl overflow-hidden border border-border mb-6 lg:flex lg:gap-0 lg:bg-bg-secondary/50 lg:divide-x lg:divide-border">
+          {[0, 1, 2, 3].map(i => (
+            <div key={i} className="flex-1 flex items-center justify-center gap-1.5 px-2.5 py-2 bg-bg-secondary lg:bg-transparent">
+              <div className="w-5 h-5 rounded-full bg-bg-tertiary animate-pulse flex-shrink-0" />
+              <div className="w-24 flex-shrink-0 flex flex-col items-center gap-1">
+                <div className="h-4 w-8 bg-bg-tertiary rounded animate-pulse" />
+                <div className="h-2.5 w-14 bg-bg-tertiary rounded animate-pulse" />
+              </div>
+            </div>
           ))}
         </div>
         <div className="flex gap-2 mb-6">
