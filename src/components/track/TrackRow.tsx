@@ -31,6 +31,7 @@ interface TrackRowProps {
   releaseDate?: string
   onToggle: () => void
   onRate: (rating: number) => void
+  onRemoveRating?: () => void
   onSetDate?: (date: string | null) => void
 }
 
@@ -45,7 +46,7 @@ function formatDateShort(iso: string): string {
   return `${d[2]}/${d[1]}/${d[0].slice(2)}`
 }
 
-export default function TrackRow({ position, title, duration, trackId, hasPreview, listened, rating, listenedAt, listenedAtUser, releaseDate, onToggle, onRate, onSetDate }: TrackRowProps) {
+export default function TrackRow({ position, title, duration, trackId, hasPreview, listened, rating, listenedAt, listenedAtUser, releaseDate, onToggle, onRate, onRemoveRating, onSetDate }: TrackRowProps) {
   const [showRating, setShowRating] = useState(false)
   const [showDatePopover, setShowDatePopover] = useState(false)
   const [popoverUp, setPopoverUp] = useState(false)
@@ -211,6 +212,16 @@ export default function TrackRow({ position, title, duration, trackId, hasPrevie
                 </button>
               ))}
             </div>
+            {rating && onRemoveRating && (
+              <div className="border-t border-border mt-2 pt-2">
+                <button
+                  onClick={() => { onRemoveRating(); setShowRating(false) }}
+                  className={`${textStyles.caption} text-left px-2 py-1 rounded hover:bg-bg-tertiary transition-colors text-text-secondary hover:text-text-primary w-full`}
+                >
+                  Retirer la note
+                </button>
+              </div>
+            )}
           </div>
         </>
       )}

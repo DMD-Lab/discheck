@@ -127,6 +127,27 @@ export default function ArtistPage() {
     setAlbumRatingMap(prev => new Map(prev).set(albumId, rating))
   }
 
+  async function handleRemoveTrackRating(trackId: number) {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    await supabase.from('track_ratings').delete().eq('user_id', user.id).eq('track_deezer_id', trackId)
+    setRatingMap(prev => { const next = new Map(prev); next.delete(trackId); return next })
+  }
+
+  async function handleRemoveAlbumRating(albumId: number) {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    await supabase.from('album_ratings')
+      .update({ rating: null } as never)
+      .eq('user_id', user.id)
+      .eq('album_deezer_id', albumId)
+    setAlbumRatingMap(prev => { const next = new Map(prev); next.delete(albumId); return next })
+  }
+
   const handleTracksLoaded = useCallback((albumId: number, trackIds: number[]) => {
     setAlbumTracksMap(prev => new Map(prev).set(albumId, trackIds))
   }, [])
@@ -487,7 +508,7 @@ export default function ArtistPage() {
             {groupedByYear.map(({ year, releases }) => (
               <div key={year} className="flex items-start">
                 <span
-                  className={`flex-shrink-0 w-8 lg:w-16 ${textStyles.body} font-semibold text-text-disabled pt-3.5 text-right`}
+                  className={`flex-shrink-0 w-8 lg:w-16 ${textStyles.body} font-semibold leading-none text-text-disabled pt-3.5 text-right`}
                 >
                   {year}
                 </span>
@@ -532,6 +553,8 @@ export default function ArtistPage() {
             onToggleTrack={handleToggleTrack}
             onRateTrack={handleRateTrack}
             onRateAlbum={(rating) => handleRateAlbum(selectedAlbum.id, rating)}
+            onRemoveTrackRating={handleRemoveTrackRating}
+            onRemoveAlbumRating={() => handleRemoveAlbumRating(selectedAlbum.id)}
             onTracksLoaded={handleTracksLoaded}
             onCheckAll={handleCheckAll}
             onUncheckAll={handleUncheckAll}

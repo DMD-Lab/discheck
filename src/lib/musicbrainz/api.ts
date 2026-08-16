@@ -51,10 +51,13 @@ export function matchReleaseYear(
   albumTitle: string,
   releaseGroups: MBReleaseGroup[]
 ): number | null {
+  // keep non-latin chars — ascii-only regex collapsed CJK titles to '', causing false matches
   const normalize = (s: string) =>
-    s.toLowerCase().replace(/[^a-z0-9]/g, '')
+    s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '')
 
   const normalizedTitle = normalize(albumTitle)
+  if (!normalizedTitle) return null
+
   const match = releaseGroups.find(
     rg => normalize(rg.title) === normalizedTitle
   )

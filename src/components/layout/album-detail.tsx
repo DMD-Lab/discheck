@@ -37,6 +37,8 @@ interface AlbumDetailProps {
   onToggleTrack: (trackId: number) => void
   onRateTrack: (trackId: number, rating: number) => void
   onRateAlbum: (rating: number) => void
+  onRemoveTrackRating: (trackId: number) => void
+  onRemoveAlbumRating: () => void
   onTracksLoaded: (albumId: number, trackIds: number[]) => void
   onCheckAll: (trackIds: number[]) => void
   onUncheckAll: (trackIds: number[]) => void
@@ -45,7 +47,7 @@ interface AlbumDetailProps {
   onSetSingleDate: (mainTrackId: number, date: string | null) => void
 }
 
-export default function AlbumDetail({ album, artistName, listenedIds, ratingMap, albumRating, albumListenedAtUser, listenedDateMap, onToggleTrack, onRateTrack, onRateAlbum, onTracksLoaded, onCheckAll, onUncheckAll, onSetTrackDate, onSetAlbumDate, onSetSingleDate }: AlbumDetailProps) {
+export default function AlbumDetail({ album, artistName, listenedIds, ratingMap, albumRating, albumListenedAtUser, listenedDateMap, onToggleTrack, onRateTrack, onRateAlbum, onRemoveTrackRating, onRemoveAlbumRating, onTracksLoaded, onCheckAll, onUncheckAll, onSetTrackDate, onSetAlbumDate, onSetSingleDate }: AlbumDetailProps) {
   const [tracks, setTracks] = useState<DeezerTrackResult[]>([])
   const [loadedAlbumId, setLoadedAlbumId] = useState<number | null>(null)
   const [showRatingModal, setShowRatingModal] = useState(false)
@@ -151,6 +153,15 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
     setShowRatingModal(false)
   }
 
+  function handleRemoveInModal() {
+    if (album.record_type === 'single' && singleMainTrack) {
+      onRemoveTrackRating(singleMainTrack.id)
+    } else {
+      onRemoveAlbumRating()
+    }
+    setShowRatingModal(false)
+  }
+
 
   return (
     <>
@@ -229,8 +240,11 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
                 </span>
               </div>
 
-              {/* Note attribuée — lecture seule sur single, modifiable via la ligne du track */}
-              <div className="flex flex-col items-center justify-center gap-1 max-sm:gap-0.5 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 max-sm:py-2">
+              {/* Note attribuée */}
+              <button
+                onClick={() => setShowRatingModal(true)}
+                className={`flex flex-col items-center justify-center gap-1 max-sm:gap-0.5 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 max-sm:py-2 transition-colors w-full ${allListened ? 'hover:bg-bg-tertiary' : 'pointer-events-none'}`}
+              >
                 <div className="flex items-center gap-1 max-sm:flex-col max-sm:gap-0.5">
                   <Star size={13} className={`max-sm:w-3 max-sm:h-3 ${singleTrackRating ? '' : 'text-text-disabled'}`} style={singleTrackRating ? { color: RATING_COLORS[singleTrackRating], fill: RATING_COLORS[singleTrackRating] } : undefined} />
                   <span className="text-xs text-text-secondary leading-none max-sm:hidden">Note attribuée</span>
@@ -239,7 +253,7 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
                 <span className={`${textStyles.statSm} ${singleTrackRating ? 'text-text-primary' : 'text-text-disabled'}`}>
                   {singleTrackRating ? `${singleTrackRating},0` : '—'}
                 </span>
-              </div>
+              </button>
 
               {/* Date — widget cliquable, même logique que album/EP */}
               <div className="relative">
@@ -403,6 +417,7 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
             releaseDate={album.release_date ? `${album.release_date}T00:00:00.000Z` : undefined}
             onToggle={() => onToggleTrack(track.id)}
             onRate={(r) => onRateTrack(track.id, r)}
+            onRemoveRating={() => onRemoveTrackRating(track.id)}
             onSetDate={(date) => onSetTrackDate(track.id, date)}
           />
         ))}
@@ -412,6 +427,7 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
         <AlbumRatingModal
           currentRating={album.record_type === 'single' ? singleTrackRating : albumRating}
           onRate={handleRateInModal}
+          onRemove={handleRemoveInModal}
           onSkip={() => setShowRatingModal(false)}
         />
       )}

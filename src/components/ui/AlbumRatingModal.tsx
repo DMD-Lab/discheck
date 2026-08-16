@@ -5,10 +5,11 @@ import { RATING_COLORS } from '@/lib/rating-colors'
 interface AlbumRatingModalProps {
   currentRating?: number
   onRate: (rating: number) => void
+  onRemove?: () => void
   onSkip: () => void
 }
 
-export default function AlbumRatingModal({ currentRating, onRate, onSkip }: AlbumRatingModalProps) {
+export default function AlbumRatingModal({ currentRating, onRate, onRemove, onSkip }: AlbumRatingModalProps) {
   return (
     <div
       className="absolute inset-0 z-30 flex items-center justify-center"
@@ -40,6 +41,16 @@ export default function AlbumRatingModal({ currentRating, onRate, onSkip }: Albu
             </button>
           ))}
         </div>
+        {currentRating !== undefined && onRemove && (
+          <div className="border-t border-border mt-2 pt-2">
+            <button
+              onClick={onRemove}
+              className={`${textStyles.caption} text-left px-2 py-1 rounded hover:bg-bg-tertiary transition-colors text-text-secondary hover:text-text-primary w-full`}
+            >
+              Retirer la note
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

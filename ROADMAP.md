@@ -150,6 +150,25 @@
 
 ---
 
+## v1.8 ✅
+
+### Recherche & Discographie
+- Résultats de recherche triés par nombre de fans, pour faire remonter les artistes populaires sur une requête partielle
+- Refonte de la page de recherche : barre de recherche fixe, conteneur de résultats à hauteur dynamique avec défilement interne
+- Refonte du header de la page artiste : nom qui ne déborde plus pour les artistes à nom long, widgets de stats homogènes et plus discrets (icône toujours à distance fixe du texte)
+- Correction de l'alignement de l'année sur la frise chronologique (décalage avec le repère visuel)
+- Skeleton de la page artiste remis en cohérence avec la nouvelle disposition du header et des widgets
+
+### Lecture & Notation
+- Note d'un single modifiable directement depuis son widget dédié, comme pour un album ou un EP
+- Possibilité de retirer une note (titre, album, EP ou single) en cas d'erreur
+- Correction de l'alignement des widgets d'une sortie sur mobile 375px (icône/texte empilés au lieu d'être collés à gauche)
+
+### Divers
+- Correction d'un bug d'attribution d'année (MusicBrainz) qui pouvait assigner la mauvaise année à des sorties au titre écrit en caractères non-latins (chinois, coréen…)
+
+---
+
 ## v2.0 — Idées
 
 - Feed "Nouveautés" : nouvelles sorties des artistes suivis, triées par date
