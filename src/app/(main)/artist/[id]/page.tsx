@@ -54,8 +54,7 @@ export default function ArtistPage() {
       if (!user) return
       const albumIds = albums.map(a => a.id)
 
-      // fetch this artist's track ids first, then scope user-data queries to
-      // them — an unscoped account-wide query risks postgrest's 1000-row cap
+      // avoid postgrest's 1000-row cap
       const { data: tracks } = await supabase
         .from('cached_tracks')
         .select('track_deezer_id, album_deezer_id')
@@ -277,7 +276,7 @@ export default function ArtistPage() {
       return next
     })
 
-    // push date to unlocked tracks
+    // push date to tracks
     if (date) {
       const trackIds = albumTracksMap.get(albumId) ?? []
       const unprotected = trackIds.filter(id => listenedIds.has(id) && !listenedDateMap.get(id)?.userDate)
@@ -298,17 +297,21 @@ export default function ArtistPage() {
     }
   }
 
+  // rating requires full listen
+  const fullyListenedAlbumIds = new Set<number>()
+  albumTracksMap.forEach((tracks, albumId) => {
+    if (tracks.length > 0 && tracks.every(tid => listenedIds.has(tid))) fullyListenedAlbumIds.add(albumId)
+  })
+
   let terminées = 0
   let enCours = 0
   let tracksEcoutes = 0
   albums.forEach(album => {
     const tracks = albumTracksMap.get(album.id) ?? []
-    const count = tracks.filter(tid => listenedIds.has(tid)).length
-    tracksEcoutes += count
-    if (tracks.length > 0) {
-      if (count >= tracks.length) terminées++
-      else if (count > 0) enCours++
-    }
+    tracksEcoutes += tracks.filter(tid => listenedIds.has(tid)).length
+    if (tracks.length === 0) return
+    if (fullyListenedAlbumIds.has(album.id)) terminées++
+    else if (tracks.some(tid => listenedIds.has(tid))) enCours++
   })
   const progressed = terminées + enCours
   const rawPct = albums.length > 0 ? Math.round((progressed / albums.length) * 100) : 0
@@ -320,13 +323,11 @@ export default function ArtistPage() {
   }
 
   const trackAvgMap = new Map<number, number>()
-  albums.forEach(album => {
-    const tracks = albumTracksMap.get(album.id)
-    if (!tracks || tracks.length === 0) return
-    if (!tracks.every(tid => listenedIds.has(tid))) return
+  fullyListenedAlbumIds.forEach(albumId => {
+    const tracks = albumTracksMap.get(albumId)!
     if (!tracks.every(tid => ratingMap.has(tid))) return
     const avg = tracks.reduce((sum, tid) => sum + (ratingMap.get(tid) ?? 0), 0) / tracks.length
-    trackAvgMap.set(album.id, Math.round(avg * 10) / 10)
+    trackAvgMap.set(albumId, Math.round(avg * 10) / 10)
   })
 
   const filteredAlbums = albums
@@ -526,21 +527,20 @@ export default function ArtistPage() {
                 </div>
 
                 <div className="flex-1 min-w-0 flex flex-col">
-                  {releases.map((album, i) => (
-                    <ReleaseRow
-                      key={album.id}
-                      album={album}
-                      total={albumTracksMap.get(album.id)?.length}
-                      listenedCount={
-                        albumTracksMap.has(album.id)
-                          ? (albumTracksMap.get(album.id) ?? []).filter(tid => listenedIds.has(tid)).length
-                          : undefined
-                      }
-                      rating={albumRatingMap.get(album.id) ?? trackAvgMap.get(album.id)}
-                      onClick={() => setSelectedAlbum(album)}
-                      showDivider={i < releases.length - 1}
-                    />
-                  ))}
+                  {releases.map((album, i) => {
+                    const tracks = albumTracksMap.get(album.id)
+                    return (
+                      <ReleaseRow
+                        key={album.id}
+                        album={album}
+                        total={tracks?.length}
+                        listenedCount={tracks?.filter(tid => listenedIds.has(tid)).length}
+                        rating={fullyListenedAlbumIds.has(album.id) ? (albumRatingMap.get(album.id) ?? trackAvgMap.get(album.id)) : undefined}
+                        onClick={() => setSelectedAlbum(album)}
+                        showDivider={i < releases.length - 1}
+                      />
+                    )
+                  })}
                 </div>
               </div>
             ))}

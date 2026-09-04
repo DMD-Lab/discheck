@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAlbumTracks } from '@/lib/deezer/api'
 import { supabaseAdmin } from '@/lib/supabase/admin'
+import type { DeezerTrackResult } from '@/lib/deezer/types'
+
+function sortTracks(tracks: DeezerTrackResult[]): DeezerTrackResult[] {
+  return [...tracks].sort((a, b) =>
+    (a.disk_number - b.disk_number) || (a.track_position - b.track_position)
+  )
+}
 
 export async function GET(
   _req: NextRequest,
@@ -15,12 +22,13 @@ export async function GET(
     .eq('album_deezer_id', albumId)
 
   if (cached && cached.length > 0) {
-    return NextResponse.json({ data: cached.map(r => r.track_data) })
+    return NextResponse.json({ data: sortTracks(cached.map(r => r.track_data as DeezerTrackResult)) })
   }
 
   const fresh = await getAlbumTracks(albumId)
 
   if (fresh.data?.length) {
+    fresh.data = sortTracks(fresh.data)
     await supabaseAdmin
       .from('cached_tracks')
       .insert(

@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { Fragment, useState, useEffect, useRef, useMemo } from 'react'
 import Image from 'next/image'
-import { CheckCheck, Headphones, Star, Calendar, Share2 } from 'lucide-react'
+import { Headphones, Star, Calendar, Share2, Disc3 } from 'lucide-react'
 import MarqueeText from '@/components/ui/marquee-text'
 import type { DeezerAlbumResult, DeezerTrackResult } from '@/lib/deezer/types'
 import TrackRow from '@/components/track/TrackRow'
@@ -24,6 +24,21 @@ function formatDateBadgeShort(isoStr: string): string {
   const day = String(d.getDate()).padStart(2, '0')
   const month = String(d.getMonth() + 1).padStart(2, '0')
   return `${day}/${month}/${String(d.getFullYear()).slice(2)}`
+}
+
+function CheckAllButton({ done, onClick }: { done: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="group flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center transition-colors"
+    >
+      <Disc3
+        size={25}
+        className={`flex-shrink-0 transition-colors ${done ? '' : 'text-text-secondary group-hover:text-primary/40'}`}
+        style={done ? { color: 'var(--primary)' } : undefined}
+      />
+    </button>
+  )
 }
 
 interface AlbumDetailProps {
@@ -109,7 +124,19 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
     [tracks, listenedIds, ratingMap]
   )
 
-  // singles are rated on their main track, not the release itself
+  const discCount = useMemo(() => new Set(tracks.map(t => t.disk_number)).size, [tracks])
+  const discTrackIds = useMemo(() => {
+    const map = new Map<number, number[]>()
+    tracks.forEach(t => map.set(t.disk_number, [...(map.get(t.disk_number) ?? []), t.id]))
+    return map
+  }, [tracks])
+  const discAllListened = useMemo(() => {
+    const map = new Map<number, boolean>()
+    discTrackIds.forEach((ids, disk) => map.set(disk, ids.length > 0 && ids.every(id => listenedIds.has(id))))
+    return map
+  }, [discTrackIds, listenedIds])
+
+  // singles rate main track
   const releaseRating = album.record_type === 'single'
     ? (singleMainTrack && listenedIds.has(singleMainTrack.id) ? singleTrackRating : undefined)
     : albumRating
@@ -128,7 +155,7 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
     return dates.length > 0 ? dates.sort().pop()! : null
   }, [albumListenedAtUser, allListened, tracks, listenedIds, listenedDateMap])
 
-  // pour un single, la date affichée/pilotée par le widget est celle du track principal — pas un champ séparé
+  // single date follows main track
   const singleMainDateEntry = singleMainTrack ? listenedDateMap.get(singleMainTrack.id) : undefined
   const singleDate = useMemo(() => {
     if (!allListened) return null
@@ -369,24 +396,15 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
 
       {/* Track list */}
       <div className="flex-1 overflow-y-auto py-2">
-        {!loading && tracks.length > 1 && (
+        {!loading && discCount <= 1 && tracks.length > 1 && (
           <div className="flex items-center px-4 py-2.5">
-            <button
+            <CheckAllButton
+              done={allListened}
               onClick={() => allListened
                 ? onUncheckAll(tracks.map(t => t.id))
                 : onCheckAll(tracks.map(t => t.id))
               }
-              className="group flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center transition-colors hover:border-primary"
-              style={allListened
-                ? { backgroundColor: 'var(--primary)', borderColor: 'var(--primary)' }
-                : undefined
-              }
-            >
-              {allListened
-                ? <CheckCheck size={9} className="text-white" />
-                : <CheckCheck size={9} className="opacity-0 group-hover:opacity-100 group-hover:text-primary transition-all" />
-              }
-            </button>
+            />
           </div>
         )}
         {loading && (
@@ -402,24 +420,41 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
             ))}
           </div>
         )}
-        {!loading && tracks.map(track => (
-          <TrackRow
-            key={track.id}
-            position={track.track_position}
-            title={track.title}
-            duration={track.duration}
-            trackId={track.id}
-            hasPreview={!!track.preview}
-            listened={listenedIds.has(track.id)}
-            rating={listenedIds.has(track.id) ? ratingMap.get(track.id) : undefined}
-            listenedAt={(() => { const e = listenedDateMap.get(track.id); return e ? (e.userDate ?? e.checkDate) : undefined })()}
-            listenedAtUser={listenedIds.has(track.id) ? (listenedDateMap.get(track.id)?.userDate ?? null) : undefined}
-            releaseDate={album.release_date ? `${album.release_date}T00:00:00.000Z` : undefined}
-            onToggle={() => onToggleTrack(track.id)}
-            onRate={(r) => onRateTrack(track.id, r)}
-            onRemoveRating={() => onRemoveTrackRating(track.id)}
-            onSetDate={(date) => onSetTrackDate(track.id, date)}
-          />
+        {!loading && tracks.map((track, i) => (
+          <Fragment key={track.id}>
+            {discCount > 1 && (i === 0 || track.disk_number !== tracks[i - 1].disk_number) && (
+              <div className={`flex items-center gap-3 px-4 py-2.5 ${i === 0 ? '' : 'mt-2'}`}>
+                <CheckAllButton
+                  done={!!discAllListened.get(track.disk_number)}
+                  onClick={() => {
+                    const ids = discTrackIds.get(track.disk_number) ?? []
+                    if (discAllListened.get(track.disk_number)) onUncheckAll(ids)
+                    else onCheckAll(ids)
+                  }}
+                />
+                <div className="flex-1 h-px bg-border" />
+                <span className={`${textStyles.body} text-text-secondary font-medium flex-shrink-0`}>
+                  Disque {track.disk_number}
+                </span>
+              </div>
+            )}
+            <TrackRow
+              position={track.track_position}
+              title={track.title}
+              duration={track.duration}
+              trackId={track.id}
+              hasPreview={!!track.preview}
+              listened={listenedIds.has(track.id)}
+              rating={listenedIds.has(track.id) ? ratingMap.get(track.id) : undefined}
+              listenedAt={(() => { const e = listenedDateMap.get(track.id); return e ? (e.userDate ?? e.checkDate) : undefined })()}
+              listenedAtUser={listenedIds.has(track.id) ? (listenedDateMap.get(track.id)?.userDate ?? null) : undefined}
+              releaseDate={album.release_date ? `${album.release_date}T00:00:00.000Z` : undefined}
+              onToggle={() => onToggleTrack(track.id)}
+              onRate={(r) => onRateTrack(track.id, r)}
+              onRemoveRating={() => onRemoveTrackRating(track.id)}
+              onSetDate={(date) => onSetTrackDate(track.id, date)}
+            />
+          </Fragment>
         ))}
       </div>
 

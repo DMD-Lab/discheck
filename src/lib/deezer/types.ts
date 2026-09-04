@@ -46,12 +46,15 @@ export interface DeezerGenreResult {
 
 export interface DeezerTracksResponse {
   data: DeezerTrackResult[]
+  total?: number
+  next?: string
 }
 
 export interface DeezerTrackResult {
   id: number
   title: string
   duration: number
+  disk_number: number
   track_position: number
   preview?: string
   contributors: {

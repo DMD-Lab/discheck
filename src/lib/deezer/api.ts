@@ -3,6 +3,7 @@ import type {
   DeezerAlbumResult,
   DeezerDiscographyResponse,
   DeezerTracksResponse,
+  DeezerTrackResult,
   DeezerGenresResponse,
 } from './types'
 
@@ -18,27 +19,35 @@ export async function searchArtists(query: string): Promise<DeezerSearchResponse
   return data
 }
 
-export async function getArtistDiscography(artistId: number): Promise<DeezerDiscographyResponse> {
-  const all: DeezerAlbumResult[] = []
-  let url: string | null = `${BASE_URL}/artist/${artistId}/albums?limit=100`
+async function fetchPaginated<T>(url: string, errorMessage: string): Promise<T[]> {
+  const all: T[] = []
+  let next: string | null = url
 
-  while (url) {
-    const res = await fetch(url)
-    if (!res.ok) throw new Error('Deezer discography fetch failed')
-    const page: DeezerDiscographyResponse = await res.json()
+  while (next) {
+    const res = await fetch(next)
+    if (!res.ok) throw new Error(errorMessage)
+    const page: { data: T[]; next?: string } = await res.json()
     all.push(...page.data)
-    url = page.next ?? null
+    next = page.next ?? null
   }
 
-  return { data: all, total: all.length }
+  return all
+}
+
+export async function getArtistDiscography(artistId: number): Promise<DeezerDiscographyResponse> {
+  const data = await fetchPaginated<DeezerAlbumResult>(
+    `${BASE_URL}/artist/${artistId}/albums?limit=100`,
+    'Deezer discography fetch failed'
+  )
+  return { data, total: data.length }
 }
 
 export async function getAlbumTracks(albumId: number): Promise<DeezerTracksResponse> {
-  const res = await fetch(
-    `${BASE_URL}/album/${albumId}/tracks`
+  const data = await fetchPaginated<DeezerTrackResult>(
+    `${BASE_URL}/album/${albumId}/tracks?limit=100`,
+    'Deezer tracks fetch failed'
   )
-  if (!res.ok) throw new Error('Deezer tracks fetch failed')
-  return res.json()
+  return { data, total: data.length }
 }
 
 export async function getArtist(artistId: number) {
