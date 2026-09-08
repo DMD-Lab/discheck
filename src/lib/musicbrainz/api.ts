@@ -1,4 +1,5 @@
 const BASE_URL = 'https://musicbrainz.org/ws/2'
+const TIMEOUT_MS = 4000
 
 const HEADERS = {
   'User-Agent': 'Discheck/1.0 ( karim.damad.p@hotmail.com )',
@@ -14,7 +15,7 @@ export interface MBReleaseGroup {
 }
 
 async function mbFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, { headers: HEADERS })
+  const res = await fetch(`${BASE_URL}${path}`, { headers: HEADERS, signal: AbortSignal.timeout(TIMEOUT_MS) })
   if (!res.ok) throw new Error(`MusicBrainz error ${res.status}: ${path}`)
   return res.json()
 }

@@ -39,7 +39,7 @@ export default function ShareModal({
   avgRating,
   onClose,
 }: ShareModalProps) {
-  const isSingle = album.record_type === 'single'
+  const isSingle = tracks.length === 1
   const [pseudo, setPseudo] = useState<string | null>(null)
   const [coverDataUrl, setCoverDataUrl] = useState<string | null>(null)
   const [loadedAlbumId, setLoadedAlbumId] = useState(album.id)
@@ -220,7 +220,7 @@ export default function ShareModal({
         </div>
 
         {isSingle ? (
-          // singles only ever share their own rating — no options to configure
+          // one track, one rating — no options to configure
           <div className="flex-1 min-h-0 overflow-y-auto p-4 md:p-5 flex items-center-safe justify-center">
             {renderPreviewImage()}
           </div>

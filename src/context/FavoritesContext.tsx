@@ -8,6 +8,7 @@ interface FavoritesContextValue {
   favorites: DeezerArtistResult[]
   favoriteIds: Set<number>
   toggleFavorite: (artist: DeezerArtistResult) => Promise<void>
+  updateFavorite: (artist: DeezerArtistResult) => void
 }
 
 interface FavoriteRow {
@@ -55,8 +56,12 @@ export function FavoritesProvider({ userId, children }: { userId: string; childr
     }
   }, [userId, favoriteIds])
 
+  const updateFavorite = useCallback((artist: DeezerArtistResult) => {
+    setFavorites(prev => prev.map(a => a.id === artist.id ? artist : a))
+  }, [])
+
   return (
-    <FavoritesContext.Provider value={{ favorites, favoriteIds, toggleFavorite }}>
+    <FavoritesContext.Provider value={{ favorites, favoriteIds, toggleFavorite, updateFavorite }}>
       {children}
     </FavoritesContext.Provider>
   )

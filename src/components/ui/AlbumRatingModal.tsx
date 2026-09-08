@@ -14,10 +14,14 @@ export default function AlbumRatingModal({ currentRating, onRate, onRemove, onSk
     <div
       className="absolute inset-0 z-30 flex items-center justify-center"
       style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+      onClick={onSkip}
     >
-      <div className="bg-bg-secondary border border-border rounded-lg p-2 shadow-lg">
-        <div className="flex items-center justify-between mb-1.5">
-          <p className={`${textStyles.caption} text-text-disabled`}>Noter cet album</p>
+      <div
+        className="bg-bg-secondary border border-border rounded-lg p-3 shadow-lg"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <p className={`${textStyles.caption} text-text-green`}>Noter cette sortie</p>
           <button
             onClick={onSkip}
             className="text-text-disabled hover:text-text-primary transition-colors ml-3"

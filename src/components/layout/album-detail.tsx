@@ -2,7 +2,8 @@
 
 import { Fragment, useState, useEffect, useRef, useMemo } from 'react'
 import Image from 'next/image'
-import { Headphones, Star, Calendar, Share2, Disc3 } from 'lucide-react'
+import gsap from 'gsap'
+import { Headphones, Star, Calendar, Share2, CheckCheck, Disc3 } from 'lucide-react'
 import MarqueeText from '@/components/ui/marquee-text'
 import type { DeezerAlbumResult, DeezerTrackResult } from '@/lib/deezer/types'
 import TrackRow from '@/components/track/TrackRow'
@@ -27,17 +28,50 @@ function formatDateBadgeShort(isoStr: string): string {
 }
 
 function CheckAllButton({ done, onClick }: { done: boolean; onClick: () => void }) {
+  const iconRef = useRef<SVGSVGElement>(null)
+  const ringRef = useRef<HTMLSpanElement>(null)
+  const wasDone = useRef<boolean | null>(null)
+
+  useEffect(() => {
+    const prev = wasDone.current
+    wasDone.current = done
+    if (prev !== false || !done) return
+
+    const ctx = gsap.context(() => {
+      gsap.set(ringRef.current, { scale: 0.4, opacity: 0.6 })
+      gsap.timeline()
+        .to(iconRef.current, { scale: 1.3, duration: 0.18, ease: 'power2.out' }, 0)
+        .to(iconRef.current, { scale: 1, duration: 0.3, ease: 'back.out(2.5)' }, 0.18)
+        .to(ringRef.current, { scale: 1.8, opacity: 0, duration: 0.5, ease: 'power1.out' }, 0)
+    })
+    return () => ctx.revert()
+  }, [done])
+
   return (
-    <button
-      onClick={onClick}
-      className="group flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center transition-colors"
-    >
-      <Disc3
-        size={25}
-        className={`flex-shrink-0 transition-colors ${done ? '' : 'text-text-secondary group-hover:text-primary/40'}`}
-        style={done ? { color: 'var(--primary)' } : undefined}
-      />
-    </button>
+    <div className="inline-flex items-center gap-2">
+      <button
+        onClick={onClick}
+        className="peer group/cd relative flex-shrink-0 w-5 h-5 rounded-full border border-border flex items-center justify-center transition-colors hover:border-primary"
+        style={done ? { backgroundColor: 'var(--primary)', borderColor: 'var(--primary)' } : undefined}
+      >
+        <span
+          ref={ringRef}
+          className="absolute inset-0 rounded-full pointer-events-none"
+          style={{ backgroundColor: 'var(--primary)', opacity: 0 }}
+        />
+        <CheckCheck
+          ref={iconRef}
+          size={9}
+          className={`relative ${done ? 'text-white' : 'opacity-0 group-hover/cd:opacity-100 group-hover/cd:text-primary'}`}
+        />
+      </button>
+      <span
+        className={`${textStyles.caption} text-primary whitespace-nowrap select-none pointer-events-none [clip-path:inset(0_100%_0_0)] peer-hover:[clip-path:inset(0_0%_0_0)]`}
+        style={{ transition: 'clip-path 0.1s ease-out' }}
+      >
+        {done ? 'Tout décocher' : 'Tout cocher'}
+      </span>
+    </div>
   )
 }
 
@@ -91,22 +125,21 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
   })()
   const listenedCount = tracks.filter(t => listenedIds.has(t.id)).length
   const allListened = tracks.length > 0 && listenedCount === tracks.length
-  const singleMainTrack = album.record_type === 'single'
-    ? (tracks.find(t => t.track_position === 1) ?? tracks[0])
-    : undefined
-  const singleTrackRating = singleMainTrack ? ratingMap.get(singleMainTrack.id) : undefined
+  const isSingleTrack = tracks.length === 1
+  const singleTrack = isSingleTrack ? tracks[0] : undefined
+  const singleTrackRating = singleTrack ? ratingMap.get(singleTrack.id) : undefined
 
   useEffect(() => {
     if (loading) return
     const prev = wasAllListened.current
     wasAllListened.current = allListened
     if (prev === false && allListened) {
-      const type = album.record_type
-      if ((type === 'album' || type === 'ep') && !albumRating) {
-        setTimeout(() => setShowRatingModal(true), 0)
+      if (!isSingleTrack && !albumRating) {
+        // wait for the CD completion animation to settle first
+        setTimeout(() => setShowRatingModal(true), 550)
       }
     }
-  }, [allListened, loading, album.record_type, albumRating])
+  }, [allListened, loading, isSingleTrack, albumRating])
 
   const avgRating = useMemo(() => {
     if (tracks.length === 0) return null
@@ -136,11 +169,10 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
     return map
   }, [discTrackIds, listenedIds])
 
-  // singles rate main track
-  const releaseRating = album.record_type === 'single'
-    ? (singleMainTrack && listenedIds.has(singleMainTrack.id) ? singleTrackRating : undefined)
+  const releaseRating = isSingleTrack
+    ? (singleTrack && listenedIds.has(singleTrack.id) ? singleTrackRating : undefined)
     : albumRating
-  const canShare = album.record_type === 'single' ? !!releaseRating : allListened && !!albumRating
+  const canShare = isSingleTrack ? !!releaseRating : allListened && !!albumRating
 
   const albumUserDate = useMemo(() => {
     if (!allListened) return null
@@ -155,8 +187,7 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
     return dates.length > 0 ? dates.sort().pop()! : null
   }, [albumListenedAtUser, allListened, tracks, listenedIds, listenedDateMap])
 
-  // single date follows main track
-  const singleMainDateEntry = singleMainTrack ? listenedDateMap.get(singleMainTrack.id) : undefined
+  const singleMainDateEntry = singleTrack ? listenedDateMap.get(singleTrack.id) : undefined
   const singleDate = useMemo(() => {
     if (!allListened) return null
     if (singleMainDateEntry?.userDate) return singleMainDateEntry.userDate
@@ -171,9 +202,9 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
   }, [allListened, singleMainDateEntry, tracks, listenedIds, listenedDateMap])
 
   function handleRateInModal(rating: number) {
-    if (album.record_type === 'single' && singleMainTrack) {
-      if (!listenedIds.has(singleMainTrack.id)) onToggleTrack(singleMainTrack.id)
-      onRateTrack(singleMainTrack.id, rating)
+    if (isSingleTrack && singleTrack) {
+      if (!listenedIds.has(singleTrack.id)) onToggleTrack(singleTrack.id)
+      onRateTrack(singleTrack.id, rating)
     } else {
       onRateAlbum(rating)
     }
@@ -181,8 +212,8 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
   }
 
   function handleRemoveInModal() {
-    if (album.record_type === 'single' && singleMainTrack) {
-      onRemoveTrackRating(singleMainTrack.id)
+    if (isSingleTrack && singleTrack) {
+      onRemoveTrackRating(singleTrack.id)
     } else {
       onRemoveAlbumRating()
     }
@@ -248,9 +279,9 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
       {!loading && tracks.length > 0 && (
         <div className="px-4 py-3 border-b border-border flex-shrink-0 flex flex-col gap-2">
 
-          {album.record_type === 'single' ? (
+          {isSingleTrack ? (
 
-            /* 3 widgets pour les singles */
+            /* 3 widgets */
             <div className="grid grid-cols-3 gap-2">
 
               {/* Écouté */}
@@ -307,7 +338,7 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
                     currentDate={singleDate}
                     hasUserDate={!!singleMainDateEntry?.userDate}
                     releaseDate={album.release_date ? `${album.release_date}T00:00:00.000Z` : undefined}
-                    onSetDate={date => { if (singleMainTrack) onSetSingleDate(singleMainTrack.id, date); setShowAlbumDatePopover(false) }}
+                    onSetDate={date => { if (singleTrack) onSetSingleDate(singleTrack.id, date); setShowAlbumDatePopover(false) }}
                     onClose={() => setShowAlbumDatePopover(false)}
                   />
                 )}
@@ -316,7 +347,7 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
 
           ) : (
 
-            /* 4 widgets pour albums et EPs */
+            /* 4 widgets */
             <div className="grid grid-cols-4 gap-2">
 
               {/* Écoutés X/X */}
@@ -395,7 +426,7 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
       )}
 
       {/* Track list */}
-      <div className="flex-1 overflow-y-auto py-2">
+      <div className="flex-1 overflow-y-auto">
         {!loading && discCount <= 1 && tracks.length > 1 && (
           <div className="flex items-center px-4 py-2.5">
             <CheckAllButton
@@ -423,20 +454,29 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
         {!loading && tracks.map((track, i) => (
           <Fragment key={track.id}>
             {discCount > 1 && (i === 0 || track.disk_number !== tracks[i - 1].disk_number) && (
-              <div className={`flex items-center gap-3 px-4 py-2.5 ${i === 0 ? '' : 'mt-2'}`}>
-                <CheckAllButton
-                  done={!!discAllListened.get(track.disk_number)}
-                  onClick={() => {
-                    const ids = discTrackIds.get(track.disk_number) ?? []
-                    if (discAllListened.get(track.disk_number)) onUncheckAll(ids)
-                    else onCheckAll(ids)
-                  }}
-                />
-                <div className="flex-1 h-px bg-border" />
-                <span className={`${textStyles.body} text-text-secondary font-medium flex-shrink-0`}>
-                  Disque {track.disk_number}
-                </span>
-              </div>
+              <>
+                <div className={`flex items-center justify-between px-4 py-2.5 ${i === 0 ? '' : 'mt-2 pt-4 border-t border-border'}`}>
+                  <div className="flex items-center gap-2">
+                    <Disc3 size={25} className="text-text-green" />
+                    <span className={`${textStyles.cardTitle} text-text-green font-medium`}>
+                      Disque {track.disk_number}
+                    </span>
+                  </div>
+                  <span className={`${textStyles.caption} text-text-disabled`}>
+                    {discTrackIds.get(track.disk_number)?.length ?? 0} titres
+                  </span>
+                </div>
+                <div className="px-4 py-2.5">
+                  <CheckAllButton
+                    done={!!discAllListened.get(track.disk_number)}
+                    onClick={() => {
+                      const ids = discTrackIds.get(track.disk_number) ?? []
+                      if (discAllListened.get(track.disk_number)) onUncheckAll(ids)
+                      else onCheckAll(ids)
+                    }}
+                  />
+                </div>
+              </>
             )}
             <TrackRow
               position={track.track_position}
@@ -460,7 +500,7 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
 
       {showRatingModal && (
         <AlbumRatingModal
-          currentRating={album.record_type === 'single' ? singleTrackRating : albumRating}
+          currentRating={isSingleTrack ? singleTrackRating : albumRating}
           onRate={handleRateInModal}
           onRemove={handleRemoveInModal}
           onSkip={() => setShowRatingModal(false)}

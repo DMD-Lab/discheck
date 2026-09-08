@@ -82,7 +82,7 @@ export async function GET(
           })
         }
       } catch {
-        // MusicBrainz indisponible — on continue avec les données Deezer
+        // MusicBrainz indisponible (ou timeout, cf. TIMEOUT_MS) — on continue avec les données Deezer
       }
     }
 

@@ -12,11 +12,13 @@ import Panel from '@/components/ui/panel'
 import AlbumDetail from '@/components/layout/album-detail'
 import { createClient } from '@/lib/supabase/client'
 import DischecLoader from '@/components/ui/DischecLoader'
+import { useFavorites } from '@/context/FavoritesContext'
 
 type Filter = 'all' | 'album' | 'ep' | 'single'
 
 export default function ArtistPage() {
   const { id } = useParams<{ id: string }>()
+  const { updateFavorite } = useFavorites()
   const [artist, setArtist] = useState<DeezerArtistResult | null>(null)
   const [albums, setAlbums] = useState<DeezerAlbumResult[]>([])
   const [loading, setLoadingArtist] = useState(true)
@@ -38,14 +40,16 @@ export default function ArtistPage() {
     ]).then(([artistData, albumsData]) => {
       const getYear = (a: DeezerAlbumResult) =>
         a.original_release_year ?? new Date(a.release_date).getFullYear()
-      const sorted = (albumsData.data ?? []).sort(
-        (a: DeezerAlbumResult, b: DeezerAlbumResult) => getYear(b) - getYear(a)
-      )
+      const sorted = (albumsData.data ?? []).sort((a: DeezerAlbumResult, b: DeezerAlbumResult) => {
+        const yearDiff = getYear(b) - getYear(a)
+        return yearDiff !== 0 ? yearDiff : b.release_date.localeCompare(a.release_date)
+      })
       setArtist(artistData)
+      if (artistData?.id) updateFavorite(artistData)
       setAlbums(sorted)
       setLoadingArtist(false)
     })
-  }, [id])
+  }, [id, updateFavorite])
 
   useEffect(() => {
     if (albums.length === 0) return
@@ -330,6 +334,11 @@ export default function ArtistPage() {
     trackAvgMap.set(albumId, Math.round(avg * 10) / 10)
   })
 
+  const selectedAlbumTracks = selectedAlbum ? albumTracksMap.get(selectedAlbum.id) : undefined
+  const selectedAlbumProgress = selectedAlbumTracks && selectedAlbumTracks.length > 0
+    ? selectedAlbumTracks.filter(id => listenedIds.has(id)).length / selectedAlbumTracks.length
+    : 0
+
   const filteredAlbums = albums
     .filter(a => activeFilter === 'all' || a.record_type === activeFilter)
     .filter(a => !searchQuery.trim() || a.title.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -548,7 +557,11 @@ export default function ArtistPage() {
         </div>
       )}
 
-      <Panel isOpen={!!selectedAlbum} onClose={() => setSelectedAlbum(null)}>
+      <Panel
+        isOpen={!!selectedAlbum}
+        onClose={() => setSelectedAlbum(null)}
+        progress={selectedAlbumProgress}
+      >
         {selectedAlbum && (
           <AlbumDetail
             album={selectedAlbum}

@@ -50,8 +50,8 @@ export default function DatePopover({ currentDate, hasUserDate, popoverUp, relea
         onClick={() => { if (!pickerOpenRef.current) onClose() }}
       />
       <div className={`absolute right-0 z-20 bg-bg-secondary border border-border rounded-lg p-3 shadow-lg w-44 ${popoverUp ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
-        <div className="flex items-center justify-between mb-2.5">
-          <p className={`${textStyles.caption} text-text-disabled`}>Date d&apos;écoute</p>
+        <div className="flex items-center justify-between mb-3">
+          <p className={`${textStyles.caption} text-text-green`}>Date d&apos;écoute</p>
           <div className="flex items-center gap-1.5">
             {releaseDate && (
               <button

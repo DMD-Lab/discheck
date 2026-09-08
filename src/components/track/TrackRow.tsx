@@ -186,9 +186,9 @@ export default function TrackRow({ position, title, duration, trackId, hasPrevie
       {showRating && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setShowRating(false)} />
-          <div className={`absolute right-4 z-20 bg-bg-secondary border border-border rounded-lg p-2 shadow-lg ${popoverUp ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
-            <div className="flex items-center justify-between mb-1.5">
-              <p className={`${textStyles.caption} text-text-disabled`}>Noter ce titre</p>
+          <div className={`absolute right-4 z-20 bg-bg-secondary border border-border rounded-lg p-3 shadow-lg ${popoverUp ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
+            <div className="flex items-center justify-between mb-3">
+              <p className={`${textStyles.caption} text-text-green`}>Noter ce titre</p>
               <button
                 onClick={() => setShowRating(false)}
                 className="text-text-disabled hover:text-text-primary transition-colors ml-3"

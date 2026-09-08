@@ -9,13 +9,28 @@ import type {
 
 const BASE_URL = 'https://api.deezer.com'
 
+function normalize(s: string): string {
+  return s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '') // strip accents (é → e)
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, '')
+}
+
 export async function searchArtists(query: string): Promise<DeezerSearchResponse> {
   const res = await fetch(
     `${BASE_URL}/search/artist?q=${encodeURIComponent(query)}&limit=25`
   )
   if (!res.ok) throw new Error('Deezer search failed')
   const data: DeezerSearchResponse = await res.json()
-  data.data.sort((a, b) => b.nb_fan - a.nb_fan)
+
+  // popularity only breaks ties among real text matches — never above them
+  const normalizedQuery = normalize(query)
+  const matches = data.data.filter(a => normalize(a.name).includes(normalizedQuery))
+  const rest = data.data.filter(a => !normalize(a.name).includes(normalizedQuery))
+  matches.sort((a, b) => b.nb_fan - a.nb_fan)
+  data.data = [...matches, ...rest]
+
   return data
 }
 
