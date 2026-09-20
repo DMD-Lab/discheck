@@ -180,6 +180,41 @@
 
 ---
 
+## v1.9.0 ✅
+
+### Recherche & Discographie
+- Correction d'un bug de pagination Deezer qui tronquait certaines sorties (lives, éditions deluxe) à 25 titres
+- Correction de l'ordre des titres sur les sorties multi-disques
+- Regroupement des titres par disque dans le panel de détail, avec un bouton "tout cocher" dédié à chaque disque
+
+### Lecture & Notation
+- Correction : la note d'un album pouvait s'afficher avant que tous les titres soient réellement écoutés
+
+### Dashboard
+- Correction des statistiques de complétion qui reposaient sur un champ Deezer inexistant
+
+---
+
+## v1.10.0 ✅
+
+### Recherche & Discographie
+- En-tête de disque repensé (icône, nom, nombre de titres) avec animation de validation sur "tout cocher" et bordure de progression sur le panel qui se remplit et scintille une fois la sortie terminée
+- Correction du tri chronologique : les sorties d'une même année gardaient parfois un ordre incohérent
+- Résultats de recherche d'artiste plus pertinents : le texte tapé prime toujours sur la popularité, y compris pour les noms avec accents
+
+### Lecture & Notation
+- La notation d'un titre unique (single à une seule piste) suit désormais le nombre réel de titres plutôt que la catégorie Deezer, pour rester cohérente avec un single à plusieurs titres
+- Harmonisation des popups de notation et de date d'écoute (espacement, couleurs) et correction du popup de notation d'album qui ne se fermait pas au clic extérieur
+
+### Mes artistes
+- La photo d'un artiste favori se met à jour instantanément dans la barre latérale après une visite de sa page, sans appel réseau supplémentaire
+- Les données d'un artiste se rafraîchissent désormais chaque jour comme le reste du cache, au lieu de ne jamais expirer
+
+### App & Technique
+- Ajout d'un délai maximal sur les appels à MusicBrainz pour éviter des chargements anormalement longs quand leur service est surchargé
+
+---
+
 ## v2.0 — Idées
 
 - Feed "Nouveautés" : nouvelles sorties des artistes suivis, triées par date

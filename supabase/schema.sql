@@ -21,7 +21,6 @@ CREATE TABLE cached_albums (
   original_release_year smallint,
   record_type           text,
   genre_id              integer,
-  track_count           smallint,
   title                 text,
   artist_name           text,
   cover_xl              text

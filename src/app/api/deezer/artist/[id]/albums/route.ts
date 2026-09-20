@@ -100,7 +100,6 @@ export async function GET(
           artist_name: artistName ?? '',
           genre_id: (album as unknown as { genre_id?: number }).genre_id ?? null,
           record_type: (album as unknown as { record_type?: string }).record_type ?? null,
-          track_count: (album as unknown as { nb_tracks?: number }).nb_tracks ?? null,
         })),
         { onConflict: 'album_deezer_id' }
       )
