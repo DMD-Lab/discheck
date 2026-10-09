@@ -2,12 +2,39 @@
 
 import { useState } from 'react'
 import { useTransitionRouter } from 'next-view-transitions'
-import { Mail, Lock, User, Eye, EyeOff, ArrowRight } from 'lucide-react'
+import { Mail, User, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import AppButton from '@/components/ui/AppButton'
+import Field from '@/components/ui/Field'
+import PasswordField from '@/components/ui/PasswordField'
+import LoadingOverlay from '@/components/ui/LoadingOverlay'
 import { textStyles } from '@/components/ui/text-styles'
 import DischecLogo from '@/components/ui/DischecLogo'
-import DischecLoader from '@/components/ui/DischecLoader'
+import { PSEUDO_MAX_LENGTH, getPseudoError, getPseudoDisplayError } from '@/lib/validation/pseudo'
+import {
+  PASSWORD_MIN_LENGTH,
+  getPasswordPairErrors,
+  revealPasswordPairErrors,
+  getLoginPasswordError,
+  getLoginPasswordDisplayError,
+} from '@/lib/validation/password'
+import { getEmailError, getEmailDisplayError } from '@/lib/validation/email'
+
+interface RegisterSnapshot {
+  pseudo: string
+  email: string
+  password: string
+  confirmPassword: string
+}
+
+const EMPTY_SNAPSHOT: RegisterSnapshot = { pseudo: '', email: '', password: '', confirmPassword: '' }
+
+interface LoginSnapshot {
+  email: string
+  password: string
+}
+
+const EMPTY_LOGIN_SNAPSHOT: LoginSnapshot = { email: '', password: '' }
 
 export type View = 'login' | 'register' | 'forgot'
 
@@ -28,23 +55,70 @@ export default function AuthForm({ initialView }: { initialView: View }) {
   const [view, setView] = useState<View>(initialView)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [pseudo, setPseudo] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [forgotSent, setForgotSent] = useState(false)
+  const [attempted, setAttempted] = useState(false)
+  const [committed, setCommitted] = useState<RegisterSnapshot>(EMPTY_SNAPSHOT)
+  const [pseudoServerError, setPseudoServerError] = useState<string | null>(null)
+  const [emailServerError, setEmailServerError] = useState<string | null>(null)
+  const [loginAttempted, setLoginAttempted] = useState(false)
+  const [loginCommitted, setLoginCommitted] = useState<LoginSnapshot>(EMPTY_LOGIN_SNAPSHOT)
+  const [forgotAttempted, setForgotAttempted] = useState(false)
+  const [forgotCommitted, setForgotCommitted] = useState('')
+
+  const passwordPair = getPasswordPairErrors(password, confirmPassword)
+  const canRegister = !getPseudoError(pseudo) && !pseudoServerError && !getEmailError(email) && !emailServerError
+    && !passwordPair.passwordError && !passwordPair.confirmError
+  const canLogin = !getEmailError(email) && !getLoginPasswordError(password)
+
+  const pseudoError = pseudoServerError ?? getPseudoDisplayError(attempted, committed.pseudo, pseudo)
+  const emailError = emailServerError ?? getEmailDisplayError(attempted, committed.email, email)
+  const { passwordError, passwordRed, confirmError, confirmRed } = revealPasswordPairErrors(
+    attempted,
+    { password: committed.password, confirmPassword: committed.confirmPassword },
+    { password, confirmPassword },
+  )
+
+  const loginEmailError = getEmailDisplayError(loginAttempted, loginCommitted.email, email)
+  const loginPasswordError = getLoginPasswordDisplayError(loginAttempted, loginCommitted.password, password)
+
+  const canRequestReset = !getEmailError(email)
+  const forgotEmailError = getEmailDisplayError(forgotAttempted, forgotCommitted, email)
 
   function switchView(v: View) {
     setError('')
     setEmail('')
     setPassword('')
+    setConfirmPassword('')
     setPseudo('')
     setForgotSent(false)
+    setAttempted(false)
+    setCommitted(EMPTY_SNAPSHOT)
+    setPseudoServerError(null)
+    setEmailServerError(null)
+    setLoginAttempted(false)
+    setLoginCommitted(EMPTY_LOGIN_SNAPSHOT)
+    setForgotAttempted(false)
+    setForgotCommitted('')
     setView(v)
+  }
+
+  async function isPseudoAvailable(value: string): Promise<boolean> {
+    const res = await fetch('/api/pseudo/check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pseudo: value }),
+    })
+    const { available } = await res.json()
+    return available
   }
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
+    if (!canLogin) { setLoginCommitted({ email, password }); setLoginAttempted(true); return }
     setError('')
     setLoading(true)
     const supabase = createClient()
@@ -55,16 +129,33 @@ export default function AuthForm({ initialView }: { initialView: View }) {
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault()
+    if (!canRegister) { setCommitted({ pseudo, email, password, confirmPassword }); setAttempted(true); return }
     setError('')
+    setPseudoServerError(null)
+    setEmailServerError(null)
     setLoading(true)
+
+    if (!(await isPseudoAvailable(pseudo))) {
+      setPseudoServerError('Ce pseudo est déjà pris.')
+      setLoading(false)
+      return
+    }
+
     const supabase = createClient()
     const { error } = await supabase.auth.signUp({ email, password, options: { data: { pseudo } } })
-    if (error) { setError(error.message); setLoading(false); return }
+    if (error) {
+      // Supabase never reveals the real cause
+      if (error.message.includes('User already registered')) setEmailServerError('Cette adresse email est déjà utilisée.')
+      else setError('Une erreur est survenue. Veuillez réessayer.')
+      setLoading(false)
+      return
+    }
     router.push('/dashboard')
   }
 
   async function handleForgot(e: React.FormEvent) {
     e.preventDefault()
+    if (!canRequestReset) { setForgotCommitted(email); setForgotAttempted(true); return }
     setError('')
     setLoading(true)
     const supabase = createClient()
@@ -84,11 +175,7 @@ export default function AuthForm({ initialView }: { initialView: View }) {
   return (
     <div className="flex flex-col items-center">
 
-      {loading && (
-        <div className="auth-overlay fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.75)' }}>
-          <DischecLoader size={64} />
-        </div>
-      )}
+      {loading && <LoadingOverlay />}
 
       {/* Animated form wrapper — key triggers re-mount → animation CSS se rejoue */}
       <div key={view} className="form-enter w-full">
@@ -105,11 +192,16 @@ export default function AuthForm({ initialView }: { initialView: View }) {
 
         {/* LOGIN */}
         {view === 'login' && (
-          <form onSubmit={handleLogin} className="flex flex-col gap-4">
-            <Field icon={<Mail size={15} />} type="email" placeholder="adresse@email.com"
-              value={email} onChange={setEmail} />
-            <PasswordField placeholder="••••••••" value={password} onChange={setPassword}
-              show={showPassword} onToggle={() => setShowPassword(p => !p)} />
+          <form onSubmit={handleLogin} noValidate className="flex flex-col gap-3">
+            <div>
+              <Field icon={<Mail size={15} />} type="email" placeholder="Email"
+                value={email} onChange={setEmail} error={!!loginEmailError} />
+              {loginEmailError && <p className={`${textStyles.caption} text-error mt-1`}>{loginEmailError}</p>}
+            </div>
+            <div>
+              <PasswordField placeholder="Mot de passe" value={password} onChange={setPassword} error={!!loginPasswordError} />
+              {loginPasswordError && <p className={`${textStyles.caption} text-error mt-1`}>{loginPasswordError}</p>}
+            </div>
             <div className="flex justify-end -mt-1">
               <AppButton type="button" variant="link" size="xs" className="text-xs" onClick={() => switchView('forgot')}>
                 Mot de passe oublié ?
@@ -137,13 +229,31 @@ export default function AuthForm({ initialView }: { initialView: View }) {
 
         {/* REGISTER */}
         {view === 'register' && (
-          <form onSubmit={handleRegister} className="flex flex-col gap-4">
-            <Field icon={<User size={15} />} type="text" placeholder="pseudo"
-              value={pseudo} onChange={setPseudo} autoComplete="off" />
-            <Field icon={<Mail size={15} />} type="email" placeholder="adresse@email.com"
-              value={email} onChange={setEmail} />
-            <PasswordField placeholder="6 caractères minimum" value={password} onChange={setPassword}
-              show={showPassword} onToggle={() => setShowPassword(p => !p)} minLength={6} />
+          <form onSubmit={handleRegister} noValidate className="flex flex-col gap-3">
+            <div>
+              <Field icon={<User size={15} />} type="text" placeholder="Pseudo"
+                value={pseudo} onChange={v => { setPseudo(v); setPseudoServerError(null) }}
+                autoComplete="off" maxLength={PSEUDO_MAX_LENGTH} error={!!pseudoError} />
+              {pseudoError && <p className={`${textStyles.caption} text-error mt-1`}>{pseudoError}</p>}
+            </div>
+
+            <div>
+              <Field icon={<Mail size={15} />} type="email" placeholder="Email"
+                value={email} onChange={v => { setEmail(v); setEmailServerError(null) }} error={!!emailError} />
+              {emailError && <p className={`${textStyles.caption} text-error mt-1`}>{emailError}</p>}
+            </div>
+
+            <div>
+              <PasswordField placeholder="Mot de passe" value={password} onChange={setPassword}
+                minLength={PASSWORD_MIN_LENGTH} autoComplete="new-password" error={passwordRed} />
+              {passwordError && <p className={`${textStyles.caption} text-error mt-1`}>{passwordError}</p>}
+            </div>
+            <div>
+              <PasswordField placeholder="Confirmer le mot de passe" value={confirmPassword} onChange={setConfirmPassword}
+                minLength={PASSWORD_MIN_LENGTH} autoComplete="new-password" error={confirmRed} />
+              {confirmError && <p className={`${textStyles.caption} text-error mt-1`}>{confirmError}</p>}
+            </div>
+
             {error && <p className={`${textStyles.caption} text-error`}>{error}</p>}
             <AppButton
               type="submit"
@@ -166,9 +276,12 @@ export default function AuthForm({ initialView }: { initialView: View }) {
 
         {/* FORGOT */}
         {view === 'forgot' && !forgotSent && (
-          <form onSubmit={handleForgot} className="flex flex-col gap-4">
-            <Field icon={<Mail size={15} />} type="email" placeholder="adresse@email.com"
-              value={email} onChange={setEmail} />
+          <form onSubmit={handleForgot} noValidate className="flex flex-col gap-3">
+            <div>
+              <Field icon={<Mail size={15} />} type="email" placeholder="Email"
+                value={email} onChange={setEmail} error={!!forgotEmailError} />
+              {forgotEmailError && <p className={`${textStyles.caption} text-error mt-1`}>{forgotEmailError}</p>}
+            </div>
             {error && <p className={`${textStyles.caption} text-error`}>{error}</p>}
             <AppButton
               type="submit"
@@ -200,65 +313,6 @@ export default function AuthForm({ initialView }: { initialView: View }) {
           </div>
         )}
       </div>
-    </div>
-  )
-}
-
-function Field({ icon, type, placeholder, value, onChange, autoComplete, minLength }: {
-  icon: React.ReactNode
-  type: string
-  placeholder: string
-  value: string
-  onChange: (v: string) => void
-  autoComplete?: string
-  minLength?: number
-}) {
-  return (
-    <div className="flex items-center gap-2.5 bg-bg-secondary/80 border border-border rounded-lg px-3 py-2.5 focus-within:[border-color:var(--primary)] transition-colors">
-      <span className="text-text-disabled flex-shrink-0">{icon}</span>
-      <input
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        required
-        autoComplete={autoComplete}
-        minLength={minLength}
-        className={`flex-1 bg-transparent ${textStyles.body} text-text-primary outline-none placeholder:text-text-disabled`}
-      />
-    </div>
-  )
-}
-
-function PasswordField({ placeholder, value, onChange, show, onToggle, minLength }: {
-  placeholder: string
-  value: string
-  onChange: (v: string) => void
-  show: boolean
-  onToggle: () => void
-  minLength?: number
-}) {
-  return (
-    <div className="flex items-center gap-2.5 bg-bg-secondary/80 border border-border rounded-lg px-3 py-2.5 focus-within:[border-color:var(--primary)] transition-colors">
-      <span className="text-text-disabled flex-shrink-0"><Lock size={15} /></span>
-      <input
-        type={show ? 'text' : 'password'}
-        placeholder={placeholder}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        required
-        minLength={minLength}
-        className={`flex-1 bg-transparent ${textStyles.body} text-text-primary outline-none placeholder:text-text-disabled`}
-      />
-      <AppButton
-        type="button"
-        variant="ghost"
-        size="xs"
-        onClick={onToggle}
-        className="p-0 text-text-disabled hover:text-text-secondary hover:bg-transparent"
-      >
-        {show ? <EyeOff size={14} /> : <Eye size={14} />}
-      </AppButton>
     </div>
   )
 }

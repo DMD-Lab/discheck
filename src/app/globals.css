@@ -142,6 +142,6 @@ button {
   animation: formLeave 0.18s ease-in forwards;
 }
 
-.auth-overlay {
+.loading-overlay {
   animation: overlayIn 0.2s ease-out forwards;
 }

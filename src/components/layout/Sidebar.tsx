@@ -2,8 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import { Link } from 'next-view-transitions'
-import { Search, Music2, LogOut, Home } from 'lucide-react'
-// import { Settings} from 'lucide-react'
+import { Search, Music2, LogOut, Home, Settings } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useTransitionRouter } from 'next-view-transitions'
 import { textStyles } from '@/components/ui/text-styles'
@@ -117,7 +116,6 @@ export default function Sidebar({ pseudo }: SidebarProps) {
         )}
       </nav>
 
-      {/* Settings masqué sur desktop — visible uniquement en mobile via BottomNav
       <div className="px-3 pb-2">
         <Link
           href="/settings"
@@ -131,7 +129,6 @@ export default function Sidebar({ pseudo }: SidebarProps) {
           Paramètres
         </Link>
       </div>
-      */}
 
       <div className="px-5 py-5 border-t border-border">
         <p className={`${textStyles.body} font-medium text-text-green mb-1`}>{pseudo}</p>

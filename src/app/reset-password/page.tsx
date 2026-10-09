@@ -4,30 +4,39 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useTransitionRouter } from 'next-view-transitions'
-import { Lock, Eye, EyeOff, ArrowLeft, ArrowRight } from 'lucide-react'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import AppButton from '@/components/ui/AppButton'
+import PasswordField from '@/components/ui/PasswordField'
+import LoadingOverlay from '@/components/ui/LoadingOverlay'
 import { textStyles } from '@/components/ui/text-styles'
 import { buttonVariants } from '@/components/ui/button-variants'
 import DischecLogo from '@/components/ui/DischecLogo'
-import DischecLoader from '@/components/ui/DischecLoader'
 import ThemeToggle from '@/components/ui/ThemeToggle'
+import { PASSWORD_MIN_LENGTH, getPasswordPairErrors, revealPasswordPairErrors } from '@/lib/validation/password'
+
+const EMPTY_PAIR = { password: '', confirmPassword: '' }
 
 export default function ResetPasswordPage() {
   const router = useTransitionRouter()
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirm, setShowConfirm] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [attempted, setAttempted] = useState(false)
+  const [committed, setCommitted] = useState(EMPTY_PAIR)
+
+  const passwordPair = getPasswordPairErrors(password, confirmPassword)
+  const canSave = !passwordPair.passwordError && !passwordPair.confirmError
+  const { passwordError, passwordRed, confirmError, confirmRed } = revealPasswordPairErrors(
+    attempted,
+    committed,
+    { password, confirmPassword },
+  )
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (password !== confirmPassword) {
-      setError('Les mots de passe ne correspondent pas')
-      return
-    }
+    if (!canSave) { setCommitted({ password, confirmPassword }); setAttempted(true); return }
     setError('')
     setLoading(true)
     const supabase = createClient()
@@ -77,11 +86,7 @@ export default function ResetPasswordPage() {
 
       <div className="relative z-10 w-full max-w-sm px-6">
 
-        {loading && (
-          <div className="auth-overlay fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.75)' }}>
-            <DischecLoader size={64} />
-          </div>
-        )}
+        {loading && <LoadingOverlay />}
 
         <div className="form-enter">
 
@@ -96,21 +101,30 @@ export default function ResetPasswordPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <PasswordField
-              placeholder="Nouveau mot de passe"
-              value={password}
-              onChange={setPassword}
-              show={showPassword}
-              onToggle={() => setShowPassword(p => !p)}
-            />
-            <PasswordField
-              placeholder="Confirmer le mot de passe"
-              value={confirmPassword}
-              onChange={setConfirmPassword}
-              show={showConfirm}
-              onToggle={() => setShowConfirm(p => !p)}
-            />
+          <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
+            <div>
+              <PasswordField
+                placeholder="Nouveau mot de passe"
+                value={password}
+                onChange={setPassword}
+                minLength={PASSWORD_MIN_LENGTH}
+                autoComplete="new-password"
+                error={passwordRed}
+              />
+              {passwordError && <p className={`${textStyles.caption} text-error mt-1`}>{passwordError}</p>}
+            </div>
+            <div>
+              <PasswordField
+                placeholder="Confirmer le mot de passe"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                minLength={PASSWORD_MIN_LENGTH}
+                autoComplete="new-password"
+                error={confirmRed}
+              />
+              {confirmError && <p className={`${textStyles.caption} text-error mt-1`}>{confirmError}</p>}
+            </div>
+
             {error && <p className={`${textStyles.caption} text-error`}>{error}</p>}
             <AppButton
               type="submit"
@@ -126,38 +140,6 @@ export default function ResetPasswordPage() {
 
         </div>
       </div>
-    </div>
-  )
-}
-
-function PasswordField({ placeholder, value, onChange, show, onToggle }: {
-  placeholder: string
-  value: string
-  onChange: (v: string) => void
-  show: boolean
-  onToggle: () => void
-}) {
-  return (
-    <div className="flex items-center gap-2.5 bg-bg-secondary/80 border border-border rounded-lg px-3 py-2.5 focus-within:[border-color:var(--primary)] transition-colors">
-      <span className="text-text-disabled flex-shrink-0"><Lock size={15} /></span>
-      <input
-        type={show ? 'text' : 'password'}
-        placeholder={placeholder}
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        required
-        minLength={6}
-        className={`flex-1 bg-transparent ${textStyles.body} text-text-primary outline-none placeholder:text-text-disabled`}
-      />
-      <AppButton
-        type="button"
-        variant="ghost"
-        size="xs"
-        onClick={onToggle}
-        className="p-0 text-text-disabled hover:text-text-secondary hover:bg-transparent"
-      >
-        {show ? <EyeOff size={14} /> : <Eye size={14} />}
-      </AppButton>
     </div>
   )
 }

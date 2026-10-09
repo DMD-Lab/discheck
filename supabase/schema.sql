@@ -1,7 +1,7 @@
 -- Profiles utilisateurs (complète auth.users de Supabase)
 CREATE TABLE profiles (
   id         uuid REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
-  pseudo     text UNIQUE NOT NULL,
+  pseudo     text UNIQUE NOT NULL CHECK (pseudo ~ '^[a-zA-Z0-9]{3,20}$'),
   created_at timestamptz DEFAULT now()
 );
 
