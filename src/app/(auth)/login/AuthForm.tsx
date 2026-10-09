@@ -2,12 +2,13 @@
 
 import { useState } from 'react'
 import { useTransitionRouter } from 'next-view-transitions'
-import { Mail, User, ArrowRight } from 'lucide-react'
+import { Mail, User } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import AppButton from '@/components/ui/AppButton'
 import Field from '@/components/ui/Field'
 import PasswordField from '@/components/ui/PasswordField'
 import LoadingOverlay from '@/components/ui/LoadingOverlay'
+import AnimatedArrow from '@/components/ui/AnimatedArrow'
 import { textStyles } from '@/components/ui/text-styles'
 import DischecLogo from '@/components/ui/DischecLogo'
 import { PSEUDO_MAX_LENGTH, getPseudoError, getPseudoDisplayError } from '@/lib/validation/pseudo'
@@ -214,7 +215,7 @@ export default function AuthForm({ initialView }: { initialView: View }) {
               size="md"
               fullWidth
               loading={loading}
-              rightIcon={<ArrowRight size={14} />}
+              rightIcon={<AnimatedArrow direction="right" size={14} />}
             >
               Se connecter
             </AppButton>
@@ -261,7 +262,7 @@ export default function AuthForm({ initialView }: { initialView: View }) {
               size="md"
               fullWidth
               loading={loading}
-              rightIcon={<ArrowRight size={14} />}
+              rightIcon={<AnimatedArrow direction="right" size={14} />}
             >
               Créer mon compte
             </AppButton>
@@ -289,7 +290,7 @@ export default function AuthForm({ initialView }: { initialView: View }) {
               size="md"
               fullWidth
               loading={loading}
-              rightIcon={<ArrowRight size={14} />}
+              rightIcon={<AnimatedArrow direction="right" size={14} />}
             >
               Envoyer le lien
             </AppButton>

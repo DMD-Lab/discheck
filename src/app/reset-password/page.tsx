@@ -4,11 +4,11 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useTransitionRouter } from 'next-view-transitions'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import AppButton from '@/components/ui/AppButton'
 import PasswordField from '@/components/ui/PasswordField'
 import LoadingOverlay from '@/components/ui/LoadingOverlay'
+import AnimatedArrow from '@/components/ui/AnimatedArrow'
 import { textStyles } from '@/components/ui/text-styles'
 import { buttonVariants } from '@/components/ui/button-variants'
 import DischecLogo from '@/components/ui/DischecLogo'
@@ -76,7 +76,7 @@ export default function ResetPasswordPage() {
           className: 'absolute top-5 left-6 z-10 backdrop-blur-sm bg-bg-secondary/60',
         })}
       >
-        <ArrowLeft size={14} />
+        <AnimatedArrow direction="left" size={14} />
         Retour
       </Link>
 
@@ -132,7 +132,7 @@ export default function ResetPasswordPage() {
               size="md"
               fullWidth
               loading={loading}
-              rightIcon={<ArrowRight size={14} />}
+              rightIcon={<AnimatedArrow direction="right" size={14} />}
             >
               Changer mon mot de passe
             </AppButton>

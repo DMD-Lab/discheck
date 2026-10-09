@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from "react";
-import { ArrowRight, Disc } from "lucide-react";
+import { Disc } from "lucide-react";
 import { textStyles } from "@/components/ui/text-styles";
 import InfoTooltip from "@/components/ui/InfoTooltip";
+import AnimatedArrow from "@/components/ui/AnimatedArrow";
 import AlbumFeaturedCard from "./AlbumFeaturedCard";
 import AlbumSmallCard from "./AlbumSmallCard";
 import Panel from "@/components/ui/panel";
@@ -55,10 +56,10 @@ export default function TopAlbumsSection({ albums }: { albums: TopAlbum[] }) {
         </div>
         <button
           onClick={() => setIsPanelOpen(true)}
-          className={`${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1`}
+          className={`link-underline ${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1`}
         >
           Voir plus
-          <ArrowRight size={12} />
+          <AnimatedArrow direction="right" size={12} />
         </button>
       </div>
 

@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { ArrowRight } from 'lucide-react'
 import { textStyles } from '@/components/ui/text-styles'
 import InfoTooltip from '@/components/ui/InfoTooltip'
+import AnimatedArrow from '@/components/ui/AnimatedArrow'
 import Panel from '@/components/ui/panel'
 import MarqueeText from '@/components/ui/marquee-text'
 
@@ -127,9 +127,9 @@ export default function CollectionRecentActivitySection({
 
         <button
           onClick={() => setIsPanelOpen(true)}
-          className={`${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1 self-start`}
+          className={`link-underline ${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1 self-start`}
         >
-          Voir plus <ArrowRight size={12} />
+          Voir plus <AnimatedArrow direction="right" size={12} />
         </button>
       </section>
 

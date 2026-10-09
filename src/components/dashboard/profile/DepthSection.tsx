@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowRight, Users } from 'lucide-react'
+import { Users } from 'lucide-react'
 import InfoTooltip from '@/components/ui/InfoTooltip'
+import AnimatedArrow from '@/components/ui/AnimatedArrow'
 import Image from 'next/image'
 import { textStyles } from '@/components/ui/text-styles'
 import MarqueeText from '@/components/ui/marquee-text'
@@ -126,10 +127,10 @@ export default function DepthSection({ items }: { items: DepthItem[] }) {
           {items.length > 5 && (
             <button
               onClick={() => setIsPanelOpen(true)}
-              className={`${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1`}
+              className={`link-underline ${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1`}
             >
               Voir plus
-              <ArrowRight size={12} />
+              <AnimatedArrow direction="right" size={12} />
             </button>
           )}
         </div>

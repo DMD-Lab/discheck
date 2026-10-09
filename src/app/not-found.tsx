@@ -1,8 +1,8 @@
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 import { textStyles } from '@/components/ui/text-styles'
 import { buttonVariants } from '@/components/ui/button-variants'
 import DischecLogo from '@/components/ui/DischecLogo'
+import AnimatedArrow from '@/components/ui/AnimatedArrow'
 
 export default function NotFound() {
   return (
@@ -16,7 +16,7 @@ export default function NotFound() {
         </p>
       </div>
       <Link href="/dashboard" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
-        <ArrowLeft size={14} />
+        <AnimatedArrow direction="left" size={14} />
         Retour à l&apos;accueil
       </Link>
     </div>

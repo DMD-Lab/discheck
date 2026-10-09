@@ -28,7 +28,7 @@ export default function LegalPage() {
             <p className={`${textStyles.body} text-text-secondary leading-relaxed`}>
               Ce site est édité à titre personnel dans le cadre du projet DMD Lab.<br />
               Contact :{' '}
-              <a href="mailto:karim.damad.p@hotmail.com" className="text-primary hover:underline">
+              <a href="mailto:karim.damad.p@hotmail.com" className="link-underline inline-block text-primary">
                 karim.damad.p@hotmail.com
               </a>
             </p>
@@ -43,7 +43,7 @@ export default function LegalPage() {
                 href="https://supabase.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="link-underline inline-block text-primary"
               >
                 Supabase
               </a>{' '}
@@ -64,7 +64,7 @@ export default function LegalPage() {
             <p className={`${textStyles.body} text-text-secondary leading-relaxed`}>
               Ces données ne sont transmises à aucun tiers. Vous pouvez demander la suppression
               de votre compte et de l&apos;ensemble de vos données à tout moment en écrivant à{' '}
-              <a href="mailto:karim.damad.p@hotmail.com" className="text-primary hover:underline">
+              <a href="mailto:karim.damad.p@hotmail.com" className="link-underline inline-block text-primary">
                 karim.damad.p@hotmail.com
               </a>.
             </p>
@@ -78,7 +78,7 @@ export default function LegalPage() {
                 href="https://developers.deezer.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="link-underline inline-block text-primary"
               >
                 Deezer
               </a>
@@ -88,7 +88,7 @@ export default function LegalPage() {
                 href="https://musicbrainz.org"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="link-underline inline-block text-primary"
               >
                 MusicBrainz
               </a>{' '}
@@ -97,7 +97,7 @@ export default function LegalPage() {
                 href="https://creativecommons.org/licenses/by/4.0/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="link-underline inline-block text-primary"
               >
                 CC BY 4.0
               </a>

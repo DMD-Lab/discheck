@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from "react"
-import { ArrowRight, Music } from "lucide-react"
+import { Music } from "lucide-react"
 import InfoTooltip from "@/components/ui/InfoTooltip"
+import AnimatedArrow from "@/components/ui/AnimatedArrow"
 import { textStyles } from "@/components/ui/text-styles"
 import { GenreCard, AutresCard } from "./GenreCard"
 import type { GenreStats } from "@/lib/insights/genre-insight"
@@ -56,10 +57,10 @@ export default function GenresSection({
           </div>
           <button
             onClick={() => setIsPanelOpen(true)}
-            className={`${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1 flex-shrink-0 mt-0.5`}
+            className={`link-underline ${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1 flex-shrink-0 mt-0.5`}
           >
             Voir plus
-            <ArrowRight size={12} />
+            <AnimatedArrow direction="right" size={12} />
           </button>
         </div>
 

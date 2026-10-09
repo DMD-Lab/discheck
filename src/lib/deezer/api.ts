@@ -57,6 +57,12 @@ export async function getArtistDiscography(artistId: number): Promise<DeezerDisc
   return { data, total: data.length }
 }
 
+export async function getAlbum(albumId: number): Promise<DeezerAlbumResult> {
+  const res = await fetch(`${BASE_URL}/album/${albumId}`)
+  if (!res.ok) throw new Error('Deezer album fetch failed')
+  return res.json()
+}
+
 export async function getAlbumTracks(albumId: number): Promise<DeezerTracksResponse> {
   const data = await fetchPaginated<DeezerTrackResult>(
     `${BASE_URL}/album/${albumId}/tracks?limit=100`,

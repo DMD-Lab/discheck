@@ -1,9 +1,9 @@
 import Image from 'next/image'
 import { Link } from 'next-view-transitions'
-import { ArrowLeft } from 'lucide-react'
 import AuthForm, { type View } from './AuthForm'
 import { buttonVariants } from '@/components/ui/button-variants'
 import ThemeToggle from '@/components/ui/ThemeToggle'
+import AnimatedArrow from '@/components/ui/AnimatedArrow'
 
 export default async function LoginPage({
   searchParams,
@@ -43,7 +43,7 @@ export default async function LoginPage({
           className: 'absolute top-5 left-6 z-10 backdrop-blur-sm bg-bg-secondary/60',
         })}
       >
-        <ArrowLeft size={14} />
+        <AnimatedArrow direction="left" size={14} />
         Retour
       </Link>
 

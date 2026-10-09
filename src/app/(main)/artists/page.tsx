@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Link, useTransitionRouter } from 'next-view-transitions'
-import { ChevronRight, Search, Star } from 'lucide-react'
+import { Search, Star } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { textStyles } from '@/components/ui/text-styles'
+import AnimatedArrow from '@/components/ui/AnimatedArrow'
 import { createClient } from '@/lib/supabase/client'
 import type { DeezerArtistResult } from '@/lib/deezer/types'
 import { useFavorites } from '@/context/FavoritesContext'
@@ -200,7 +201,7 @@ export default function ArtistsPage() {
                   </div>
 
                   <div className="w-6 flex justify-end flex-shrink-0">
-                    <ChevronRight size={14} className="text-text-disabled group-hover:text-text-secondary transition-colors" />
+                    <AnimatedArrow direction="right" size={14} className="text-text-disabled group-hover:text-text-secondary transition-colors" />
                   </div>
                 </div>
               )

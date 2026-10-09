@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from "react";
-import { ArrowRight, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import { textStyles } from "@/components/ui/text-styles";
 import InfoTooltip from "@/components/ui/InfoTooltip";
+import AnimatedArrow from "@/components/ui/AnimatedArrow";
 import TrackCard from "./TrackCard";
 import Panel from "@/components/ui/panel";
 import TracksRanking from "./tracks-ranking";
@@ -48,10 +49,10 @@ export default function TracksFavoritesSection({ tracks }: { tracks: TopTrack[] 
           </div>
           <button
             onClick={() => setIsPanelOpen(true)}
-            className={`${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1`}
+            className={`link-underline ${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1`}
           >
             Voir plus
-            <ArrowRight size={12} />
+            <AnimatedArrow direction="right" size={12} />
           </button>
         </div>
 

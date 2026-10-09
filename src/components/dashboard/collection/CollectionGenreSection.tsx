@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { ArrowRight, ArrowUp, ArrowDown } from 'lucide-react'
+import { ArrowUp, ArrowDown } from 'lucide-react'
 import InfoTooltip from '@/components/ui/InfoTooltip'
+import AnimatedArrow from '@/components/ui/AnimatedArrow'
 import { textStyles } from '@/components/ui/text-styles'
 import Panel from '@/components/ui/panel'
 import CollectionGenrePanel from './collection-genre-panel'
@@ -217,9 +218,9 @@ export default function CollectionGenreSection({ data }: { data: CollectionGenre
           </div>
           <button
             onClick={() => setIsPanelOpen(true)}
-            className={`${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1`}
+            className={`link-underline ${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1`}
           >
-            Voir plus <ArrowRight size={12} />
+            Voir plus <AnimatedArrow direction="right" size={12} />
           </button>
         </div>
 

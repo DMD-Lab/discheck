@@ -5,7 +5,7 @@ const variantClasses: Record<ButtonVariant, string> = {
   primary: 'bg-primary text-white hover:bg-primary-dark rounded-md font-semibold',
   outline: 'border border-border text-text-secondary hover:text-primary hover:[border-color:var(--primary)] rounded-md bg-transparent',
   ghost:   'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary rounded-md',
-  link:    'text-primary hover:underline',
+  link:    'text-primary link-underline',
   danger:  'text-text-secondary hover:text-error',
 }
 
@@ -30,7 +30,7 @@ export function buttonVariants({
   className?: string
 } = {}): string {
   return [
-    'inline-flex items-center justify-center gap-2 transition-colors',
+    'group inline-flex items-center justify-center gap-2 transition-colors',
     variantClasses[variant],
     !noSize.includes(variant) ? sizeClasses[size] : '',
     fullWidth ? 'w-full' : '',

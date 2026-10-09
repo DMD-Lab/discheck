@@ -2,10 +2,10 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
 import { textStyles } from '@/components/ui/text-styles'
 import { buttonVariants } from '@/components/ui/button-variants'
 import DischecLogo from '@/components/ui/DischecLogo'
+import AnimatedArrow from '@/components/ui/AnimatedArrow'
 
 export default function Error({ error, reset }: { error: Error; reset: () => void }) {
   useEffect(() => {
@@ -32,7 +32,7 @@ export default function Error({ error, reset }: { error: Error; reset: () => voi
           href="/dashboard"
           className={buttonVariants({ variant: 'outline', size: 'sm' })}
         >
-          <ArrowLeft size={14} />
+          <AnimatedArrow direction="left" size={14} />
           Accueil
         </Link>
       </div>

@@ -1,10 +1,11 @@
 import Image from 'next/image'
 import { Link } from 'next-view-transitions'
-import { Disc3, Star, BarChart2, ArrowRight } from 'lucide-react'
+import { Disc3, Star, BarChart2 } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button-variants'
 import { textStyles } from '@/components/ui/text-styles'
 import DischecLogo from '@/components/ui/DischecLogo'
 import ThemeToggle from '@/components/ui/ThemeToggle'
+import AnimatedArrow from '@/components/ui/AnimatedArrow'
 
 const features = [
   {
@@ -49,7 +50,7 @@ export default function LandingPage() {
         <ThemeToggle />
         <Link href="/login" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
           Se connecter
-          <ArrowRight size={14} />
+          <AnimatedArrow direction="right" size={14} />
         </Link>
       </header>
 
@@ -95,15 +96,15 @@ export default function LandingPage() {
       <footer className="relative px-4 py-4 md:px-14 flex items-center justify-between" style={{ zIndex: 2 }}>
         <p className={`${textStyles.caption} text-text-disabled`}>
           Données musicales :{' '}
-          <a href="https://developers.deezer.com" target="_blank" rel="noopener noreferrer" className="hover:text-text-secondary transition-colors">
+          <a href="https://developers.deezer.com" target="_blank" rel="noopener noreferrer" className="link-underline inline-block hover:text-text-secondary transition-colors">
             Deezer
           </a>
           {' '}·{' '}
-          <a href="https://musicbrainz.org" target="_blank" rel="noopener noreferrer" className="hover:text-text-secondary transition-colors">
+          <a href="https://musicbrainz.org" target="_blank" rel="noopener noreferrer" className="link-underline inline-block hover:text-text-secondary transition-colors">
             MusicBrainz
           </a>
         </p>
-        <Link href="/legal" className={`${textStyles.caption} text-text-disabled hover:text-text-secondary transition-colors`}>
+        <Link href="/legal" className={`link-underline inline-block ${textStyles.caption} text-text-disabled hover:text-text-secondary transition-colors`}>
           Mentions légales
         </Link>
       </footer>

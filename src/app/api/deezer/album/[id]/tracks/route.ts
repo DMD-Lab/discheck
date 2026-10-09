@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAlbumTracks } from '@/lib/deezer/api'
+import { getAlbum, getAlbumTracks } from '@/lib/deezer/api'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import type { DeezerTrackResult } from '@/lib/deezer/types'
 
@@ -29,15 +29,27 @@ export async function GET(
 
   if (fresh.data?.length) {
     fresh.data = sortTracks(fresh.data)
-    await supabaseAdmin
-      .from('cached_tracks')
-      .insert(
-        fresh.data.map(track => ({
-          album_deezer_id: albumId,
-          track_deezer_id: track.id,
-          track_data: track,
-        }))
-      )
+
+    // avoid placeholder tracklist
+    let releaseDate: string | null = null
+    try {
+      releaseDate = (await getAlbum(albumId)).release_date
+    } catch {
+      // deezer fetch failed
+    }
+
+    const today = new Date().toISOString().slice(0, 10)
+    if (releaseDate && releaseDate <= today) {
+      await supabaseAdmin
+        .from('cached_tracks')
+        .insert(
+          fresh.data.map(track => ({
+            album_deezer_id: albumId,
+            track_deezer_id: track.id,
+            track_data: track,
+          }))
+        )
+    }
   }
 
   return NextResponse.json(fresh)

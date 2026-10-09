@@ -71,9 +71,11 @@ export default function SettingsView({ userId, email, initialPseudo, version }: 
             <InfoRow label="Mot de passe" value="********" masked onEdit={() => setOpenModal('password')} />
           </div>
         </section>
+      </div>
 
+      <div className="max-w-lg mt-auto flex flex-col gap-4">
         {/* mobile only, sidebar has it on desktop */}
-        <div className="md:hidden -mt-4">
+        <div className="md:hidden">
           <button
             onClick={handleLogout}
             className={`flex items-center gap-2 ${textStyles.body} text-text-secondary hover:text-error transition-colors`}
@@ -82,16 +84,16 @@ export default function SettingsView({ userId, email, initialPseudo, version }: 
             Se déconnecter
           </button>
         </div>
-      </div>
 
-      <div className="max-w-lg mt-auto pt-6 border-t border-border flex flex-col gap-3">
-        <div>
-          <p className={`${textStyles.caption} text-text-disabled`}>Discheck v{version}</p>
-          <p className={`${textStyles.caption} text-text-disabled mt-1`}>Une app <span className="text-text-secondary">DMD Lab</span></p>
+        <div className="pt-6 border-t border-border flex flex-col gap-3">
+          <div>
+            <p className={`${textStyles.caption} text-text-disabled`}>Discheck v{version}</p>
+            <p className={`${textStyles.caption} text-text-disabled mt-1`}>Une app <span className="text-text-secondary">DMD Lab</span></p>
+          </div>
+          <AppButton variant="danger" className={`self-start p-0 ${textStyles.caption}`} onClick={() => setOpenModal('delete')}>
+            Supprimer mon compte
+          </AppButton>
         </div>
-        <AppButton variant="danger" className={`self-start p-0 ${textStyles.caption}`} onClick={() => setOpenModal('delete')}>
-          Supprimer mon compte
-        </AppButton>
       </div>
 
       {openModal === 'pseudo' && (
