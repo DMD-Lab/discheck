@@ -1,7 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getArtistDiscography } from '@/lib/deezer/api'
+import { getArtist, getArtistDiscography } from '@/lib/deezer/api'
 import { supabaseAdmin } from '@/lib/supabase/admin'
 import { searchArtistMbid, getArtistReleaseGroups, matchReleaseYear } from '@/lib/musicbrainz/api'
+
+async function resolveArtistName(artistId: number): Promise<string | null> {
+  const { data } = await supabaseAdmin
+    .from('cached_artists')
+    .select('artist_data')
+    .eq('artist_deezer_id', artistId)
+    .single()
+
+  const cached = (data?.artist_data as { name?: string })?.name ?? null
+  if (cached) return cached
+
+  try {
+    return (await getArtist(artistId)).name ?? null
+  } catch {
+    return null
+  }
+}
+
+async function hasOrphanNames(artistId: number): Promise<boolean> {
+  const { data } = await supabaseAdmin
+    .from('cached_albums')
+    .select('album_deezer_id')
+    .eq('artist_deezer_id', artistId)
+    .or('artist_name.is.null,artist_name.eq.')
+    .limit(1)
+
+  return !!data?.length
+}
+
+// repairs delisted albums
+async function backfillOrphanNames(artistId: number, artistName: string | null) {
+  if (!artistName) return
+
+  await supabaseAdmin
+    .from('cached_albums')
+    .update({ artist_name: artistName })
+    .eq('artist_deezer_id', artistId)
+    .or('artist_name.is.null,artist_name.eq.')
+}
 
 export async function GET(
   _req: NextRequest,
@@ -21,6 +60,9 @@ export async function GET(
     .gte('cached_at', today.toISOString())
 
   if (cached && cached.length > 0) {
+    if (await hasOrphanNames(artistId)) {
+      await backfillOrphanNames(artistId, await resolveArtistName(artistId))
+    }
     return NextResponse.json({
       data: cached.map(r => ({
         ...r.album_data,
@@ -31,12 +73,7 @@ export async function GET(
 
   const [fresh, artistName] = await Promise.all([
     getArtistDiscography(artistId),
-    supabaseAdmin
-      .from('cached_artists')
-      .select('artist_data')
-      .eq('artist_deezer_id', artistId)
-      .single()
-      .then(({ data }) => (data?.artist_data as { name?: string })?.name ?? null),
+    resolveArtistName(artistId),
   ])
 
   const yearMap = new Map<number, number | null>()
@@ -61,13 +98,14 @@ export async function GET(
   }
 
   if (fresh.data?.length) {
-    // Récupérer les original_release_year déjà connus pour ne pas les écraser
+    // Récupérer les original_release_year et artist_name déjà connus pour ne pas les écraser
     const { data: existing } = await supabaseAdmin
       .from('cached_albums')
-      .select('album_deezer_id, original_release_year')
+      .select('album_deezer_id, original_release_year, artist_name')
       .eq('artist_deezer_id', artistId)
 
     ;(existing ?? []).forEach(r => yearMap.set(r.album_deezer_id, r.original_release_year))
+    const existingArtistName = (existing ?? []).find(r => r.artist_name)?.artist_name ?? null
 
     // Enrichir avec MusicBrainz si des albums n'ont pas encore d'année
     const albumsMissingYear = fresh.data.filter(a => !yearMap.get(a.id))
@@ -97,12 +135,16 @@ export async function GET(
           original_release_year: yearMap.get(album.id) ?? null,
           title: album.title,
           cover_xl: album.cover_xl,
-          artist_name: artistName ?? '',
+          artist_name: artistName ?? existingArtistName,
           genre_id: (album as unknown as { genre_id?: number }).genre_id ?? null,
           record_type: (album as unknown as { record_type?: string }).record_type ?? null,
         })),
         { onConflict: 'album_deezer_id' }
       )
+  }
+
+  if (await hasOrphanNames(artistId)) {
+    await backfillOrphanNames(artistId, artistName)
   }
 
   return NextResponse.json({
