@@ -436,11 +436,13 @@ LANGUAGE sql STABLE AS $$
 $$;
 
 -- Fonction : écart note album vs moyenne des titres (albums entièrement notés)
+DROP FUNCTION IF EXISTS get_ecart_stats(uuid);
 CREATE OR REPLACE FUNCTION get_ecart_stats(p_user_id uuid)
 RETURNS TABLE(
   album_deezer_id bigint,
   title text,
   artist_name text,
+  artist_deezer_id bigint,
   cover_xl text,
   album_rating smallint,
   track_avg numeric,
@@ -466,6 +468,7 @@ LANGUAGE sql STABLE AS $$
     ar.album_deezer_id,
     ca.title,
     COALESCE(ca.artist_name, ''),
+    ca.artist_deezer_id,
     ca.cover_xl,
     ar.rating,
     ROUND(ts.avg_rating, 2) AS track_avg,
@@ -667,13 +670,15 @@ LANGUAGE sql STABLE AS $$
 $$;
 
 -- Fonction : 100 derniers titres écoutés dans la période
+DROP FUNCTION IF EXISTS get_collection_recent_tracks(uuid, timestamptz, timestamptz);
 CREATE OR REPLACE FUNCTION get_collection_recent_tracks(p_user_id uuid, p_start timestamptz, p_end timestamptz)
-RETURNS TABLE(track_deezer_id bigint, title text, artist_name text, cover_xl text, listened_at timestamptz)
+RETURNS TABLE(track_deezer_id bigint, title text, artist_name text, artist_deezer_id bigint, cover_xl text, listened_at timestamptz)
 LANGUAGE sql STABLE AS $$
   SELECT
     lt.track_deezer_id,
     COALESCE(ct.track_data->>'title', ''),
     COALESCE(ca.artist_name, ''),
+    ca.artist_deezer_id,
     COALESCE(ca.cover_xl, ''),
     COALESCE(lt.listened_at_user, lt.listened_at) AS listened_at
   FROM listened_tracks lt
@@ -686,8 +691,9 @@ LANGUAGE sql STABLE AS $$
 $$;
 
 -- Fonction : 100 derniers albums écoutés dans la période
+DROP FUNCTION IF EXISTS get_collection_recent_albums(uuid, timestamptz, timestamptz);
 CREATE OR REPLACE FUNCTION get_collection_recent_albums(p_user_id uuid, p_start timestamptz, p_end timestamptz)
-RETURNS TABLE(album_deezer_id bigint, title text, artist_name text, cover_xl text, last_listened_at timestamptz)
+RETURNS TABLE(album_deezer_id bigint, title text, artist_name text, artist_deezer_id bigint, cover_xl text, last_listened_at timestamptz)
 LANGUAGE sql STABLE AS $$
   WITH recent AS (
     SELECT lt.album_deezer_id, MAX(COALESCE(lt.listened_at_user, lt.listened_at)) AS last_listened_at
@@ -696,7 +702,7 @@ LANGUAGE sql STABLE AS $$
       AND (p_start IS NULL OR (COALESCE(lt.listened_at_user, lt.listened_at) >= p_start AND COALESCE(lt.listened_at_user, lt.listened_at) < p_end))
     GROUP BY lt.album_deezer_id
   )
-  SELECT r.album_deezer_id, ca.title, COALESCE(ca.artist_name, ''), COALESCE(ca.cover_xl, ''), r.last_listened_at
+  SELECT r.album_deezer_id, ca.title, COALESCE(ca.artist_name, ''), ca.artist_deezer_id, COALESCE(ca.cover_xl, ''), r.last_listened_at
   FROM recent r
   JOIN cached_albums ca ON ca.album_deezer_id = r.album_deezer_id
   WHERE ca.title IS NOT NULL

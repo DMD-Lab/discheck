@@ -40,7 +40,12 @@ function ArtistRow({ item }: { item: DepthItem }) {
         <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
           <Image src={item.pictureXl} alt={item.name} fill sizes="32px" className="object-cover" />
         </div>
-        <MarqueeText className={`${textStyles.body} text-text-primary`}>{item.name}</MarqueeText>
+        <MarqueeText
+          href={`/artist/${item.artistDeezerId}`}
+          className={`link-underline ${textStyles.body} text-text-primary`}
+        >
+          {item.name}
+        </MarqueeText>
       </div>
       <div className="flex-1 hidden sm:block">
         <div className="h-1.5 bg-bg-tertiary rounded-full overflow-hidden">

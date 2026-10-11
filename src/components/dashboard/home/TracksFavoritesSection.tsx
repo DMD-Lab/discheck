@@ -13,6 +13,7 @@ export type TopTrack = {
   trackDeezerId: number;
   title: string;
   artistName: string;
+  artistDeezerId: number;
   coverXl: string;
   ratedAt: string;
 };

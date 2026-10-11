@@ -2,6 +2,7 @@ export type EcartItem = {
   albumDeezerId: number
   title: string
   artistName: string
+  artistDeezerId: number
   coverXl: string
   albumRating: number
   trackAvg: number

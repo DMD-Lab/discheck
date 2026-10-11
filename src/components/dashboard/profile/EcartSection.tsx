@@ -28,7 +28,12 @@ function EcartCard({ item }: { item: EcartItem }) {
       <div className="p-3 flex flex-col gap-2">
         <div className="min-w-0">
           <MarqueeText className={`${textStyles.body} font-medium text-text-primary`}>{item.title}</MarqueeText>
-          <MarqueeText className={`${textStyles.caption} text-text-secondary`}>{item.artistName}</MarqueeText>
+          <MarqueeText
+            href={`/artist/${item.artistDeezerId}`}
+            className={`link-underline ${textStyles.caption} text-text-secondary`}
+          >
+            {item.artistName}
+          </MarqueeText>
         </div>
         <div className="flex items-center border-t border-border pt-2">
           <div className="flex-1 flex justify-center">
@@ -44,7 +49,31 @@ function EcartCard({ item }: { item: EcartItem }) {
   )
 }
 
-function EcartRow({ item, fromColor }: { item: EcartItem; fromColor?: string }) {
+function EcartRow({ item }: { item: EcartItem }) {
+  return (
+    <div className="flex items-center gap-3 py-2.5">
+      <div className="relative w-10 h-10 flex-shrink-0 rounded overflow-hidden">
+        <Image src={item.coverXl} alt={item.title} fill sizes="40px" className="object-cover" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <MarqueeText className={`${textStyles.body} text-text-primary`}>{item.title}</MarqueeText>
+        <MarqueeText
+          href={`/artist/${item.artistDeezerId}`}
+          className={`link-underline ${textStyles.caption} text-text-secondary`}
+        >
+          {item.artistName}
+        </MarqueeText>
+      </div>
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <RatingBadge label="Note album" value={item.albumRating} />
+        <div className="w-px h-8 bg-border flex-shrink-0" />
+        <RatingBadge label="Moy. tracks" value={item.trackAvg} />
+      </div>
+    </div>
+  )
+}
+
+function EcartPanelRow({ item, fromColor }: { item: EcartItem; fromColor?: string }) {
   return (
     <div className="flex items-center gap-3 py-2.5">
       <div className="relative w-10 h-10 flex-shrink-0 rounded overflow-hidden">
@@ -135,7 +164,7 @@ export default function EcartSection({ items }: { items: EcartItem[] }) {
           <div className="flex-1 overflow-y-auto px-5 pt-4">
             <div className="flex flex-col divide-y divide-border">
               {items.map(item => (
-                <EcartRow key={item.albumDeezerId} item={item} fromColor="from-bg-secondary" />
+                <EcartPanelRow key={item.albumDeezerId} item={item} fromColor="from-bg-secondary" />
               ))}
             </div>
           </div>

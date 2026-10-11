@@ -152,20 +152,22 @@ export default async function CollectionPage({
     pct: r.pct,
   }))
 
-  type RecentTrackRow = { track_deezer_id: number; title: string; artist_name: string; cover_xl: string; listened_at: string }
+  type RecentTrackRow = { track_deezer_id: number; title: string; artist_name: string; artist_deezer_id: number; cover_xl: string; listened_at: string }
   const recentTracks: RecentTrack[] = ((recentTracksRaw ?? []) as RecentTrackRow[]).map((r) => ({
     trackDeezerId: r.track_deezer_id,
     title: r.title,
     artistName: r.artist_name,
+    artistDeezerId: r.artist_deezer_id,
     coverXl: r.cover_xl,
     listenedAt: r.listened_at,
   }))
 
-  type RecentAlbumRow = { album_deezer_id: number; title: string; artist_name: string; cover_xl: string; last_listened_at: string }
+  type RecentAlbumRow = { album_deezer_id: number; title: string; artist_name: string; artist_deezer_id: number; cover_xl: string; last_listened_at: string }
   const recentAlbums: RecentAlbum[] = ((recentAlbumsRaw ?? []) as RecentAlbumRow[]).map((r) => ({
     albumDeezerId: r.album_deezer_id,
     title: r.title,
     artistName: r.artist_name,
+    artistDeezerId: r.artist_deezer_id,
     coverXl: r.cover_xl,
     lastListenedAt: r.last_listened_at,
   }))

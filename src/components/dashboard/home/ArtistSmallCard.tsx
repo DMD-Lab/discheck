@@ -25,7 +25,8 @@ export default function ArtistSmallCard({ artist }: { artist: TopArtist }) {
       </div>
       <div className="flex-1 min-w-0">
         <MarqueeText
-          className={`${textStyles.caption} font-medium text-text-primary`}
+          href={`/artist/${artist.artistDeezerId}`}
+          className={`link-underline ${textStyles.caption} font-medium text-text-primary`}
           fromColor="from-bg-secondary"
         >
           {artist.name}

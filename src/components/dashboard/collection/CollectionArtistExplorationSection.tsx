@@ -12,12 +12,17 @@ import MarqueeText from '@/components/ui/marquee-text'
 
 function CompletedRow({ item }: { item: DepthItem }) {
   return (
-    <div className="flex-1 flex items-center gap-3 py-2 min-h-0">
+    <div className="flex items-center gap-3 py-2 min-h-0">
       <div className="relative w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
         <Image src={item.pictureXl} alt={item.name} fill sizes="64px" className="object-cover" />
       </div>
       <div className="flex-1 min-w-0">
-        <MarqueeText className={`${textStyles.body} font-medium text-text-primary`}>{item.name}</MarqueeText>
+        <MarqueeText
+          href={`/artist/${item.artistDeezerId}`}
+          className={`link-underline ${textStyles.body} font-medium text-text-primary`}
+        >
+          {item.name}
+        </MarqueeText>
         <p className={`${textStyles.caption} text-text-secondary`}>{item.total} sortie{item.total > 1 ? 's' : ''}</p>
       </div>
       <span className={`${textStyles.caption} font-semibold text-text-green bg-bg-secondary px-2 py-0.5 rounded flex-shrink-0`}>
@@ -30,14 +35,19 @@ function CompletedRow({ item }: { item: DepthItem }) {
 function InProgressRow({ item }: { item: DepthItem }) {
   const remaining = item.total - item.listened
   return (
-    <div className="flex-1 flex items-center gap-3 py-2 border-b border-border last:border-0 min-h-0">
+    <div className="flex items-center gap-3 py-2 border-b border-border last:border-0 min-h-0">
       <div className="relative w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
         <Image src={item.pictureXl} alt={item.name} fill sizes="40px" className="object-cover" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1.5">
           <div className="flex-1 min-w-0">
-            <MarqueeText className={`${textStyles.body} font-medium text-text-primary`}>{item.name}</MarqueeText>
+            <MarqueeText
+              href={`/artist/${item.artistDeezerId}`}
+              className={`link-underline ${textStyles.body} font-medium text-text-primary`}
+            >
+              {item.name}
+            </MarqueeText>
           </div>
           <span className={`${textStyles.caption} text-text-secondary flex-shrink-0`}>
             {remaining} sortie{remaining > 1 ? 's' : ''} restante{remaining > 1 ? 's' : ''}

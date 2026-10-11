@@ -34,7 +34,7 @@ export default function AlbumsRanking() {
       const albumIds = rows.map(r => r.album_deezer_id)
       const { data: albumsData } = await supabase
         .from('cached_albums')
-        .select('album_deezer_id, title, artist_name, cover_xl, album_data')
+        .select('album_deezer_id, title, artist_name, artist_deezer_id, cover_xl, album_data')
         .in('album_deezer_id', albumIds)
 
       const mapped: TopAlbum[] = rows.map((r, i) => {
@@ -45,6 +45,7 @@ export default function AlbumsRanking() {
           albumDeezerId: r.album_deezer_id,
           title: album?.title ?? raw?.title ?? 'Album inconnu',
           artistName: album?.artist_name ?? '',
+          artistDeezerId: album?.artist_deezer_id ?? 0,
           coverXl: album?.cover_xl ?? raw?.cover_xl ?? '',
           albumRating: r.album_rating,
           trackAvg: r.track_avg,

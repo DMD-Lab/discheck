@@ -37,7 +37,10 @@ export default function AlbumSmallCard({
           <MarqueeText className={`${textStyles.caption} font-medium text-text-primary`}>
             {album.title}
           </MarqueeText>
-          <MarqueeText className={`${textStyles.caption} text-text-secondary`}>
+          <MarqueeText
+            href={`/artist/${album.artistDeezerId}`}
+            className={`link-underline ${textStyles.caption} text-text-secondary`}
+          >
             {album.artistName}
           </MarqueeText>
           <p className={`${textStyles.caption} text-text-disabled mt-0.5`}>{date}</p>

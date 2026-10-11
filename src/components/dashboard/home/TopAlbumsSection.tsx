@@ -15,6 +15,7 @@ export type TopAlbum = {
   albumDeezerId: number;
   title: string;
   artistName: string;
+  artistDeezerId: number;
   coverXl: string;
   albumRating: number;
   trackAvg: number | null;

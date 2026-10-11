@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { textStyles } from "@/components/ui/text-styles";
 import type { TopAlbum } from "./TopAlbumsSection";
 import { Star } from "lucide-react"
@@ -32,9 +33,9 @@ export default function AlbumFeaturedCard({ album }: { album: TopAlbum }) {
           <MarqueeText className={`${textStyles.cardTitle} font-semibold text-text-primary`}>
             {album.title}
           </MarqueeText>
-          <p className={`${textStyles.caption} text-text-secondary mt-0.5`}>
+          <Link href={`/artist/${album.artistDeezerId}`} className={`link-underline block w-fit max-w-full truncate ${textStyles.caption} text-text-secondary mt-0.5`}>
             {album.artistName}
-          </p>
+          </Link>
           <p className={`${textStyles.caption} text-text-disabled mt-0.5`}>
             {date}
           </p>

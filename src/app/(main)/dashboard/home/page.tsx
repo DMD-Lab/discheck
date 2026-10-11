@@ -74,7 +74,7 @@ export default async function HomePage() {
     const albumIds = topAlbumRows.map((r) => r.album_deezer_id);
     const { data: albumsData } = await supabase
       .from("cached_albums")
-      .select("album_deezer_id, title, artist_name, cover_xl, album_data")
+      .select("album_deezer_id, title, artist_name, artist_deezer_id, cover_xl, album_data")
       .in("album_deezer_id", albumIds);
 
     topAlbums = topAlbumRows.map((r, i) => {
@@ -87,6 +87,7 @@ export default async function HomePage() {
         albumDeezerId: r.album_deezer_id,
         title: album?.title ?? raw?.title ?? "Album inconnu",
         artistName: album?.artist_name ?? "",
+        artistDeezerId: album?.artist_deezer_id ?? 0,
         coverXl: album?.cover_xl ?? raw?.cover_xl ?? "",
         albumRating: r.album_rating,
         trackAvg: r.track_avg,
@@ -145,7 +146,7 @@ export default async function HomePage() {
     const albumIdsForFav = [...new Set((tracksForFav ?? []).map((t) => t.album_deezer_id))];
     const { data: albumsForFav } = await supabase
       .from("cached_albums")
-      .select("album_deezer_id, artist_name, cover_xl")
+      .select("album_deezer_id, artist_name, artist_deezer_id, cover_xl")
       .in("album_deezer_id", albumIdsForFav);
 
     topTracks = favoriteTrackRows.map((r) => {
@@ -156,6 +157,7 @@ export default async function HomePage() {
         trackDeezerId: r.track_deezer_id,
         title: raw?.title ?? "Track inconnue",
         artistName: album?.artist_name ?? "",
+        artistDeezerId: album?.artist_deezer_id ?? 0,
         coverXl: album?.cover_xl ?? "",
         ratedAt: r.rated_at,
       };

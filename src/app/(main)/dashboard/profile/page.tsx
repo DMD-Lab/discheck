@@ -122,6 +122,7 @@ export default async function ProfilePage() {
     album_deezer_id: number
     title: string
     artist_name: string
+    artist_deezer_id: number
     cover_xl: string
     album_rating: number
     track_avg: number
@@ -131,6 +132,7 @@ export default async function ProfilePage() {
     albumDeezerId: r.album_deezer_id,
     title: r.title,
     artistName: r.artist_name,
+    artistDeezerId: r.artist_deezer_id,
     coverXl: r.cover_xl,
     albumRating: r.album_rating,
     trackAvg: r.track_avg,

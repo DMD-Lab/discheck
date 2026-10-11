@@ -2,7 +2,9 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { textStyles } from '@/components/ui/text-styles'
+import { buttonVariants } from '@/components/ui/button-variants'
 import DischecLogo from '@/components/ui/DischecLogo'
+import AnimatedArrow from '@/components/ui/AnimatedArrow'
 
 export const metadata: Metadata = {
   title: 'Mentions légales',
@@ -10,7 +12,15 @@ export const metadata: Metadata = {
 
 export default function LegalPage() {
   return (
-    <div className="min-h-screen bg-bg-primary px-4 py-12 md:px-8">
+    <div className="relative min-h-screen bg-bg-primary px-4 py-12 md:px-8">
+      <Link
+        href="/"
+        className={buttonVariants({ variant: 'outline', size: 'sm', className: 'absolute top-5 left-6 z-10' })}
+      >
+        <AnimatedArrow direction="left" size={14} />
+        Retour
+      </Link>
+
       <div className="max-w-2xl mx-auto">
 
         <div className="mb-10">

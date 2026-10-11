@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Star } from "lucide-react";
 import { textStyles } from "@/components/ui/text-styles";
 import MarqueeText from "@/components/ui/marquee-text";
@@ -33,9 +34,9 @@ export default function TrackCard({ track }: { track: TopTrack }) {
         >
           {track.title}
         </MarqueeText>
-        <p className={`${textStyles.caption} text-text-secondary truncate`}>
+        <Link href={`/artist/${track.artistDeezerId}`} className={`link-underline block w-fit max-w-full truncate ${textStyles.caption} text-text-secondary`}>
           {track.artistName}
-        </p>
+        </Link>
       </div>
       <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
         <div className="flex items-center gap-1">

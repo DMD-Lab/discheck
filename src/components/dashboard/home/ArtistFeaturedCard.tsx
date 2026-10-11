@@ -26,7 +26,10 @@ export default function ArtistFeaturedCard({ artist }: { artist: TopArtist }) {
       </div>
 
       <div className="flex flex-col items-center gap-1 min-w-0 w-full text-center">
-        <MarqueeText className={`${textStyles.caption} font-semibold text-text-primary`}>
+        <MarqueeText
+          href={`/artist/${artist.artistDeezerId}`}
+          className={`link-underline ${textStyles.caption} font-semibold text-text-primary`}
+        >
           {artist.name}
         </MarqueeText>
         <div className="flex items-center gap-1">
