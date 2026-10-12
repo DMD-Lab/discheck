@@ -57,7 +57,7 @@ export default function GenresSection({
           </div>
           <button
             onClick={() => setIsPanelOpen(true)}
-            className={`link-underline ${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1 flex-shrink-0 mt-0.5`}
+            className={`${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1 flex-shrink-0 mt-0.5`}
           >
             Voir plus
             <AnimatedArrow direction="right" size={12} />

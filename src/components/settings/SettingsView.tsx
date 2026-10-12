@@ -90,7 +90,7 @@ export default function SettingsView({ userId, email, initialPseudo, version }: 
             <p className={`${textStyles.caption} text-text-disabled`}>Discheck v{version}</p>
             <p className={`${textStyles.caption} text-text-disabled mt-1`}>Une app <span className="text-text-secondary">DMD Lab</span></p>
           </div>
-          <AppButton variant="danger" className={`self-start p-0 ${textStyles.caption}`} onClick={() => setOpenModal('delete')}>
+          <AppButton variant="danger" className={`link-underline self-start p-0 ${textStyles.caption}`} onClick={() => setOpenModal('delete')}>
             Supprimer mon compte
           </AppButton>
         </div>

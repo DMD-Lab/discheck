@@ -129,7 +129,7 @@ export default function EcartSection({ items }: { items: EcartItem[] }) {
           {items.length > 3 && (
             <button
               onClick={() => setIsPanelOpen(true)}
-              className={`link-underline ${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1`}
+              className={`${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1`}
             >
               Voir plus
               <AnimatedArrow direction="right" size={12} />

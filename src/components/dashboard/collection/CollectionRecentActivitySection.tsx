@@ -164,7 +164,7 @@ export default function CollectionRecentActivitySection({
 
         <button
           onClick={() => setIsPanelOpen(true)}
-          className={`link-underline ${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1 self-start`}
+          className={`${textStyles.caption} text-text-primary hover:text-primary transition-colors flex items-center gap-1 self-start`}
         >
           Voir plus <AnimatedArrow direction="right" size={12} />
         </button>
