@@ -46,7 +46,7 @@ export default function MarqueeText({
   return (
     <div
       ref={containerRef}
-      className="relative overflow-hidden cursor-default"
+      className="relative w-full overflow-hidden cursor-default"
       onMouseEnter={() => isOverflowing && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >

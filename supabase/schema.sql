@@ -280,6 +280,221 @@ LANGUAGE sql STABLE AS $$
   LIMIT p_limit
 $$;
 
+-- Fonction : résumé chiffré du mois (onglet Mes écoutes)
+CREATE OR REPLACE FUNCTION get_month_summary(p_user_id uuid, p_start timestamptz, p_end timestamptz)
+RETURNS TABLE(tracks_listened integer, hours_listened numeric, artists_listened integer, albums_listened integer)
+LANGUAGE sql STABLE AS $$
+  SELECT
+    COUNT(DISTINCT lt.track_deezer_id)::integer AS tracks_listened,
+    ROUND(COALESCE(SUM((ct.track_data->>'duration')::numeric), 0) / 3600.0, 1) AS hours_listened,
+    COUNT(DISTINCT ca.artist_deezer_id)::integer AS artists_listened,
+    COUNT(DISTINCT lt.album_deezer_id)::integer AS albums_listened
+  FROM listened_tracks lt
+  LEFT JOIN cached_tracks ct ON ct.track_deezer_id = lt.track_deezer_id
+  LEFT JOIN cached_albums ca ON ca.album_deezer_id = lt.album_deezer_id
+  WHERE lt.user_id = p_user_id
+    AND COALESCE(lt.listened_at_user, lt.listened_at) >= p_start
+    AND COALESCE(lt.listened_at_user, lt.listened_at) < p_end
+$$;
+
+-- Fonction : artistes les plus écoutés du mois, par nombre de titres distincts (dashboard p_limit=1, panel p_limit=NULL)
+CREATE OR REPLACE FUNCTION get_month_top_artists(p_user_id uuid, p_start timestamptz, p_end timestamptz, p_limit integer DEFAULT NULL)
+RETURNS TABLE(artist_deezer_id bigint, name text, picture_xl text, tracks_listened integer)
+LANGUAGE sql STABLE AS $$
+  SELECT
+    ca.artist_deezer_id,
+    COALESCE(car.artist_data->>'name', ''),
+    COALESCE(car.artist_data->>'picture_xl', ''),
+    COUNT(DISTINCT lt.track_deezer_id)::integer AS tracks_listened
+  FROM listened_tracks lt
+  JOIN cached_albums ca ON ca.album_deezer_id = lt.album_deezer_id
+  LEFT JOIN cached_artists car ON car.artist_deezer_id = ca.artist_deezer_id
+  WHERE lt.user_id = p_user_id
+    AND COALESCE(lt.listened_at_user, lt.listened_at) >= p_start
+    AND COALESCE(lt.listened_at_user, lt.listened_at) < p_end
+  GROUP BY ca.artist_deezer_id, car.artist_data
+  ORDER BY tracks_listened DESC
+  LIMIT p_limit
+$$;
+
+-- Fonction : titres favoris du mois (notés 5/5, dashboard p_limit=5, panel p_limit=NULL)
+CREATE OR REPLACE FUNCTION get_month_favorite_track(p_user_id uuid, p_start timestamptz, p_end timestamptz, p_limit integer DEFAULT NULL)
+RETURNS TABLE(track_deezer_id bigint, rated_at timestamptz)
+LANGUAGE sql STABLE AS $$
+  SELECT tr.track_deezer_id, tr.rated_at
+  FROM track_ratings tr
+  WHERE tr.user_id = p_user_id AND tr.rating = 5
+    AND tr.rated_at >= p_start AND tr.rated_at < p_end
+  ORDER BY tr.rated_at DESC
+  LIMIT p_limit
+$$;
+
+-- Fonction : albums/EP favoris du mois (même tri que get_top_albums, dashboard p_limit=5, panel p_limit=NULL)
+CREATE OR REPLACE FUNCTION get_month_favorite_album(p_user_id uuid, p_start timestamptz, p_end timestamptz, p_limit integer DEFAULT NULL)
+RETURNS TABLE(
+  album_deezer_id bigint,
+  album_rating smallint,
+  rated_at timestamptz,
+  track_avg numeric,
+  has_any_track_rating boolean
+)
+LANGUAGE sql STABLE AS $$
+  WITH album_tracks AS (
+    SELECT ct.album_deezer_id, ct.track_deezer_id
+    FROM cached_tracks ct
+    JOIN album_ratings ar ON ar.album_deezer_id = ct.album_deezer_id AND ar.user_id = p_user_id AND ar.rating IS NOT NULL
+  ),
+  track_stats AS (
+    SELECT
+      at.album_deezer_id,
+      COUNT(*) AS total_tracks,
+      COUNT(tr.rating) AS rated_tracks,
+      AVG(tr.rating) AS avg_rating
+    FROM album_tracks at
+    LEFT JOIN track_ratings tr ON tr.track_deezer_id = at.track_deezer_id AND tr.user_id = p_user_id
+    GROUP BY at.album_deezer_id
+  )
+  SELECT
+    ar.album_deezer_id,
+    ar.rating AS album_rating,
+    ar.rated_at,
+    CASE WHEN ts.total_tracks = ts.rated_tracks THEN ROUND(ts.avg_rating, 1) ELSE NULL END AS track_avg,
+    COALESCE(ts.rated_tracks, 0) > 0 AS has_any_track_rating
+  FROM album_ratings ar
+  LEFT JOIN track_stats ts ON ts.album_deezer_id = ar.album_deezer_id
+  WHERE ar.user_id = p_user_id AND ar.rating IS NOT NULL
+    AND ar.rated_at >= p_start AND ar.rated_at < p_end
+  ORDER BY
+    ar.rating DESC,
+    (CASE WHEN ts.total_tracks = ts.rated_tracks THEN ROUND(ts.avg_rating, 1) ELSE NULL END) DESC NULLS LAST,
+    COALESCE(ts.rated_tracks, 0) > 0 DESC,
+    ar.rated_at DESC
+  LIMIT p_limit
+$$;
+
+-- Fonction : artistes découverts ce mois (première écoute jamais enregistrée, recalculée en direct)
+CREATE OR REPLACE FUNCTION get_month_discovered_artists(p_user_id uuid, p_start timestamptz, p_end timestamptz)
+RETURNS TABLE(artist_deezer_id bigint, name text, picture_xl text, first_listened_at timestamptz)
+LANGUAGE sql STABLE AS $$
+  WITH first_listen AS (
+    SELECT
+      ca.artist_deezer_id,
+      MIN(COALESCE(lt.listened_at_user, lt.listened_at)) AS first_listened_at
+    FROM listened_tracks lt
+    JOIN cached_albums ca ON ca.album_deezer_id = lt.album_deezer_id
+    WHERE lt.user_id = p_user_id
+    GROUP BY ca.artist_deezer_id
+  )
+  SELECT
+    fl.artist_deezer_id,
+    COALESCE(car.artist_data->>'name', ''),
+    COALESCE(car.artist_data->>'picture_xl', ''),
+    fl.first_listened_at
+  FROM first_listen fl
+  LEFT JOIN cached_artists car ON car.artist_deezer_id = fl.artist_deezer_id
+  WHERE fl.first_listened_at >= p_start AND fl.first_listened_at < p_end
+  ORDER BY fl.first_listened_at ASC
+$$;
+
+-- Fonction : historique des découvertes par artiste, toutes périodes (pour détecter les records)
+CREATE OR REPLACE FUNCTION get_artist_discovery_history(p_user_id uuid)
+RETURNS TABLE(artist_deezer_id bigint, discovery_month date, tracks_in_month integer, tracks_in_year integer)
+LANGUAGE sql STABLE AS $$
+  WITH dated AS (
+    SELECT
+      ca.artist_deezer_id,
+      lt.track_deezer_id,
+      COALESCE(lt.listened_at_user, lt.listened_at) AS effective_at
+    FROM listened_tracks lt
+    JOIN cached_albums ca ON ca.album_deezer_id = lt.album_deezer_id
+    WHERE lt.user_id = p_user_id
+  ),
+  first_listen AS (
+    SELECT artist_deezer_id, MIN(effective_at) AS first_listened_at
+    FROM dated
+    GROUP BY artist_deezer_id
+  )
+  SELECT
+    fl.artist_deezer_id,
+    date_trunc('month', fl.first_listened_at)::date AS discovery_month,
+    COUNT(DISTINCT d.track_deezer_id) FILTER (
+      WHERE d.effective_at >= date_trunc('month', fl.first_listened_at)
+        AND d.effective_at < date_trunc('month', fl.first_listened_at) + interval '1 month'
+    )::integer AS tracks_in_month,
+    COUNT(DISTINCT d.track_deezer_id) FILTER (
+      WHERE d.effective_at >= date_trunc('year', fl.first_listened_at)
+        AND d.effective_at < date_trunc('year', fl.first_listened_at) + interval '1 year'
+    )::integer AS tracks_in_year
+  FROM first_listen fl
+  JOIN dated d ON d.artist_deezer_id = fl.artist_deezer_id
+  GROUP BY fl.artist_deezer_id, fl.first_listened_at
+$$;
+
+-- Fonction : tous les titres écoutés sur la période, notés ou non (dashboard p_limit=5, panel p_limit=NULL)
+CREATE OR REPLACE FUNCTION get_month_listened_tracks(p_user_id uuid, p_start timestamptz, p_end timestamptz, p_limit integer DEFAULT NULL)
+RETURNS TABLE(track_deezer_id bigint, listened_at timestamptz, rating smallint)
+LANGUAGE sql STABLE AS $$
+  SELECT
+    lt.track_deezer_id,
+    COALESCE(lt.listened_at_user, lt.listened_at) AS listened_at,
+    tr.rating
+  FROM listened_tracks lt
+  LEFT JOIN track_ratings tr ON tr.track_deezer_id = lt.track_deezer_id AND tr.user_id = p_user_id
+  WHERE lt.user_id = p_user_id
+    AND COALESCE(lt.listened_at_user, lt.listened_at) >= p_start
+    AND COALESCE(lt.listened_at_user, lt.listened_at) < p_end
+  ORDER BY COALESCE(lt.listened_at_user, lt.listened_at) DESC
+  LIMIT p_limit
+$$;
+
+-- Fonction : tous les albums/EP écoutés sur la période, notés ou non (dashboard p_limit=5, panel p_limit=NULL)
+CREATE OR REPLACE FUNCTION get_month_listened_albums(p_user_id uuid, p_start timestamptz, p_end timestamptz, p_limit integer DEFAULT NULL)
+RETURNS TABLE(
+  album_deezer_id bigint,
+  last_listened_at timestamptz,
+  album_rating smallint,
+  track_avg numeric,
+  has_any_track_rating boolean
+)
+LANGUAGE sql STABLE AS $$
+  WITH period_albums AS (
+    SELECT
+      lt.album_deezer_id,
+      MAX(COALESCE(lt.listened_at_user, lt.listened_at)) AS last_listened_at
+    FROM listened_tracks lt
+    WHERE lt.user_id = p_user_id
+      AND COALESCE(lt.listened_at_user, lt.listened_at) >= p_start
+      AND COALESCE(lt.listened_at_user, lt.listened_at) < p_end
+    GROUP BY lt.album_deezer_id
+  ),
+  album_tracks AS (
+    SELECT ct.album_deezer_id, ct.track_deezer_id
+    FROM cached_tracks ct
+    JOIN period_albums pa ON pa.album_deezer_id = ct.album_deezer_id
+  ),
+  track_stats AS (
+    SELECT
+      at.album_deezer_id,
+      COUNT(*) AS total_tracks,
+      COUNT(tr.rating) AS rated_tracks,
+      AVG(tr.rating) AS avg_rating
+    FROM album_tracks at
+    LEFT JOIN track_ratings tr ON tr.track_deezer_id = at.track_deezer_id AND tr.user_id = p_user_id
+    GROUP BY at.album_deezer_id
+  )
+  SELECT
+    pa.album_deezer_id,
+    pa.last_listened_at,
+    ar.rating AS album_rating,
+    CASE WHEN ts.total_tracks = ts.rated_tracks THEN ROUND(ts.avg_rating, 1) ELSE NULL END AS track_avg,
+    COALESCE(ts.rated_tracks, 0) > 0 AS has_any_track_rating
+  FROM period_albums pa
+  LEFT JOIN album_ratings ar ON ar.album_deezer_id = pa.album_deezer_id AND ar.user_id = p_user_id
+  LEFT JOIN track_stats ts ON ts.album_deezer_id = pa.album_deezer_id
+  ORDER BY pa.last_listened_at DESC
+  LIMIT p_limit
+$$;
+
 -- Fonction : répartition par genre dominant (titres écoutés)
 CREATE OR REPLACE FUNCTION get_genre_stats(p_user_id uuid)
 RETURNS TABLE(genre_id integer, name text, count integer, percentage integer)

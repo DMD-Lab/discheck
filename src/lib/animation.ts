@@ -1,0 +1,1 @@
+export const CONTENT_REVEAL_DELAY = 0.25

@@ -15,6 +15,11 @@ const tabs = [
     label: "Ma collection",
     labelMobile: "Collection",
   },
+  {
+    href: "/dashboard/recap",
+    label: "Mon récap",
+    labelMobile: "Récap",
+  },
 ];
 
 export default function DashboardTabs() {
