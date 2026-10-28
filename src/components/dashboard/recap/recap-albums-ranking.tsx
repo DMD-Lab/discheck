@@ -22,8 +22,8 @@ export default function RecapAlbumsRanking({ start, end }: { start: string; end:
 
       type FavoriteAlbumRow = {
         album_deezer_id: number
-        album_rating: number
-        rated_at: string
+        album_rating: number | null
+        listened_at: string
         track_avg: number | null
         has_any_track_rating: boolean
       }
@@ -99,7 +99,7 @@ function AlbumPanelRow({ album }: { album: FavoriteAlbum }) {
           <div className="flex items-center gap-1">
             <Star size={11} className="text-text-green fill-text-green" />
             <span className={`${textStyles.caption} font-semibold text-text-primary`}>
-              {album.albumRating.toFixed(1).replace('.', ',')}
+              {album.albumRating !== null ? album.albumRating.toFixed(1).replace('.', ',') : '—'}
             </span>
           </div>
         </div>

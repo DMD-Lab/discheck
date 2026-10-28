@@ -16,13 +16,19 @@ export default function RecapPicker({
   month,
   minYear,
   minMonth,
+  activeMonths,
+  activeYears,
 }: {
   mode: PickerMode
   year: number
   month: number
   minYear: number
   minMonth: number
+  activeMonths: string[]
+  activeYears: string[]
 }) {
+  const activeMonthSet = new Set(activeMonths)
+  const activeYearSet = new Set(activeYears)
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -85,7 +91,11 @@ export default function RecapPicker({
   function isMonthDisabled(y: number, m: number) {
     if (y > currentYear || (y === currentYear && m > currentMonth)) return true
     if (y < minYear || (y === minYear && m < minMonth)) return true
-    return false
+    return !activeMonthSet.has(`${y}-${String(m).padStart(2, '0')}`)
+  }
+
+  function isYearDisabled(y: number) {
+    return !activeYearSet.has(String(y))
   }
 
   function selectMonth(m: number) {
@@ -95,6 +105,7 @@ export default function RecapPicker({
   }
 
   function selectYear(y: number) {
+    if (isYearDisabled(y)) return
     push({ mode: 'year', year: String(y), month: null })
     setIsPickerOpen(false)
   }
@@ -206,7 +217,8 @@ export default function RecapPicker({
                     <button
                       key={y}
                       onClick={() => selectYear(y)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium text-center transition-colors ${
+                      disabled={isYearDisabled(y)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium text-center transition-colors disabled:opacity-30 disabled:pointer-events-none ${
                         y === year ? 'bg-primary text-bg-primary' : 'text-text-primary hover:bg-bg-tertiary'
                       }`}
                     >

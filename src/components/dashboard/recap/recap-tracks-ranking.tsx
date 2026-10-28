@@ -20,7 +20,7 @@ export default function RecapTracksRanking({ start, end }: { start: string; end:
       const { data: rpcData } = await supabase
         .rpc('get_month_favorite_track', { p_user_id: user.id, p_start: start, p_end: end, p_limit: null })
 
-      type FavoriteTrackRow = { track_deezer_id: number; rated_at: string }
+      type FavoriteTrackRow = { track_deezer_id: number; listened_at: string }
       const ratings = (rpcData ?? []) as FavoriteTrackRow[]
 
       if (ratings.length === 0) { setLoading(false); return }

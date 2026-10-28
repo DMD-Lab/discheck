@@ -280,21 +280,51 @@ LANGUAGE sql STABLE AS $$
   LIMIT p_limit
 $$;
 
--- Fonction : résumé chiffré du mois (onglet Mes écoutes)
+-- Fonction : résumé chiffré du mois (onglet Mon récap). albums_listened ne compte que les albums 100% cochés
+-- (même règle que get_month_listened_albums), les autres compteurs restent au niveau titre
 CREATE OR REPLACE FUNCTION get_month_summary(p_user_id uuid, p_start timestamptz, p_end timestamptz)
 RETURNS TABLE(tracks_listened integer, hours_listened numeric, artists_listened integer, albums_listened integer)
 LANGUAGE sql STABLE AS $$
+  WITH period_tracks AS (
+    SELECT lt.track_deezer_id, lt.album_deezer_id, ct.track_data
+    FROM listened_tracks lt
+    LEFT JOIN cached_tracks ct ON ct.track_deezer_id = lt.track_deezer_id
+    WHERE lt.user_id = p_user_id
+      AND COALESCE(lt.listened_at_user, lt.listened_at) >= p_start
+      AND COALESCE(lt.listened_at_user, lt.listened_at) < p_end
+  ),
+  user_listened AS (
+    SELECT lt.album_deezer_id, lt.track_deezer_id, COALESCE(lt.listened_at_user, lt.listened_at) AS effective_at
+    FROM listened_tracks lt
+    WHERE lt.user_id = p_user_id AND lt.album_deezer_id IS NOT NULL
+  ),
+  album_progress AS (
+    SELECT ul.album_deezer_id, COUNT(DISTINCT ul.track_deezer_id) AS listened_count, MAX(ul.effective_at) AS derived_date
+    FROM user_listened ul
+    GROUP BY ul.album_deezer_id
+  ),
+  album_totals AS (
+    SELECT ct.album_deezer_id, COUNT(*) AS total_tracks
+    FROM cached_tracks ct
+    JOIN album_progress ap ON ap.album_deezer_id = ct.album_deezer_id
+    GROUP BY ct.album_deezer_id
+  ),
+  complete_albums AS (
+    SELECT ap.album_deezer_id, COALESCE(ar.listened_at_user, ap.derived_date) AS last_listened_at
+    FROM album_progress ap
+    JOIN album_totals tot ON tot.album_deezer_id = ap.album_deezer_id
+    LEFT JOIN album_ratings ar ON ar.album_deezer_id = ap.album_deezer_id AND ar.user_id = p_user_id
+    WHERE ap.listened_count = tot.total_tracks AND tot.total_tracks > 0
+      AND COALESCE(ar.listened_at_user, ap.derived_date) >= p_start
+      AND COALESCE(ar.listened_at_user, ap.derived_date) < p_end
+  )
   SELECT
-    COUNT(DISTINCT lt.track_deezer_id)::integer AS tracks_listened,
-    ROUND(COALESCE(SUM((ct.track_data->>'duration')::numeric), 0) / 3600.0, 1) AS hours_listened,
-    COUNT(DISTINCT ca.artist_deezer_id)::integer AS artists_listened,
-    COUNT(DISTINCT lt.album_deezer_id)::integer AS albums_listened
-  FROM listened_tracks lt
-  LEFT JOIN cached_tracks ct ON ct.track_deezer_id = lt.track_deezer_id
-  LEFT JOIN cached_albums ca ON ca.album_deezer_id = lt.album_deezer_id
-  WHERE lt.user_id = p_user_id
-    AND COALESCE(lt.listened_at_user, lt.listened_at) >= p_start
-    AND COALESCE(lt.listened_at_user, lt.listened_at) < p_end
+    (SELECT COUNT(DISTINCT track_deezer_id) FROM period_tracks)::integer AS tracks_listened,
+    (SELECT ROUND(COALESCE(SUM((track_data->>'duration')::numeric), 0) / 3600.0, 1) FROM period_tracks) AS hours_listened,
+    (SELECT COUNT(DISTINCT ca.artist_deezer_id)
+      FROM period_tracks pt
+      LEFT JOIN cached_albums ca ON ca.album_deezer_id = pt.album_deezer_id)::integer AS artists_listened,
+    (SELECT COUNT(*) FROM complete_albums)::integer AS albums_listened
 $$;
 
 -- Fonction : artistes les plus écoutés du mois, par nombre de titres distincts (dashboard p_limit=1, panel p_limit=NULL)
@@ -317,32 +347,45 @@ LANGUAGE sql STABLE AS $$
   LIMIT p_limit
 $$;
 
--- Fonction : titres favoris du mois (notés 5/5, dashboard p_limit=5, panel p_limit=NULL)
+-- Fonction : titres favoris du mois (notés 5/5, classés par date d'écoute — pas date de notation — dashboard p_limit=5, panel p_limit=NULL)
+DROP FUNCTION IF EXISTS get_month_favorite_track(uuid, timestamptz, timestamptz, integer);
 CREATE OR REPLACE FUNCTION get_month_favorite_track(p_user_id uuid, p_start timestamptz, p_end timestamptz, p_limit integer DEFAULT NULL)
-RETURNS TABLE(track_deezer_id bigint, rated_at timestamptz)
+RETURNS TABLE(track_deezer_id bigint, listened_at timestamptz)
 LANGUAGE sql STABLE AS $$
-  SELECT tr.track_deezer_id, tr.rated_at
+  SELECT tr.track_deezer_id, COALESCE(lt.listened_at_user, lt.listened_at) AS listened_at
   FROM track_ratings tr
+  JOIN listened_tracks lt ON lt.track_deezer_id = tr.track_deezer_id AND lt.user_id = tr.user_id
   WHERE tr.user_id = p_user_id AND tr.rating = 5
-    AND tr.rated_at >= p_start AND tr.rated_at < p_end
-  ORDER BY tr.rated_at DESC
+    AND COALESCE(lt.listened_at_user, lt.listened_at) >= p_start
+    AND COALESCE(lt.listened_at_user, lt.listened_at) < p_end
+  ORDER BY COALESCE(lt.listened_at_user, lt.listened_at) DESC
   LIMIT p_limit
 $$;
 
--- Fonction : albums/EP favoris du mois (même tri que get_top_albums, dashboard p_limit=5, panel p_limit=NULL)
+-- Fonction : albums/EP favoris du mois, notés (album et/ou tous titres) et classés par date d'écoute — pas date de
+-- notation (dashboard p_limit=5, panel p_limit=NULL). Note album requiert déjà 100% coché côté app (voir artist/[id]/page.tsx)
+DROP FUNCTION IF EXISTS get_month_favorite_album(uuid, timestamptz, timestamptz, integer);
 CREATE OR REPLACE FUNCTION get_month_favorite_album(p_user_id uuid, p_start timestamptz, p_end timestamptz, p_limit integer DEFAULT NULL)
 RETURNS TABLE(
   album_deezer_id bigint,
   album_rating smallint,
-  rated_at timestamptz,
+  listened_at timestamptz,
   track_avg numeric,
   has_any_track_rating boolean
 )
 LANGUAGE sql STABLE AS $$
-  WITH album_tracks AS (
+  WITH candidate_albums AS (
+    SELECT DISTINCT album_deezer_id FROM album_ratings WHERE user_id = p_user_id AND rating IS NOT NULL
+    UNION
+    SELECT DISTINCT ct.album_deezer_id
+    FROM track_ratings tr
+    JOIN cached_tracks ct ON ct.track_deezer_id = tr.track_deezer_id
+    WHERE tr.user_id = p_user_id
+  ),
+  album_tracks AS (
     SELECT ct.album_deezer_id, ct.track_deezer_id
     FROM cached_tracks ct
-    JOIN album_ratings ar ON ar.album_deezer_id = ct.album_deezer_id AND ar.user_id = p_user_id AND ar.rating IS NOT NULL
+    JOIN candidate_albums ca ON ca.album_deezer_id = ct.album_deezer_id
   ),
   track_stats AS (
     SELECT
@@ -353,22 +396,31 @@ LANGUAGE sql STABLE AS $$
     FROM album_tracks at
     LEFT JOIN track_ratings tr ON tr.track_deezer_id = at.track_deezer_id AND tr.user_id = p_user_id
     GROUP BY at.album_deezer_id
+  ),
+  album_dates AS (
+    SELECT lt.album_deezer_id, MAX(COALESCE(lt.listened_at_user, lt.listened_at)) AS derived_date
+    FROM listened_tracks lt
+    WHERE lt.user_id = p_user_id
+    GROUP BY lt.album_deezer_id
   )
   SELECT
-    ar.album_deezer_id,
+    ca.album_deezer_id,
     ar.rating AS album_rating,
-    ar.rated_at,
-    CASE WHEN ts.total_tracks = ts.rated_tracks THEN ROUND(ts.avg_rating, 1) ELSE NULL END AS track_avg,
+    COALESCE(ar.listened_at_user, ad.derived_date) AS listened_at,
+    CASE WHEN ts.total_tracks = ts.rated_tracks AND ts.total_tracks > 0 THEN ROUND(ts.avg_rating, 1) ELSE NULL END AS track_avg,
     COALESCE(ts.rated_tracks, 0) > 0 AS has_any_track_rating
-  FROM album_ratings ar
-  LEFT JOIN track_stats ts ON ts.album_deezer_id = ar.album_deezer_id
-  WHERE ar.user_id = p_user_id AND ar.rating IS NOT NULL
-    AND ar.rated_at >= p_start AND ar.rated_at < p_end
+  FROM candidate_albums ca
+  LEFT JOIN album_ratings ar ON ar.album_deezer_id = ca.album_deezer_id AND ar.user_id = p_user_id
+  LEFT JOIN track_stats ts ON ts.album_deezer_id = ca.album_deezer_id
+  LEFT JOIN album_dates ad ON ad.album_deezer_id = ca.album_deezer_id
+  WHERE (ar.rating IS NOT NULL OR (ts.total_tracks = ts.rated_tracks AND ts.total_tracks > 0))
+    AND COALESCE(ar.listened_at_user, ad.derived_date) >= p_start
+    AND COALESCE(ar.listened_at_user, ad.derived_date) < p_end
   ORDER BY
-    ar.rating DESC,
-    (CASE WHEN ts.total_tracks = ts.rated_tracks THEN ROUND(ts.avg_rating, 1) ELSE NULL END) DESC NULLS LAST,
+    ar.rating DESC NULLS LAST,
+    (CASE WHEN ts.total_tracks = ts.rated_tracks AND ts.total_tracks > 0 THEN ROUND(ts.avg_rating, 1) ELSE NULL END) DESC NULLS LAST,
     COALESCE(ts.rated_tracks, 0) > 0 DESC,
-    ar.rated_at DESC
+    COALESCE(ar.listened_at_user, ad.derived_date) DESC
   LIMIT p_limit
 $$;
 
@@ -394,6 +446,15 @@ LANGUAGE sql STABLE AS $$
   LEFT JOIN cached_artists car ON car.artist_deezer_id = fl.artist_deezer_id
   WHERE fl.first_listened_at >= p_start AND fl.first_listened_at < p_end
   ORDER BY fl.first_listened_at ASC
+$$;
+
+-- Fonction : mois ayant au moins une écoute, toutes périodes (pour griser les mois/années vides du picker)
+CREATE OR REPLACE FUNCTION get_user_active_months(p_user_id uuid)
+RETURNS TABLE(month date)
+LANGUAGE sql STABLE AS $$
+  SELECT DISTINCT date_trunc('month', COALESCE(lt.listened_at_user, lt.listened_at))::date AS month
+  FROM listened_tracks lt
+  WHERE lt.user_id = p_user_id
 $$;
 
 -- Fonction : historique des découvertes par artiste, toutes périodes (pour détecter les records)
@@ -447,7 +508,9 @@ LANGUAGE sql STABLE AS $$
   LIMIT p_limit
 $$;
 
--- Fonction : tous les albums/EP écoutés sur la période, notés ou non (dashboard p_limit=5, panel p_limit=NULL)
+-- Fonction : albums/EP écoutés à 100% (tous les titres cochés) sur la période, notés ou non — date = date d'écoute
+-- la plus récente parmi ses titres, sauf si une date d'album explicite existe (même logique que le panel album)
+-- (dashboard p_limit=5, panel p_limit=NULL)
 CREATE OR REPLACE FUNCTION get_month_listened_albums(p_user_id uuid, p_start timestamptz, p_end timestamptz, p_limit integer DEFAULT NULL)
 RETURNS TABLE(
   album_deezer_id bigint,
@@ -457,20 +520,37 @@ RETURNS TABLE(
   has_any_track_rating boolean
 )
 LANGUAGE sql STABLE AS $$
-  WITH period_albums AS (
-    SELECT
-      lt.album_deezer_id,
-      MAX(COALESCE(lt.listened_at_user, lt.listened_at)) AS last_listened_at
+  WITH user_listened AS (
+    SELECT lt.album_deezer_id, lt.track_deezer_id, COALESCE(lt.listened_at_user, lt.listened_at) AS effective_at
     FROM listened_tracks lt
-    WHERE lt.user_id = p_user_id
-      AND COALESCE(lt.listened_at_user, lt.listened_at) >= p_start
-      AND COALESCE(lt.listened_at_user, lt.listened_at) < p_end
-    GROUP BY lt.album_deezer_id
+    WHERE lt.user_id = p_user_id AND lt.album_deezer_id IS NOT NULL
+  ),
+  album_progress AS (
+    SELECT ul.album_deezer_id, COUNT(DISTINCT ul.track_deezer_id) AS listened_count, MAX(ul.effective_at) AS derived_date
+    FROM user_listened ul
+    GROUP BY ul.album_deezer_id
+  ),
+  album_totals AS (
+    SELECT ct.album_deezer_id, COUNT(*) AS total_tracks
+    FROM cached_tracks ct
+    JOIN album_progress ap ON ap.album_deezer_id = ct.album_deezer_id
+    GROUP BY ct.album_deezer_id
+  ),
+  complete_albums AS (
+    SELECT
+      ap.album_deezer_id,
+      COALESCE(ar.listened_at_user, ap.derived_date) AS last_listened_at
+    FROM album_progress ap
+    JOIN album_totals tot ON tot.album_deezer_id = ap.album_deezer_id
+    LEFT JOIN album_ratings ar ON ar.album_deezer_id = ap.album_deezer_id AND ar.user_id = p_user_id
+    WHERE ap.listened_count = tot.total_tracks AND tot.total_tracks > 0
+      AND COALESCE(ar.listened_at_user, ap.derived_date) >= p_start
+      AND COALESCE(ar.listened_at_user, ap.derived_date) < p_end
   ),
   album_tracks AS (
     SELECT ct.album_deezer_id, ct.track_deezer_id
     FROM cached_tracks ct
-    JOIN period_albums pa ON pa.album_deezer_id = ct.album_deezer_id
+    JOIN complete_albums ca ON ca.album_deezer_id = ct.album_deezer_id
   ),
   track_stats AS (
     SELECT
@@ -483,15 +563,15 @@ LANGUAGE sql STABLE AS $$
     GROUP BY at.album_deezer_id
   )
   SELECT
-    pa.album_deezer_id,
-    pa.last_listened_at,
+    ca.album_deezer_id,
+    ca.last_listened_at,
     ar.rating AS album_rating,
-    CASE WHEN ts.total_tracks = ts.rated_tracks THEN ROUND(ts.avg_rating, 1) ELSE NULL END AS track_avg,
+    CASE WHEN ts.total_tracks = ts.rated_tracks AND ts.total_tracks > 0 THEN ROUND(ts.avg_rating, 1) ELSE NULL END AS track_avg,
     COALESCE(ts.rated_tracks, 0) > 0 AS has_any_track_rating
-  FROM period_albums pa
-  LEFT JOIN album_ratings ar ON ar.album_deezer_id = pa.album_deezer_id AND ar.user_id = p_user_id
-  LEFT JOIN track_stats ts ON ts.album_deezer_id = pa.album_deezer_id
-  ORDER BY pa.last_listened_at DESC
+  FROM complete_albums ca
+  LEFT JOIN album_ratings ar ON ar.album_deezer_id = ca.album_deezer_id AND ar.user_id = p_user_id
+  LEFT JOIN track_stats ts ON ts.album_deezer_id = ca.album_deezer_id
+  ORDER BY ca.last_listened_at DESC
   LIMIT p_limit
 $$;
 

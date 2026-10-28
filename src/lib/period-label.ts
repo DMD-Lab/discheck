@@ -21,5 +21,5 @@ export function monthWithPreposition(month: number): string {
 }
 
 export function periodAt(mode: PickerMode, year: number, month: number): string {
-  return mode === 'year' ? `en ${year}` : `en ${MONTH_NAMES[month - 1].toLowerCase()} ${year}`
+  return mode === 'year' ? `${year}` : `${MONTH_NAMES[month - 1].toLowerCase()} ${year}`
 }

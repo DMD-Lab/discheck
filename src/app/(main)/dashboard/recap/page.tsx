@@ -78,6 +78,7 @@ export default async function RecapPage({
     { data: listenedAlbumRaw },
     { data: discoveredRaw },
     { data: discoveryHistoryRaw },
+    { data: activeMonthsRaw },
   ] = await Promise.all([
     supabase.rpc('get_month_summary', { p_user_id: user.id, p_start: start.toISOString(), p_end: end.toISOString() }).single(),
     supabase.rpc('get_month_top_artists', { p_user_id: user.id, p_start: start.toISOString(), p_end: end.toISOString(), p_limit: null }),
@@ -87,7 +88,12 @@ export default async function RecapPage({
     supabase.rpc('get_month_listened_albums', { p_user_id: user.id, p_start: start.toISOString(), p_end: end.toISOString(), p_limit: 5 }),
     supabase.rpc('get_month_discovered_artists', { p_user_id: user.id, p_start: start.toISOString(), p_end: end.toISOString() }),
     supabase.rpc('get_artist_discovery_history', { p_user_id: user.id }),
+    supabase.rpc('get_user_active_months', { p_user_id: user.id }),
   ])
+
+  type ActiveMonthRow = { month: string }
+  const activeMonths = ((activeMonthsRaw ?? []) as ActiveMonthRow[]).map(r => r.month.slice(0, 7))
+  const activeYears = [...new Set(activeMonths.map(m => m.slice(0, 4)))]
 
   type SummaryRow = { tracks_listened: number; hours_listened: number; artists_listened: number; albums_listened: number }
   const s = summaryRaw as SummaryRow | null
@@ -106,7 +112,7 @@ export default async function RecapPage({
     tracksListened: r.tracks_listened,
   }))
 
-  type FavoriteTrackRow = { track_deezer_id: number; rated_at: string }
+  type FavoriteTrackRow = { track_deezer_id: number; listened_at: string }
   const favTrackRows = (favoriteTrackRaw ?? []) as FavoriteTrackRow[]
   let favoriteTracks: FavoriteTrack[] = []
   if (favTrackRows.length > 0) {
@@ -137,8 +143,8 @@ export default async function RecapPage({
 
   type FavoriteAlbumRow = {
     album_deezer_id: number
-    album_rating: number
-    rated_at: string
+    album_rating: number | null
+    listened_at: string
     track_avg: number | null
     has_any_track_rating: boolean
   }
@@ -270,7 +276,7 @@ export default async function RecapPage({
   return (
     <div className="flex flex-col gap-6 flex-1">
       <Suspense>
-        <RecapPicker mode={mode} year={year} month={month} minYear={minYear} minMonth={minMonth} />
+        <RecapPicker mode={mode} year={year} month={month} minYear={minYear} minMonth={minMonth} activeMonths={activeMonths} activeYears={activeYears} />
       </Suspense>
 
       {isEmpty ? (
@@ -282,7 +288,7 @@ export default async function RecapPage({
           />
         ) : (
           <RecapEmptyState
-            message={<>Aucune écoute enregistrée <span className="text-text-green">{periodAt(mode, year, month)}</span>.</>}
+            message={<>Aucune écoute enregistrée en <span className="text-text-green font-bold">{periodAt(mode, year, month)}</span>.</>}
             ctaLabel="Voir le mois en cours"
             ctaHref="/dashboard/recap"
           />

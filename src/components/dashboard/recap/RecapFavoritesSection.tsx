@@ -30,7 +30,7 @@ export type FavoriteAlbum = {
   artistDeezerId: number
   coverXl: string
   recordType: string
-  albumRating: number
+  albumRating: number | null
   trackAvg: number | null
 }
 
@@ -47,7 +47,9 @@ function AlbumCard({ album }: { album: FavoriteAlbum }) {
   return (
     <RecapRow coverXl={album.coverXl} title={album.title} artistName={album.artistName} artistDeezerId={album.artistDeezerId}>
       <Star size={11} className="text-text-green fill-text-green" />
-      <span className={`${textStyles.caption} font-semibold text-text-primary`}>{album.albumRating.toFixed(1).replace('.', ',')}</span>
+      <span className={`${textStyles.caption} font-semibold text-text-primary`}>
+        {album.albumRating !== null ? album.albumRating.toFixed(1).replace('.', ',') : '—'}
+      </span>
       <div className="w-px h-3 bg-border flex-shrink-0" />
       <Star size={11} className="text-text-secondary fill-text-secondary" />
       <span className={`${textStyles.caption} text-text-secondary`}>

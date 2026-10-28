@@ -215,12 +215,46 @@
 
 ---
 
+## v1.11.0 ✅
+
+### Compte & Paramètres
+- Nouvelle page Paramètres : modification du pseudo et du mot de passe, suppression de compte
+- Validation en direct des formulaires (connexion, inscription, mot de passe oublié, réinitialisation) avec messages d'erreur clairs, à la place de la validation native du navigateur
+- Vérification de la disponibilité du pseudo avant l'inscription
+
+### Dashboard
+- Les noms d'artiste sont désormais cliquables dans les sections Accueil, Profil musical et Collection, et renvoient directement vers leur page
+
+### App & Technique
+- Icône de flèche animée sur les boutons d'action et de navigation, et effet de soulignement centré au survol des liens et du bouton de suppression de compte
+- Correction d'un nom d'artiste vide sur certains albums, causé par une course entre les appels artiste et albums Deezer
+- Correction d'un bug de cache : une sortie pas encore officiellement disponible chez Deezer (pré-sortie) pouvait rester bloquée avec des données incomplètes même une fois réellement sortie
+- Correction du bouton de déconnexion qui flottait sur la page Paramètres mobile
+- Ajout d'un bouton retour sur la page des mentions légales
+
+---
+
+## v1.12.0 ✅
+
+### Mon récap
+- Nouvel onglet "Mon récap" : résumé chiffré du mois ou de l'année, artiste du mois, favoris, écoutes et nouvelles découvertes, présentés sous forme de rétrospective
+- Mois et années sans aucune écoute non sélectionnables dans le calendrier, pour n'accéder qu'à des périodes avec du contenu
+- État dédié quand une période n'a aucune écoute, avec un message adapté selon qu'il s'agit de la période en cours ou d'une période passée
+- Favoris et écoutes du mois basés sur la date d'écoute (y compris rétroactive) plutôt que sur la date de notation, pour rester cohérents avec le reste de l'app
+- Un album/EP ne compte comme "écouté" dans le récap que lorsqu'il est entièrement coché, pas seulement un ou deux titres
+
+### App & Technique
+- Correction du point central du logo Discheck, légèrement désaxé sur l'icône du disque
+- Correction d'un débordement de texte sur certains titres/noms d'artiste affichés en miroir
+- Correction de la date de sortie corrigée manuellement (MusicBrainz) qui n'était pas prise en compte lors du cochage d'un album ou d'un titre, ni dans le raccourci "date de sortie" du calendrier d'écoute
+
+---
+
 ## v2.0 — Idées
 
 - Feed "Nouveautés" : nouvelles sorties des artistes suivis, triées par date
 - Badge "New" sur un artiste si nouvelle sortie depuis la dernière visite
 - Filtres avancés dans la discographie (par décennie, par note minimale)
-- Suppression de compte depuis les paramètres
 - Sélecteur de date personnalisé (thème + dark mode)
 
 ---
@@ -230,6 +264,5 @@
 - Profils publics et partage de discographie
 - Comparaison de progression avec d'autres utilisateurs
 - Recommandations basées sur les notes (artistes similaires bien notés)
-- Extraits audio 30s via Deezer preview (lecture sans quitter l'app)
 - Export de ses données (CSV / JSON)
 - Application mobile (iOS / Android)

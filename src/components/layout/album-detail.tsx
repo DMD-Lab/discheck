@@ -117,12 +117,16 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
   }, [album.id, onTracksLoaded])
 
   const releaseDate = (() => {
+    if (album.original_release_year) return String(album.original_release_year)
     if (album.release_date) {
       const [y, m, d] = album.release_date.split('-')
       return d && m && y ? `${d}/${m}/${y}` : album.release_date
     }
-    return album.original_release_year?.toString() ?? '—'
+    return '—'
   })()
+  const releaseDateIso = album.original_release_year
+    ? `${album.original_release_year}-01-01T00:00:00.000Z`
+    : album.release_date ? `${album.release_date}T00:00:00.000Z` : undefined
   const listenedCount = tracks.filter(t => listenedIds.has(t.id)).length
   const allListened = tracks.length > 0 && listenedCount === tracks.length
   const isSingleTrack = tracks.length === 1
@@ -337,7 +341,7 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
                   <DatePopover
                     currentDate={singleDate}
                     hasUserDate={!!singleMainDateEntry?.userDate}
-                    releaseDate={album.release_date ? `${album.release_date}T00:00:00.000Z` : undefined}
+                    releaseDate={releaseDateIso}
                     onSetDate={date => { if (singleTrack) onSetSingleDate(singleTrack.id, date); setShowAlbumDatePopover(false) }}
                     onClose={() => setShowAlbumDatePopover(false)}
                   />
@@ -412,7 +416,7 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
                   <DatePopover
                     currentDate={albumUserDate}
                     hasUserDate={!!albumListenedAtUser}
-                    releaseDate={album.release_date ? `${album.release_date}T00:00:00.000Z` : undefined}
+                    releaseDate={releaseDateIso}
                     onSetDate={date => { onSetAlbumDate(date); setShowAlbumDatePopover(false) }}
                     onClose={() => setShowAlbumDatePopover(false)}
                   />
@@ -488,7 +492,7 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
               rating={listenedIds.has(track.id) ? ratingMap.get(track.id) : undefined}
               listenedAt={(() => { const e = listenedDateMap.get(track.id); return e ? (e.userDate ?? e.checkDate) : undefined })()}
               listenedAtUser={listenedIds.has(track.id) ? (listenedDateMap.get(track.id)?.userDate ?? null) : undefined}
-              releaseDate={album.release_date ? `${album.release_date}T00:00:00.000Z` : undefined}
+              releaseDate={releaseDateIso}
               onToggle={() => onToggleTrack(track.id)}
               onRate={(r) => onRateTrack(track.id, r)}
               onRemoveRating={() => onRemoveTrackRating(track.id)}
