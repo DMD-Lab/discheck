@@ -259,6 +259,13 @@
 
 ---
 
+## v1.12.2 ✅
+
+### Mon récap
+- Correction des singles qui apparaissaient à tort dans les favoris et les écoutes du mois/année, alors que ces sections ne concernent que les albums et EP
+
+---
+
 ## v2.0 — Idées
 
 - Feed "Nouveautés" : nouvelles sorties des artistes suivis, triées par date

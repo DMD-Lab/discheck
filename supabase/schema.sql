@@ -297,7 +297,8 @@ LANGUAGE sql STABLE AS $$
   user_listened AS (
     SELECT lt.album_deezer_id, lt.track_deezer_id, COALESCE(lt.listened_at_user, lt.listened_at) AS effective_at
     FROM listened_tracks lt
-    WHERE lt.user_id = p_user_id AND lt.album_deezer_id IS NOT NULL
+    JOIN cached_albums ca ON ca.album_deezer_id = lt.album_deezer_id
+    WHERE lt.user_id = p_user_id AND lt.album_deezer_id IS NOT NULL AND ca.record_type IN ('album', 'ep')
   ),
   album_progress AS (
     SELECT ul.album_deezer_id, COUNT(DISTINCT ul.track_deezer_id) AS listened_count, MAX(ul.effective_at) AS derived_date
@@ -376,12 +377,16 @@ RETURNS TABLE(
 )
 LANGUAGE sql STABLE AS $$
   WITH candidate_albums AS (
-    SELECT DISTINCT album_deezer_id FROM album_ratings WHERE user_id = p_user_id AND rating IS NOT NULL
+    SELECT DISTINCT ar.album_deezer_id
+    FROM album_ratings ar
+    JOIN cached_albums ca ON ca.album_deezer_id = ar.album_deezer_id
+    WHERE ar.user_id = p_user_id AND ar.rating IS NOT NULL AND ca.record_type IN ('album', 'ep')
     UNION
     SELECT DISTINCT ct.album_deezer_id
     FROM track_ratings tr
     JOIN cached_tracks ct ON ct.track_deezer_id = tr.track_deezer_id
-    WHERE tr.user_id = p_user_id
+    JOIN cached_albums ca ON ca.album_deezer_id = ct.album_deezer_id
+    WHERE tr.user_id = p_user_id AND ca.record_type IN ('album', 'ep')
   ),
   album_tracks AS (
     SELECT ct.album_deezer_id, ct.track_deezer_id
@@ -524,7 +529,8 @@ LANGUAGE sql STABLE AS $$
   WITH user_listened AS (
     SELECT lt.album_deezer_id, lt.track_deezer_id, COALESCE(lt.listened_at_user, lt.listened_at) AS effective_at
     FROM listened_tracks lt
-    WHERE lt.user_id = p_user_id AND lt.album_deezer_id IS NOT NULL
+    JOIN cached_albums ca ON ca.album_deezer_id = lt.album_deezer_id
+    WHERE lt.user_id = p_user_id AND lt.album_deezer_id IS NOT NULL AND ca.record_type IN ('album', 'ep')
   ),
   album_progress AS (
     SELECT ul.album_deezer_id, COUNT(DISTINCT ul.track_deezer_id) AS listened_count, MAX(ul.effective_at) AS derived_date
