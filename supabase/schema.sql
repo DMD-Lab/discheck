@@ -19,6 +19,7 @@ CREATE TABLE cached_albums (
   album_data            jsonb NOT NULL,
   cached_at             timestamptz NOT NULL DEFAULT now(),
   original_release_year smallint,
+  original_release_date date,
   record_type           text,
   genre_id              integer,
   title                 text,

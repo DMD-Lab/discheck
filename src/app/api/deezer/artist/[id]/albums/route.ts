@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getArtist, getArtistDiscography } from '@/lib/deezer/api'
 import { supabaseAdmin } from '@/lib/supabase/admin'
-import { searchArtistMbid, getArtistReleaseGroups, matchReleaseYear } from '@/lib/musicbrainz/api'
+import { searchArtistMbid, getArtistReleaseGroups, matchRelease } from '@/lib/musicbrainz/api'
 
 async function resolveArtistName(artistId: number): Promise<string | null> {
   const { data } = await supabaseAdmin
@@ -52,10 +52,10 @@ export async function GET(
   const today = new Date()
   today.setUTCHours(0, 0, 0, 0)
 
-  // Lire le cache — albums du jour + original_release_year déjà enrichis
+  // today's cache
   const { data: cached } = await supabaseAdmin
     .from('cached_albums')
-    .select('album_data, original_release_year, cached_at')
+    .select('album_data, original_release_year, original_release_date, cached_at')
     .eq('artist_deezer_id', artistId)
     .gte('cached_at', today.toISOString())
 
@@ -67,6 +67,7 @@ export async function GET(
       data: cached.map(r => ({
         ...r.album_data,
         original_release_year: r.original_release_year ?? null,
+        original_release_date: r.original_release_date ?? null,
       })),
     })
   }
@@ -77,14 +78,15 @@ export async function GET(
   ])
 
   const yearMap = new Map<number, number | null>()
+  const dateMap = new Map<number, string | null>()
 
-  // exclude unreleased albums (deezer pre-release placeholders)
+  // exclude pre-release placeholders
   if (fresh.data) {
     const todayStr = today.toISOString().slice(0, 10)
     fresh.data = fresh.data.filter(album => album.release_date <= todayStr)
   }
 
-  // Dédupliquer par titre — garder l'entrée avec la date la plus ancienne
+  // dedupe by title, keep earliest
   if (fresh.data) {
     const seen = new Map<string, typeof fresh.data[0]>()
     fresh.data.forEach(album => {
@@ -98,29 +100,35 @@ export async function GET(
   }
 
   if (fresh.data?.length) {
-    // Récupérer les original_release_year et artist_name déjà connus pour ne pas les écraser
+    // preserve existing values
     const { data: existing } = await supabaseAdmin
       .from('cached_albums')
-      .select('album_deezer_id, original_release_year, artist_name')
+      .select('album_deezer_id, original_release_year, original_release_date, artist_name')
       .eq('artist_deezer_id', artistId)
 
-    ;(existing ?? []).forEach(r => yearMap.set(r.album_deezer_id, r.original_release_year))
+    ;(existing ?? []).forEach(r => {
+      yearMap.set(r.album_deezer_id, r.original_release_year)
+      dateMap.set(r.album_deezer_id, r.original_release_date)
+    })
     const existingArtistName = (existing ?? []).find(r => r.artist_name)?.artist_name ?? null
 
-    // Enrichir avec MusicBrainz si des albums n'ont pas encore d'année
-    const albumsMissingYear = fresh.data.filter(a => !yearMap.get(a.id))
-    if (albumsMissingYear.length > 0 && artistName) {
+    // retry if year or date missing
+    const albumsMissingData = fresh.data.filter(a => !yearMap.get(a.id) || !dateMap.get(a.id))
+    if (albumsMissingData.length > 0 && artistName) {
       try {
         const mbid = await searchArtistMbid(artistName)
         if (mbid) {
           const releaseGroups = await getArtistReleaseGroups(mbid)
-          albumsMissingYear.forEach(album => {
-            const year = matchReleaseYear(album.title, releaseGroups)
-            if (year) yearMap.set(album.id, year)
+          albumsMissingData.forEach(album => {
+            const release = matchRelease(album.title, album.record_type, releaseGroups)
+            if (release) {
+              yearMap.set(album.id, release.year)
+              dateMap.set(album.id, release.date)
+            }
           })
         }
       } catch {
-        // MusicBrainz indisponible (ou timeout, cf. TIMEOUT_MS) — on continue avec les données Deezer
+        // MusicBrainz fallback
       }
     }
 
@@ -133,6 +141,7 @@ export async function GET(
           album_data: album,
           cached_at: new Date().toISOString(),
           original_release_year: yearMap.get(album.id) ?? null,
+          original_release_date: dateMap.get(album.id) ?? null,
           title: album.title,
           cover_xl: album.cover_xl,
           artist_name: artistName ?? existingArtistName,
@@ -151,6 +160,7 @@ export async function GET(
     data: (fresh.data ?? []).map(album => ({
       ...album,
       original_release_year: yearMap.get(album.id) ?? null,
+      original_release_date: dateMap.get(album.id) ?? null,
     })),
   })
 }

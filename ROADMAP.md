@@ -250,6 +250,15 @@
 
 ---
 
+## v1.12.1 ✅
+
+### App & Technique
+- La date de sortie corrigée par MusicBrainz utilise désormais le jour et le mois exacts quand ils sont disponibles, pas seulement l'année
+- Correction d'un mauvais rapprochement MusicBrainz qui pouvait associer un album à un single ou une compilation du même nom, perdant silencieusement la précision de la date
+- Plus de date fabriquée (1er janvier) quand seule l'année est connue : la date Deezer réelle est utilisée en repli
+
+---
+
 ## v2.0 — Idées
 
 - Feed "Nouveautés" : nouvelles sorties des artistes suivis, triées par date

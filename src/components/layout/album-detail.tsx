@@ -116,16 +116,21 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
       })
   }, [album.id, onTracksLoaded])
 
+  // never a bare year
   const releaseDate = (() => {
-    if (album.original_release_year) return String(album.original_release_year)
+    if (album.original_release_date) {
+      const [y, m, d] = album.original_release_date.split('-')
+      return `${d}/${m}/${y}`
+    }
     if (album.release_date) {
       const [y, m, d] = album.release_date.split('-')
       return d && m && y ? `${d}/${m}/${y}` : album.release_date
     }
     return '—'
   })()
-  const releaseDateIso = album.original_release_year
-    ? `${album.original_release_year}-01-01T00:00:00.000Z`
+  // never a fabricated date
+  const releaseDateIso = album.original_release_date
+    ? `${album.original_release_date}T00:00:00.000Z`
     : album.release_date ? `${album.release_date}T00:00:00.000Z` : undefined
   const listenedCount = tracks.filter(t => listenedIds.has(t.id)).length
   const allListened = tracks.length > 0 && listenedCount === tracks.length
@@ -139,7 +144,7 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
     wasAllListened.current = allListened
     if (prev === false && allListened) {
       if (!isSingleTrack && !albumRating) {
-        // wait for the CD completion animation to settle first
+        // wait for CD animation
         setTimeout(() => setShowRatingModal(true), 550)
       }
     }
@@ -227,7 +232,6 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
 
   return (
     <>
-      {/* Header with blurred cover */}
       <div className="relative flex-shrink-0 overflow-hidden">
         <Image
           src={album.cover_xl}
@@ -270,7 +274,6 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
         </div>
       </div>
 
-      {/* Stats area */}
       {loading && (
         <div className="px-4 py-3 border-b border-border flex-shrink-0">
           <div className={`grid ${album.record_type === 'single' ? 'grid-cols-3' : 'grid-cols-4'} gap-2`}>
@@ -285,10 +288,8 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
 
           {isSingleTrack ? (
 
-            /* 3 widgets */
             <div className="grid grid-cols-3 gap-2">
 
-              {/* Écouté */}
               <div
                 className="flex flex-col items-center justify-center gap-1 max-sm:gap-0.5 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 max-sm:py-2 transition-colors"
                 style={allListened ? { borderColor: 'var(--primary)' } : undefined}
@@ -302,7 +303,6 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
                 </span>
               </div>
 
-              {/* Note attribuée */}
               <button
                 onClick={() => setShowRatingModal(true)}
                 className={`flex flex-col items-center justify-center gap-1 max-sm:gap-0.5 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 max-sm:py-2 transition-colors w-full ${allListened ? 'hover:bg-bg-tertiary' : 'pointer-events-none'}`}
@@ -317,7 +317,7 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
                 </span>
               </button>
 
-              {/* Date — widget cliquable, même logique que album/EP */}
+              {/* same as album/EP */}
               <div className="relative">
                 <button
                   onClick={() => { if (allListened) setShowAlbumDatePopover(prev => !prev) }}
@@ -351,10 +351,8 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
 
           ) : (
 
-            /* 4 widgets */
             <div className="grid grid-cols-4 gap-2">
 
-              {/* Écoutés X/X */}
               <div
                 className="flex flex-col items-center justify-center gap-1 max-sm:gap-0.5 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 max-sm:py-2 transition-colors"
                 style={allListened ? { borderColor: 'var(--primary)' } : undefined}
@@ -366,7 +364,6 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
                 <span className={`${textStyles.statSm} ${listenedCount > 0 ? 'text-text-primary' : 'text-text-disabled'}`}>{listenedCount}/{tracks.length}</span>
               </div>
 
-              {/* Note moy. tracks */}
               <div className="flex flex-col items-center justify-center gap-1 max-sm:gap-0.5 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 max-sm:py-2">
                 <div className="flex items-center gap-1 max-sm:flex-col max-sm:gap-0.5">
                   <Star size={13} className={`max-sm:w-3 max-sm:h-3 ${avgRating !== null ? '' : 'text-text-disabled'}`} style={avgRating !== null ? { color: RATING_COLORS[Math.floor(avgRating)], fill: RATING_COLORS[Math.floor(avgRating)] } : undefined} />
@@ -377,7 +374,7 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
                 </span>
               </div>
 
-              {/* Note attribuée — clicable uniquement si tous les tracks sont cochés */}
+              {/* only if fully listened */}
               <button
                 onClick={() => setShowRatingModal(true)}
                 className={`flex flex-col items-center justify-center gap-1 max-sm:gap-0.5 rounded-xl border border-border bg-bg-secondary/50 px-2 py-3 max-sm:py-2 transition-colors w-full ${allListened ? 'hover:bg-bg-tertiary' : 'pointer-events-none'}`}
@@ -392,7 +389,6 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
                 </span>
               </button>
 
-              {/* Date — widget cliquable */}
               <div className="relative">
                 <button
                   onClick={() => { if (allListened) setShowAlbumDatePopover(prev => !prev) }}
@@ -429,7 +425,6 @@ export default function AlbumDetail({ album, artistName, listenedIds, ratingMap,
         </div>
       )}
 
-      {/* Track list */}
       <div className="flex-1 overflow-y-auto">
         {!loading && discCount <= 1 && tracks.length > 1 && (
           <div className="flex items-center px-4 py-2.5">

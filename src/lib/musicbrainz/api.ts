@@ -48,22 +48,33 @@ export async function getArtistReleaseGroups(mbid: string): Promise<MBReleaseGro
   return results
 }
 
-export function matchReleaseYear(
+export function matchRelease(
   albumTitle: string,
+  recordType: string,
   releaseGroups: MBReleaseGroup[]
-): number | null {
-  // keep non-latin chars — ascii-only regex collapsed CJK titles to '', causing false matches
+): { year: number; date: string | null } | null {
+  // keep non-latin chars
   const normalize = (s: string) =>
     s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '')
 
   const normalizedTitle = normalize(albumTitle)
   if (!normalizedTitle) return null
 
-  const match = releaseGroups.find(
+  // title alone is ambiguous
+  const candidates = releaseGroups.filter(
     rg => normalize(rg.title) === normalizedTitle
+      && rg['primary-type']?.toLowerCase() === recordType.toLowerCase()
   )
+  if (candidates.length === 0) return null
 
-  if (!match?.['first-release-date']) return null
-  const year = parseInt(match['first-release-date'].slice(0, 4), 10)
-  return isNaN(year) ? null : year
+  // prefer canonical release
+  const match = candidates.find(rg => (rg['secondary-types']?.length ?? 0) === 0) ?? candidates[0]
+
+  const raw = match['first-release-date']
+  if (!raw) return null
+  const year = parseInt(raw.slice(0, 4), 10)
+  if (isNaN(year)) return null
+  // day-level precision only
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : null
+  return { year, date }
 }
